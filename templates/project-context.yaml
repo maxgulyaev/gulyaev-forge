@@ -1,0 +1,52 @@
+# Project Context Template
+# Copy to: <project-root>/.claude/pipeline/project-context.yaml
+# Fill in project-specific values
+
+project:
+  name: ""                    # e.g. "spodi"
+  description: ""             # One-line description
+  stage: "mvp"                # mvp | growth | scale | mature
+  repo: ""                    # GitHub URL
+
+stack:
+  backend: []                 # e.g. [go, fiber, postgresql, redis]
+  frontend: []                # e.g. [nextjs, react, tailwind]
+  mobile: []                  # e.g. [swiftui, swiftdata]
+  infra: []                   # e.g. [docker, yandex-cloud]
+  ai: []                      # e.g. [python, fastapi, gemini]
+
+deploy:
+  current: "single_vm"        # single_vm | blue_green | canary_alb | kubernetes
+  environments:
+    staging: ""               # URL or description
+    production: ""            # URL or description
+
+metrics:
+  baseline: ""                # Path to metrics baseline doc
+  analytics_provider: ""      # posthog | amplitude | custom
+  monitoring_provider: ""     # sentry | grafana | custom
+
+# Which files to inject as context B for each pipeline stage
+stages:
+  strategy:
+    inject: []
+  discovery:
+    inject: []
+  prd:
+    inject: []
+  design:
+    inject: []
+  architecture:
+    inject: []
+  implementation:
+    inject: []
+  test_plan:
+    inject: []
+  qa:
+    inject: []
+  deploy:
+    inject: []
+  product_analytics:
+    inject: []
+  tech_monitoring:
+    inject: []
