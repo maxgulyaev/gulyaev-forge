@@ -8,13 +8,49 @@
 ## Концепция
 
 Полный product loop где каждый этап выполняет специализированный AI-агент.
+**Агент-агностичная архитектура** — работает с любым AI-агентом (Claude Code, Cursor, Codex CLI, Windsurf, Jules, Copilot и др.).
+
 Каждый агент получает два типа контекста:
-- **A (экспертиза этапа)** — skill с best practices, фреймворками, паттернами
-- **B (контекст проекта)** — стратегия, бэклог, метрики, текущее состояние конкретного продукта
+- **A (экспертиза этапа)** — skill с best practices из forge, заточенный под роль агента
+- **B (контекст проекта)** — **отфильтрованный под роль** срез проекта (не весь проект, а только то что нужно для этого этапа)
 
 Pipeline работает через **гейты** — между этапами человек ревьюит и аппрувит.
 
 Аналогия: **gulyaev-forge — это завод**. Завод производит продукты (PRODUCT) и модернизирует собственные станки (SELF).
+
+### Принцип: агент-работник приходит на проект
+
+```
+FORGE (завод)                          PROJECT (объект)
+─────────────                          ────────────────
+core/skills/prd/                       .forge/
+  - Как писать PRD (A-знания)            config.yaml (агенты, этапы)
+  - Лучшие практики                      context/ (или ссылки на docs/)
+  - Шаблоны, чеклисты                     - strategy, backlog, research...
+
+adapters/                              docs/
+  - claude-code/                         strategy/, prd/, architecture/...
+  - cursor/
+  - codex/
+  - windsurf/
+  - jules/
+  - copilot/
+
+         │                                      │
+         └──────────┐              ┌────────────┘
+                    ▼              ▼
+              ┌──────────────────────────┐
+              │   Агент [роль]           │
+              │                          │
+              │ A: Экспертиза роли       │ ← forge/core/skills/[stage]
+              │ B: Контекст под роль     │ ← project/.forge/ (filtered)
+              │ C: MCP/инструменты       │ ← forge + локальные
+              │                          │
+              │ → Создаёт артефакт       │
+              └──────────────────────────┘
+```
+
+Forge добавляет в проект **только** `.forge/` — никаких копий знаний, скиллов, best practices. Всё A-знание читается из forge напрямую.
 
 ---
 
@@ -441,31 +477,227 @@ forge init --project ./spodi
 
 ---
 
-## Контекст B: Project Context Injection
+## Агент-агностичная архитектура
 
-Каждый проект содержит набор файлов которые инжектятся в агента:
+### Проблема
+Привязка к одному AI-агенту (Claude Code) ограничивает. Пользователь может работать с разными агентами и моделями параллельно.
+
+### Решение: трёхслойная архитектура
+
+```
+gulyaev-forge/
+  core/                          # Универсальные знания (чистый markdown)
+    skills/                      # A-контексты по ролям
+      strategy/SKILL.md
+      discovery/SKILL.md
+      prd/SKILL.md
+      design/SKILL.md
+      architecture/SKILL.md
+      ...
+    pipeline/                    # Описание этапов, гейтов, процессов
+    templates/                   # Шаблоны артефактов (gate, PRD, arch doc...)
+    registry/                    # Каталог скиллов/MCP
+
+  adapters/                      # Перевод core → формат агента
+    claude-code/                 # .claude/ + SKILL.md + CLAUDE.md
+    cursor/                      # .cursor/rules/ + .cursorrules
+    codex/                       # AGENTS.md
+    windsurf/                    # .windsurfrules
+    copilot/                     # .github/copilot-instructions.md
+    jules/                       # Google Jules format
+    cline/                       # .clinerules
+    aider/                       # .aider.conf.yml
+
+  docs/                          # Design docs, roadmap
+```
+
+### Как адаптер работает
+
+Каждый адаптер знает:
+1. **Формат инструкций** агента (куда и как класть правила)
+2. **Механизм подключения** скиллов (plugin, file, config)
+3. **Способ инжекции контекста** (CLAUDE.md, .cursorrules, AGENTS.md...)
+
+```
+forge init --project ./spodi
+
+Какие агенты используешь?
+  [x] Claude Code
+  [x] Cursor
+  [ ] Codex CLI
+  [ ] Windsurf
+  [ ] Jules
+  [ ] Other
+
+Генерирую конфиги...
+  ✅ .claude/skills/ → pipeline skills (Claude Code)
+  ✅ .cursor/rules/ → pipeline rules (Cursor)
+  ✅ .forge/config.yaml → project config
+```
+
+Добавить агента позже: `forge adapter add codex`
+
+### Core format
+
+Ядро — чистый markdown. Любой AI-агент может прочитать markdown.
+Адаптер оборачивает его в нативный формат агента, но суть не меняется.
+
+---
+
+## Роль-ориентированная фильтрация контекста (B)
+
+### Принцип
+Агент получает **не весь контекст проекта**, а **срез под свою роль**. PRD-агент не видит deploy-конфиг. Architecture-агент не видит market research.
+
+### Пример: PRD-агент в проекте Spodi
+
+```
+Агент PRD приходит на проект
+    │
+    ▼
+Читает forge/core/skills/prd/        ← A: "Я PRD-специалист"
+    │
+    ▼
+Читает project/.forge/config.yaml    ← "Какой проект? Spodi"
+    │
+    ▼
+Смотрит stages.prd.inject:           ← "Для PRD мне нужны:"
+    ✅ docs/strategy/current.md          стратегия
+    ✅ docs/research/latest.md           последний рисёрч
+    ✅ docs/BACKLOG.md                   бэклог
+    ✅ docs/analytics/baseline.md        метрики
+
+    ❌ docs/architecture/*               НЕ моя зона
+    ❌ docs/runbooks/*                   НЕ моя зона
+    ❌ CLAUDE.md (код-стайл)             НЕ моя зона
+    ❌ deploy-config.yaml                НЕ моя зона
+```
+
+### Пример: Architecture-агент в том же проекте
+
+```
+stages.architecture.inject:
+    ✅ docs/prd/current.md               что строим
+    ✅ docs/design/current.md            как выглядит
+    ✅ CLAUDE.md                         стек, ограничения
+    ✅ docs/strategy/current.md          масштаб, куда идём
+
+    ❌ docs/research/*                   НЕ моя зона
+    ❌ docs/analytics/*                  НЕ моя зона
+```
+
+### Формат config.yaml
 
 ```yaml
-# project-context.yaml
-project: spodi
+# project/.forge/config.yaml
+project:
+  name: spodi
+  description: "Fitness tracking ecosystem"
+  repo: https://github.com/maxgulyaev/spodi
+
+agents:
+  - claude-code
+  - cursor                          # Какие агенты используются
+
 stages:
   strategy:
-    inject: [docs/strategy/current.md, docs/analytics/metrics-baseline.md, docs/BACKLOG.md]
+    inject:
+      required:                     # Всегда подгружать
+        - docs/strategy/current.md
+        - docs/analytics/baseline.md
+        - docs/BACKLOG.md
+      if_exists:                    # Подгрузить если есть
+        - docs/analytics/last-report.md
+
   discovery:
-    inject: [docs/strategy/current.md, docs/strategy/target-audience.md]
+    inject:
+      required:
+        - docs/strategy/current.md
+      search:                       # Найти по паттерну
+        - "docs/research/*.md | latest 3"
+
   prd:
-    inject: [docs/strategy/current.md, docs/BACKLOG.md, docs/research/latest.md]
+    inject:
+      required:
+        - docs/strategy/current.md
+        - docs/BACKLOG.md
+      if_exists:
+        - docs/research/latest.md
+        - docs/analytics/baseline.md
+
   design:
-    inject: [docs/prd/current.md, docs/design/brand-guidelines.md, docs/design/design-system.md]
+    inject:
+      required:
+        - docs/prd/current.md
+      if_exists:
+        - docs/design/brand-guidelines.md
+        - docs/design/design-system.md
+
   architecture:
-    inject: [docs/prd/current.md, docs/design/current.md, CLAUDE.md]
+    inject:
+      required:
+        - docs/prd/current.md
+        - CLAUDE.md
+      if_exists:
+        - docs/design/current.md
+        - docs/strategy/current.md
+
   implementation:
-    inject: [docs/architecture/current.md, CLAUDE.md, docs/prd/test-plan.md]
+    inject:
+      required:
+        - docs/architecture/current.md
+        - CLAUDE.md
+      if_exists:
+        - docs/prd/test-plan.md
+
+  test_plan:
+    inject:
+      required:
+        - docs/prd/current.md
+      if_exists:
+        - docs/architecture/current.md
+
+  qa:
+    inject:
+      required:
+        - docs/prd/current.md
+      if_exists:
+        - docs/architecture/current.md
+
+  staging_deploy:
+    inject:
+      required:
+        - docs/runbooks/deploy-config.md
+
+  canary_deploy:
+    inject:
+      required:
+        - docs/runbooks/deploy-config.md
+      if_exists:
+        - docs/analytics/baseline.md
+
   product_analytics:
-    inject: [docs/strategy/current.md, docs/analytics/metrics-baseline.md, docs/prd/current.md]
+    inject:
+      required:
+        - docs/strategy/current.md
+        - docs/prd/current.md
+      if_exists:
+        - docs/analytics/baseline.md
+
   tech_monitoring:
-    inject: [docs/analytics/metrics-baseline.md, docs/runbooks/deploy-config.md]
+    inject:
+      required:
+        - docs/runbooks/deploy-config.md
+      if_exists:
+        - docs/analytics/baseline.md
+        - docs/sla/current.md
 ```
+
+### Правила фильтрации
+1. **required** — без этих файлов агент не стартует (ошибка + подсказка что создать)
+2. **if_exists** — подгрузить если файл есть, не ломаться если нет
+3. **search** — найти по glob-паттерну (полезно для research/*.md — взять последние N)
+4. Агент **никогда не читает** файлы вне своего inject-списка для принятия решений
 
 ---
 
@@ -520,18 +752,18 @@ stages:
 ---
 
 ### Phase 0: Фундамент
-> Цель: репа gulyaev-forge + базовая инфраструктура
+> Цель: репа gulyaev-forge + core + первый адаптер
 
-- [x] **0.1** Создать репу `gulyaev-forge` со структурой
-- [ ] **0.2** Перенести design doc из Spodi в forge
-- [ ] **0.3** Установить и настроить ключевые MCP серверы:
-  - Context7 (свежие доки библиотек → этапы Architecture, Implementation)
-  - Playwright MCP (браузерное тестирование → этап Automated QA)
-  - Figma MCP (если используется Figma → этап Design)
-- [ ] **0.4** Реализовать `/init` — scaffolding скилл
-- [ ] **0.5** Создать шаблон `project-context.yaml`
-- [ ] **0.6** Обкатать `/init` на Spodi — подбить под стандартную структуру
-- [ ] **0.7** Создать мастер-skill `/pipeline` — точка входа, знает этапы и порядок
+- [x] **0.1** Создать репу `gulyaev-forge`
+- [x] **0.2** Перенести design doc из Spodi в forge
+- [ ] **0.3** Реструктурировать репу: `core/` + `adapters/` + `docs/`
+- [ ] **0.4** Написать core skills (чистый markdown) для первых 3 этапов
+- [ ] **0.5** Написать адаптер `claude-code` (первый адаптер)
+- [ ] **0.6** Реализовать `/init` — scaffolding + `.forge/config.yaml` в проекте
+- [ ] **0.7** Создать шаблон `config.yaml` с роль-ориентированной фильтрацией
+- [ ] **0.8** Установить ключевые MCP серверы (Context7, Playwright)
+- [ ] **0.9** Обкатать `/init` на Spodi
+- [ ] **0.10** Создать мастер-skill `/pipeline` — точка входа
 
 ### Phase 1: Первые 3 этапа (Strategy → Discovery → PRD)
 > Цель: product-часть pipeline работает end-to-end

@@ -1,68 +1,79 @@
 # gulyaev-forge
 
 ## What is this
-AI-driven SDLC pipeline — a "factory" for building products.
+Agent-agnostic AI-driven SDLC pipeline — a "factory" for building products.
+Works with any AI coding agent (Claude Code, Cursor, Codex, Windsurf, Jules, Copilot, etc.).
+
 Two operating modes: PRODUCT (work on products) and SELF (work on the forge itself).
+
+## Architecture: Three Layers
+
+### Core (universal, agent-agnostic)
+`core/` — pure markdown knowledge that any agent can read:
+- `core/skills/` — A-context: expertise per pipeline stage (how to write PRD, how to architect, etc.)
+- `core/pipeline/` — stage definitions, gate format, orchestration rules
+- `core/templates/` — artifact templates (PRD, arch doc, gate report, config.yaml...)
+- `core/registry/` — catalog of known skills and MCP servers
+
+### Adapters (agent-specific)
+`adapters/` — translate core into agent-native format:
+- `adapters/claude-code/` — .claude/ structure, SKILL.md format
+- `adapters/cursor/` — .cursorrules, .cursor/rules/
+- `adapters/codex/` — AGENTS.md
+- etc.
+
+### Project footprint
+What forge adds to each project — ONLY `.forge/`:
+```
+project/.forge/
+  config.yaml    # Agents used, stage context injection (role-filtered)
+```
+No skills, no knowledge copies. Agents read A-context from forge directly.
+
+## Role-Oriented Context Filtering
+
+Each pipeline agent receives ONLY the project context relevant to its role:
+- PRD agent → strategy + backlog + research (NOT deploy config, NOT code style)
+- Architecture agent → PRD + design + tech stack (NOT market research)
+- QA agent → PRD acceptance criteria + staging URL (NOT strategy)
+
+Filtering is defined in `project/.forge/config.yaml` under `stages.[name].inject`.
 
 ## Two Operating Modes
 
 ### PRODUCT — work on a product
-Triggered by: feature requests, bug reports, new project ideas, pivots, analytics questions.
-Context: loads from the target project's `project-context.yaml`.
-Artifacts: saved in the target project's repo.
+Triggered by: feature requests, bug reports, new project ideas, pivots, analytics.
+Context: target project's `.forge/config.yaml` + forge core skills.
 
-Sub-modes:
-- **New Project** — full pipeline from Strategy, includes `/init` scaffolding
-- **Feature / Bug** — enters pipeline at the appropriate stage
-- **Pivot** — Strategy with focus on direction change, cascading updates
-- **Analytics** — product/tech metrics analysis, continue/amplify/pivot/kill
-- **Dashboard** — status across all projects
+Sub-modes: New Project, Feature/Bug, Pivot, Analytics, Dashboard
 
 ### SELF — work on the forge
 Triggered by: new tools/skills/MCP, pipeline improvements, retrospectives.
 Context: this repo.
-Artifacts: saved here.
 
-Sub-modes:
-- **Scout** — evaluate new technology (adopt/trial/assess/hold)
-- **Meta** — improve pipeline, create/update skills
-- **Upgrade** — update models, CLI, MCP versions
-- **Retrospective** — analyze what works/doesn't, improve processes
+Sub-modes: Scout, Meta, Upgrade, Retrospective
 
-## Pipeline Stages (PRODUCT mode)
+## Pipeline Stages
 
 0. Strategy → 1. Discovery → 2. PRD → 3. Design → 4. Architecture →
 5. Test Plan → 6. Implementation → 7. Test Coverage → 8. Automated QA →
 9. Staging Deploy → 10. Canary Deploy → 11. Product Analytics → 12. Tech Monitoring
 → loops back to Strategy
 
-## Architecture: A + B Context Injection
-
-Each pipeline agent receives:
-- **A (expertise)** — skill from `skills/pipeline-*/` with best practices for that stage
-- **B (project)** — project-specific context from `project-context.yaml`
-
 ## Gate Format
 
 Every gate between stages contains:
-1. **Summary** — 3-5 bullets, recommendation (go/concerns/stop), question for approval
+1. **Summary** — 3-5 bullets, recommendation (go/concerns/stop), approval question
 2. **Detailed** — full artifact, review checklist, trade-offs, diff
-3. **Rollback Plan** — affected files/migrations/deploys, rollback commands, pre-state reference
+3. **Rollback Plan** — affected files, rollback commands, pre-state reference
 
 ## Key Rules
 - NEVER skip gates — always wait for human approval
-- NEVER deploy without explicit user OK
-- Every artifact is saved to the project's standard directory structure
-- When evaluating new tech (Scout), always give a clear verdict with reasoning
-- Pipeline is generic — works for any project, specifics come from project-context.yaml
-
-## File Structure
-```
-skills/          — Pipeline stage skills (A-context)
-templates/       — Scaffolding templates, gate templates
-docs/            — Design docs, roadmap
-registry/        — Skill & MCP catalog
-```
+- Agents read A-knowledge from forge, B-context from project (filtered by role)
+- Core knowledge is pure markdown — agent-agnostic
+- Adapters translate to native format but never change the substance
+- When evaluating new tech (Scout), give clear verdict: adopt/trial/assess/hold
+- Technology Scout: research → evaluate → recommend → implement (after OK)
 
 ## Design Doc
 Full design and roadmap: `docs/design.md`
