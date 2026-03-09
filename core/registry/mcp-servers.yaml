@@ -1,0 +1,146 @@
+# MCP Server Registry
+# Known MCP servers that can enhance pipeline stages
+
+# === VERIFIED & RECOMMENDED ===
+
+- name: context7
+  type: mcp
+  description: Pulls up-to-date library/framework documentation into agent context
+  url: https://github.com/upstash/context7
+  stages: [architecture, implementation]
+  verdict: adopt
+  install: "npx @upstash/context7-mcp"
+  notes: "Eliminates hallucinated API calls from outdated training data"
+
+- name: playwright
+  type: mcp
+  description: Browser automation — navigate, click, screenshot, test user flows
+  url: https://github.com/anthropics/anthropic-mcp-servers
+  stages: [qa, design]
+  verdict: adopt
+  install: "npx @anthropic-ai/mcp-server-playwright"
+  notes: "Core tool for automated QA stage. Also useful for visual validation in Design."
+
+- name: github
+  type: mcp
+  description: GitHub API — issues, PRs, project boards, code search
+  url: https://github.com/modelcontextprotocol/servers
+  stages: [strategy, discovery, implementation]
+  verdict: adopt
+  install: "npx @modelcontextprotocol/server-github"
+  env: { GITHUB_PERSONAL_ACCESS_TOKEN: "..." }
+  notes: "Spec-to-issue bridge. Track pipeline state via GitHub Projects."
+
+- name: git
+  type: mcp
+  description: Git operations — commit history, branch context, diffs
+  url: https://github.com/modelcontextprotocol/servers
+  stages: [implementation, staging-deploy]
+  verdict: assess
+  install: "npx @modelcontextprotocol/server-git"
+  notes: "Claude Code already has native git support. Assess if MCP adds value."
+
+- name: figma
+  type: mcp
+  description: Read/inspect Figma designs — frames, components, design tokens
+  url: https://github.com/nichochar/figma-mcp
+  stages: [design]
+  verdict: trial
+  install: "npx figma-mcp"
+  env: { FIGMA_ACCESS_TOKEN: "..." }
+  notes: "Trial on one project first. Useful if team uses Figma."
+
+- name: sentry
+  type: mcp
+  description: Error tracking — issues, stack traces, user impact, release health
+  url: https://github.com/getsentry/sentry-mcp
+  stages: [tech-monitoring, qa]
+  verdict: adopt
+  install: "npx @sentry/mcp-server"
+  notes: "Essential for tech monitoring stage. Also useful for QA regression detection."
+
+# === ASSESS (interesting, needs evaluation) ===
+
+- name: firecrawl
+  type: mcp
+  description: Web scraping and crawling — extract structured data from websites
+  url: https://github.com/anthropics/anthropic-mcp-servers
+  stages: [discovery]
+  verdict: assess
+  install: "npx firecrawl-mcp"
+  notes: "Could enhance competitor research in Discovery. Assess quality vs WebFetch."
+
+- name: postgres
+  type: mcp
+  description: Direct PostgreSQL access — query, schema inspection
+  url: https://github.com/modelcontextprotocol/servers
+  stages: [architecture, implementation]
+  verdict: assess
+  install: "npx @modelcontextprotocol/server-postgres"
+  notes: "Useful for architecture stage to inspect current schema. Security review needed."
+
+- name: memory
+  type: mcp
+  description: Persistent memory across sessions — knowledge graph
+  url: https://github.com/modelcontextprotocol/servers
+  stages: [meta]
+  verdict: assess
+  install: "npx @modelcontextprotocol/server-memory"
+  notes: "Could help meta-agent remember tool evaluations. Assess vs file-based memory."
+
+- name: linear
+  type: mcp
+  description: Linear issue tracker integration
+  url: https://github.com/jerhadf/linear-mcp-server
+  stages: [strategy, implementation]
+  verdict: hold
+  notes: "We use GitHub Issues. Hold unless switching to Linear."
+
+# === FRAMEWORKS & SKILL SOURCES ===
+
+- name: everything-claude-code
+  type: skill-collection
+  description: 60+ skills covering coding standards, patterns, testing, deployment
+  url: https://github.com/affaan-m/everything-claude-code
+  stages: [all]
+  version: 1.7.0
+  installed: true
+  notes: "Already installed. Source for A-context knowledge across all stages."
+
+- name: superpowers
+  type: skill-collection
+  description: 15 skills — brainstorming, TDD, debugging, planning, code review
+  url: https://github.com/obra/superpowers
+  stages: [strategy, prd, implementation, qa]
+  version: 4.3.1
+  installed: true
+  notes: "Already installed. Key source for process skills."
+
+- name: bmad-method
+  type: framework
+  description: Agile AI-driven development — 9 agent roles, 4 phases, story sharding
+  url: https://github.com/bmad-code-org/BMAD-METHOD
+  stages: [prd, architecture, implementation]
+  notes: "Inspiration for story sharding and implementation readiness gate. Not installed — we extracted key patterns."
+
+- name: spec-kit
+  type: framework
+  description: GitHub's spec-driven development — constitution, spec, plan, tasks hierarchy
+  url: https://github.com/github/spec-kit
+  stages: [prd, architecture]
+  notes: "Inspiration for document hierarchy. Constitution concept → our CLAUDE.md + strategy."
+
+- name: cc-sdd
+  type: framework
+  description: Kiro-style SDD — EARS requirements syntax, validate-gap for brownfield
+  url: https://github.com/gotalab/cc-sdd
+  stages: [prd]
+  notes: "EARS syntax adopted in our PRD skill. validate-gap concept for brownfield init."
+
+- name: claude-task-master
+  type: tool
+  description: PRD to structured tasks — MCP-native, multi-agent support
+  url: https://github.com/eyaltoledano/claude-task-master
+  stages: [prd, implementation]
+  verdict: assess
+  notes: "15.5k stars. Could complement our PRD→story sharding. Assess overlap."
