@@ -202,6 +202,24 @@ claude /install-plugin github
 
 GitHub токен: Settings → Developer settings → Personal access tokens → Generate new token (repo, project scopes).
 
+### Figma (дизайн, макеты)
+
+Remote MCP (OAuth авторизация) — добавь в `~/.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    }
+  }
+}
+```
+
+После добавления перезапусти Claude Code — Figma попросит авторизоваться через OAuth в браузере.
+
+Подробнее: [Figma MCP Server Guide](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server)
+
 ---
 
 ## Шаг 1: Инициализация проекта (Spodi)
@@ -504,6 +522,11 @@ claude mcp add playwright -- npx -y @anthropic-ai/mcp-server-playwright
 claude mcp add github -- npx -y @modelcontextprotocol/server-github
 # Потом в ~/.claude/settings.json добавь env:
 # "github": { ..., "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>" } }
+
+# Figma — дизайн, макеты (remote OAuth)
+# Добавь вручную в ~/.claude/settings.json:
+# "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" }
+# После рестарта Claude Code → авторизуйся через OAuth в браузере
 ```
 
 GitHub токен: [Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) — scopes: `repo`, `project`.
@@ -547,6 +570,10 @@ claude /install-plugin swift-lsp
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>"
       }
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
     }
   }
 }
@@ -569,8 +596,9 @@ claude
 - [ ] `git`, `gh`, `claude` установлены
 - [ ] `gulyaev-forge` склонирован в `~/Documents/Dev/`
 - [ ] Продукты склонированы рядом
-- [ ] MCP: Context7, Playwright, GitHub — в `~/.claude/settings.json`
+- [ ] MCP: Context7, Playwright, GitHub, Figma — в `~/.claude/settings.json`
 - [ ] GitHub токен добавлен
+- [ ] Figma OAuth авторизация пройдена
 - [ ] Плагины: superpowers, everything-claude-code
 - [ ] Тест: `claude` в папке продукта → всё подхватывает
 

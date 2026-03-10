@@ -42,22 +42,21 @@
 
 - name: figma
   type: mcp
-  description: Read/inspect Figma designs — frames, components, design tokens
-  url: https://github.com/nichochar/figma-mcp
+  description: Official Figma MCP — read designs, frames, components, design tokens
+  url: https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server
   stages: [design]
-  verdict: trial
-  install: "npx figma-mcp"
-  env: { FIGMA_ACCESS_TOKEN: "..." }
-  notes: "Trial on one project first. Useful if team uses Figma."
+  verdict: adopt
+  config: '{ "type": "http", "url": "https://mcp.figma.com/mcp" }'
+  notes: "Remote OAuth — no token needed, auth via browser. Adopted 2026-03-10."
 
 - name: sentry
   type: mcp
   description: Error tracking — issues, stack traces, user impact, release health
   url: https://github.com/getsentry/sentry-mcp
   stages: [tech-monitoring, qa]
-  verdict: adopt
+  verdict: hold
   install: "npx @sentry/mcp-server"
-  notes: "Essential for tech monitoring stage. Also useful for QA regression detection."
+  notes: "Hold — Spodi uses custom monitoring in admin panel, not Sentry. Re-evaluate when/if adopting Sentry."
 
 # === ASSESS (interesting, needs evaluation) ===
 
