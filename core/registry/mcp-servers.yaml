@@ -96,6 +96,24 @@
   verdict: hold
   notes: "We use GitHub Issues. Hold unless switching to Linear."
 
+# === BUILT-IN CLAUDE CODE FEATURES ===
+
+- name: code-review
+  type: built-in-plugin
+  description: Multi-agent PR review — 4 parallel agents (2x CLAUDE.md compliance, 1x bug detection, 1x git history). Filters by confidence score 80+.
+  url: https://code.claude.com/docs/en/code-review
+  stages: [implementation, qa]
+  verdict: adopt
+  install: "Built-in. Run /code-review on any PR branch. Use --comment to post to PR."
+  config: "Add REVIEW.md to project root for project-specific review rules."
+  notes: |
+    Managed service available for Team/Enterprise (GitHub App, auto-runs on PRs).
+    Local plugin works free for everyone.
+    Severity: Red (bug), Yellow (nit), Purple (pre-existing).
+    Avg review: ~20 min. Large PRs: 84% get findings (avg 7.5 issues).
+    Costs $15-25/review for managed service.
+    Adopted 2026-03-10.
+
 # === FRAMEWORKS & SKILL SOURCES ===
 
 - name: everything-claude-code

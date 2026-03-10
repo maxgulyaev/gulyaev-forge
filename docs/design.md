@@ -412,10 +412,10 @@ deploy:
 
 ### Обязательный минимум (любой проект):
 ```
-.claude/
-  pipeline/
-    project-context.yaml     # Кто мы, что делаем, стек, метрики, контексты по этапам
+.forge/
+  config.yaml                # Контекст проекта, агенты, inject-правила
 CLAUDE.md                    # Правила для агентов, стек, code style
+REVIEW.md                    # Правила для automated code review (Stage 6.5)
 docs/
   strategy/                  # Стратегия продукта → этап Strategy
   research/                  # Discovery отчёты → этап Discovery

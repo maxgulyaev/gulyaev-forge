@@ -6,20 +6,25 @@ This is the master document that defines how the pipeline runs — stage order, 
 ## Stage Order
 
 ```
-0. Strategy      [GATE] ──→
-1. Discovery     [GATE] ──→
-2. PRD           [GATE] ──→
-3. Design        [GATE] ──→
-4. Architecture  [GATE] ──→
-5. Test Plan     [────] ──→
-6. Implementation[GATE] ──→
-7. Test Coverage [────] ──→
-8. Automated QA  [GATE] ──→
-9. Staging Deploy[────] ──→
-10. Canary Deploy[GATE] ──→
+0. Strategy       [GATE] ──→
+1. Discovery      [GATE] ──→
+2. PRD            [GATE] ──→
+3. Design         [GATE] ──→
+4. Architecture   [GATE] ──→
+5. Test Plan      [────] ──→
+6. Implementation [GATE] ──→
+6.5 Code Review   [────] ──→  ← NEW: /code-review (multi-agent PR review)
+7. Test Coverage  [────] ──→
+8. Automated QA   [GATE] ──→
+9. Staging Deploy [────] ──→
+10. Canary Deploy [GATE] ──→
 11. Product Analytics [GATE] ──→
 12. Tech Monitoring   [GATE] ──→ back to 0. Strategy
 ```
+
+**Stage 6.5: Code Review** — automated multi-agent PR review via Claude Code `/code-review`.
+Runs after implementation, before test coverage. Auto-proceed if no critical findings.
+Uses `REVIEW.md` in project root for project-specific review rules.
 
 [GATE] = requires human approval before proceeding
 [────] = auto-proceed if criteria met (human can still intervene)

@@ -1,0 +1,26 @@
+# Code Review Guidelines
+
+> This file configures automated code review (Claude Code /code-review).
+> Violations become findings in PR reviews.
+
+## Always check
+
+- New API endpoints have input validation and proper error responses
+- Database migrations are backward-compatible (expand-contract pattern)
+- Error messages don't leak internal details to users
+- No hardcoded secrets, tokens, or credentials
+- Authentication/authorization checks on protected endpoints
+- SQL queries are parameterized (no string interpolation)
+
+## Style
+
+<!-- Add project-specific style rules here -->
+- Prefer early returns over nested conditionals
+- Error wrapping with context (not bare errors)
+
+## Skip
+
+<!-- Add paths to ignore during review -->
+- Generated files under **/gen/
+- Lock files (*.lock, go.sum)
+- Vendor directories
