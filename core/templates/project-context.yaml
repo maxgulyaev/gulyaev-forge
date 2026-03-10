@@ -1,5 +1,5 @@
 # Project Context Template
-# Copy to: <project-root>/.claude/pipeline/project-context.yaml
+# Copy to: <project-root>/.forge/config.yaml
 # Fill in project-specific values
 
 project:
@@ -8,12 +8,25 @@ project:
   stage: "mvp"                # mvp | growth | scale | mature
   repo: ""                    # GitHub URL
 
+agents:                       # Which AI agents are used
+  - claude-code
+  # - cursor
+  # - codex
+  # - windsurf
+
 stack:
   backend: []                 # e.g. [go, fiber, postgresql, redis]
   frontend: []                # e.g. [nextjs, react, tailwind]
   mobile: []                  # e.g. [swiftui, swiftdata]
   infra: []                   # e.g. [docker, yandex-cloud]
   ai: []                      # e.g. [python, fastapi, gemini]
+
+tracking:
+  provider: "github"          # github | linear | jira | none
+  project_board: true         # auto-add issues to project board
+  labels:
+    stage_prefix: "stage/"    # stage/prd, stage/implementation, etc.
+    priority_prefix: "priority/"  # priority/p0, priority/p1, priority/p2
 
 deploy:
   current: "single_vm"        # single_vm | blue_green | canary_alb | kubernetes

@@ -149,6 +149,20 @@ As a ..., I want to ..., so that ...
 - Full PRD: `docs/prd/YYYY-MM-DD-[feature].md`
 - Story files: `docs/prd/stories/[slug].md` (one per story)
 
+## Step 7: Spec-to-Issue Bridge (after gate approval)
+
+Once PRD is approved at the gate, auto-create issues from stories:
+
+For each story file:
+1. Create issue in project's tracker (GitHub Issues by default)
+2. Title: story title
+3. Body: context + requirements + acceptance criteria (as checkboxes)
+4. Labels: `stage/prd`, `priority/[p0|p1|p2]`, `type/feature`, `source/prd`
+5. Add to project board (if configured)
+6. Write issue URL back into story file
+
+See `core/pipeline/issue-tracking.md` for full spec-to-issue protocol.
+
 ## Anti-patterns
 - Solutions masquerading as requirements ("add a button" vs "user needs to trigger export")
 - Missing acceptance criteria (untestable stories)

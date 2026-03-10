@@ -29,6 +29,9 @@ Uses `REVIEW.md` in project root for project-specific review rules.
 [GATE] = requires human approval before proceeding
 [────] = auto-proceed if criteria met (human can still intervene)
 
+## Related Documents
+- **Issue Tracking**: `core/pipeline/issue-tracking.md` — spec-to-issue bridge, label system, provider adapters
+
 ## How to Start the Pipeline
 
 ### For a new feature:
