@@ -88,15 +88,48 @@ Dependencies: what else might break
 
 ## Context Injection Rules
 
-For each stage, the orchestrator:
-1. Reads `project/.forge/config.yaml`
-2. Finds `stages.[current_stage].inject`
-3. Loads `required` files (fail if missing)
-4. Loads `if_exists` files (skip if missing)
-5. Loads `search` patterns (glob for matching files)
-6. Passes loaded context + stage skill to the agent
+### Принцип: inline injection
 
-**Critical rule**: Agent ONLY sees files in its inject list. No browsing the full project for decision-making.
+Claude Code (и аналогичные инструменты) не имеют механизма ограничения доступа к файлам.
+Subagent с тулами Read/Grep/Glob может прочитать что угодно в проекте.
+Промпт-уровневая изоляция («не читай лишнего») — ненадёжна.
+
+**Решение**: оркестратор сам читает файлы из inject-списка и передаёт их содержимое
+inline в промпт агента. Агент получает замкнутый контекст и не нуждается в файловых тулах
+для принятия решений на этапах Strategy–Architecture.
+
+### Порядок действий
+
+Для каждого этапа оркестратор:
+1. Читает `project/.forge/config.yaml`
+2. Находит `stages.[current_stage].inject`
+3. Читает `required` файлы (fail если отсутствуют)
+4. Читает `if_exists` файлы (skip если отсутствуют)
+5. Читает файлы по `search` паттернам (glob)
+6. Читает skill этапа из `core/skills/[stage]/SKILL.md`
+7. Запускает subagent (Agent tool), передавая **в промпте**:
+   - Содержимое всех inject-файлов (inline, не путь)
+   - Содержимое skill-файла
+   - Описание задачи (issue body, feature name)
+   - Формат ожидаемого артефакта
+8. Subagent работает **без файловых тулов** (только генерирует текст артефакта)
+9. Оркестратор записывает артефакт в проект и презентует gate
+
+### Когда агенту нужны файловые тулы
+
+На этапах Implementation (6) и позже агент должен читать и писать код —
+здесь inline injection не применяется. Вместо этого агент получает:
+- CLAUDE.md проекта (как обычно, через контекст)
+- Артефакты предыдущих этапов (PRD, Architecture) — inline в промпте
+- Полный доступ к файловым тулам для реализации
+
+### Разделение этапов по режиму
+
+| Этапы | Режим | Файловые тулы |
+|-------|-------|---------------|
+| 0–5 (Strategy → Test Plan) | Inline injection | Нет — контекст в промпте |
+| 6–8 (Implementation → QA) | Полный доступ | Да — Read, Write, Edit, Bash |
+| 9–12 (Deploy → Monitoring) | Полный доступ | Да |
 
 ## Stage Skip Rules
 
