@@ -444,13 +444,135 @@ gh label create "type/tech-debt" --color "FFFFFF" --description "Internal qualit
 | Config template | ГОТОВО | `core/templates/project-context.yaml` |
 | REVIEW.md template | ГОТОВО | `core/templates/REVIEW.md.template` |
 | Design doc | ГОТОВО | `docs/design.md` |
+| Spodi config | ГОТОВО | `.forge/config.yaml` |
+| Spodi labels | ГОТОВО | 23 GitHub labels |
+| Spodi REVIEW.md | ГОТОВО | `REVIEW.md` в репе Spodi |
 | `/init` скилл | TODO | Автоматизация шага 1 |
 | Claude Code адаптер | TODO | Генерация .claude/ из core |
 | Codex адаптер | TODO | Генерация AGENTS.md из core |
-| MCP setup | TODO | Подключить Context7, Playwright, GitHub |
-| Spodi config | TODO | `.forge/config.yaml` |
-| Spodi labels | TODO | GitHub labels |
-| Spodi REVIEW.md | ГОТОВО | `REVIEW.md` в репе Spodi |
+| MCP setup | TODO | Context7, Playwright, GitHub |
+
+---
+
+## Новый компьютер (полная настройка с нуля)
+
+Всё что нужно сделать на чистой машине, чтобы начать работать.
+
+### 1. Установи инструменты
+
+```bash
+# Homebrew (если нет)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Git + GitHub CLI
+brew install git gh
+gh auth login
+
+# Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# (Опционально) Другие агенты
+# npm install -g @openai/codex    # Codex
+# brew install --cask cursor      # Cursor
+```
+
+### 2. Склонируй репозитории
+
+```bash
+cd ~/Documents/Dev
+
+# Завод (обязательно — тут скиллы и pipeline)
+git clone https://github.com/maxgulyaev/gulyaev-forge.git
+
+# Продукты
+git clone git@github.com:maxgulyaev/spodi.git
+# git clone git@github.com:maxgulyaev/boyofthedaybot.git
+```
+
+### 3. Настрой MCP серверы (глобально)
+
+MCP серверы ставятся один раз в `~/.claude/settings.json` — доступны из любого проекта.
+
+```bash
+# Context7 — свежие доки библиотек
+claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+
+# Playwright — браузерное тестирование (этап QA)
+claude mcp add playwright -- npx -y @anthropic-ai/mcp-server-playwright
+
+# GitHub — issues, PRs, boards (spec-to-issue bridge)
+claude mcp add github -- npx -y @modelcontextprotocol/server-github
+# Потом в ~/.claude/settings.json добавь env:
+# "github": { ..., "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>" } }
+```
+
+GitHub токен: [Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) — scopes: `repo`, `project`.
+
+### 4. Установи плагины Claude Code
+
+```bash
+# Superpowers — brainstorming, planning, TDD, debugging workflows
+claude /install-plugin superpowers
+
+# Everything Claude Code — Go/Swift/Python review, security, patterns
+claude /install-plugin everything-claude-code
+
+# Swift LSP (если работаешь с iOS)
+claude /install-plugin swift-lsp
+```
+
+### 5. Настрой глобальные параметры
+
+В `~/.claude/settings.json` должно быть:
+
+```json
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "everything-claude-code@everything-claude-code": true,
+    "swift-lsp@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>"
+      }
+    }
+  }
+}
+```
+
+### 6. Проверь что всё работает
+
+```bash
+cd ~/Documents/Dev/spodi
+claude
+
+# В claude напиши:
+# "найди доки Fiber v2"     → Context7 должен подтянуть
+# "покажи open issues"      → GitHub MCP должен ответить
+# "прочитай forge pipeline" → должен найти core/pipeline/orchestrator.md
+```
+
+### Чеклист
+
+- [ ] `git`, `gh`, `claude` установлены
+- [ ] `gulyaev-forge` склонирован в `~/Documents/Dev/`
+- [ ] Продукты склонированы рядом
+- [ ] MCP: Context7, Playwright, GitHub — в `~/.claude/settings.json`
+- [ ] GitHub токен добавлен
+- [ ] Плагины: superpowers, everything-claude-code
+- [ ] Тест: `claude` в папке продукта → всё подхватывает
 
 ---
 
