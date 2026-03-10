@@ -1,9 +1,32 @@
 # Quickstart: How to Live with the Forge
 
-> Ты сидишь в VSCode, два терминала (Claude Code + Codex), шпаришь фичи.
+> Ты сидишь в VSCode, два терминала, шпаришь фичи.
 > Вот как теперь с этим жить.
 
-## Твоя повседневная структура
+---
+
+## Твоё рабочее место
+
+### Что открыто на экране
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  VSCode                                                 │
+│  ┌───────────────────────┬─────────────────────────────┐│
+│  │                       │                             ││
+│  │   Код проекта         │   Терминал 1: Claude Code   ││
+│  │                       │   $ claude                  ││
+│  │                       │                             ││
+│  │                       ├─────────────────────────────┤│
+│  │                       │                             ││
+│  │                       │   Терминал 2: Codex / другой││
+│  │                       │   $ codex                   ││
+│  │                       │                             ││
+│  └───────────────────────┴─────────────────────────────┘│
+└─────────────────────────────────────────────────────────┘
+```
+
+### Структура на диске
 
 ```
 ~/Documents/Dev/
@@ -13,35 +36,105 @@
   ...                     ← будущие продукты
 ```
 
-**Правило**: forge не трогаешь когда работаешь над продуктом. Продукт не трогаешь когда работаешь над forge. Два контура.
+### Главное правило
+
+**Два контура. Не смешивай.**
+
+| Контур | Где сидишь | Что делаешь |
+|--------|-----------|-------------|
+| **PRODUCT** | `cd ~/Documents/Dev/spodi` | Фичи, баги, деплой, аналитика |
+| **SELF** | `cd ~/Documents/Dev/gulyaev-forge` | Скиллы, MCP, паттерны, ретро |
+
+Forge не трогаешь когда работаешь над продуктом. Продукт не трогаешь когда работаешь над forge.
 
 ---
 
-## Два контура: когда что запускать
+## Как начать работу (каждый день)
 
-### PRODUCT — работаешь над продуктом
+### Сценарий 1: Делаю фичу / фикшу баг
+
 ```bash
+# 1. Открой VSCode в папке продукта
 cd ~/Documents/Dev/spodi
-claude    # или codex, cursor — любой агент
+code .
+
+# 2. Открой терминал, запусти агента
+claude    # или codex, cursor — любой
+
+# 3. Скажи что делать
 ```
 
-Говоришь:
-- "Сделаем фичу суперсеты" → pipeline с нужного этапа
-- "Баг: кнопка не работает" → quick path (сразу implementation)
-- "Как метрики?" → аналитика
-- "Статус" → dashboard
+**Примеры команд агенту:**
 
-### SELF — работаешь над заводом
+| Что говоришь | Что произойдёт |
+|-------------|----------------|
+| "Хочу сделать суперсеты" | Полный pipeline: PRD → Design → Architecture → Code → QA → Deploy |
+| "Баг: кнопка не работает на iOS" | Quick path: сразу тест → фикс → деплой |
+| "Пофикси issue #42" | Агент читает issue, кодит, создаёт PR |
+| "Какие метрики сейчас?" | Аналитика: дашборд, фаннелы, когорты |
+
+### Сценарий 2: Улучшаю завод
+
 ```bash
+# 1. Открой VSCode в папке forge
 cd ~/Documents/Dev/gulyaev-forge
-claude    # или любой агент
+code .
+
+# 2. Запусти агента
+claude
+
+# 3. Скажи что делать
 ```
 
-Говоришь:
-- "Вот новая штука X, посмотри" → scout
-- "Добавим MCP для мониторинга" → meta
-- "Обнови скилл архитектуры" → meta
-- "Что работает плохо?" → ретро
+**Примеры:**
+
+| Что говоришь | Что произойдёт |
+|-------------|----------------|
+| "Вот новая штука X, посмотри" | Scout: research → evaluate → ADOPT/TRIAL/ASSESS/HOLD |
+| "Добавим MCP для мониторинга" | Добавление в registry, настройка, тест |
+| "Обнови скилл архитектуры" | Правка core/skills/architecture/SKILL.md |
+| "Что работает плохо?" | Ретроспектива: разбор проблем, план улучшений |
+
+### Сценарий 3: Новый проект с нуля
+
+```bash
+# 1. Создай папку
+mkdir ~/Documents/Dev/my-new-project && cd $_
+
+# 2. Инициализируй git, код, whatever
+
+# 3. Подключи к forge (пока руками, потом /init):
+mkdir -p .forge
+cp ~/Documents/Dev/gulyaev-forge/core/templates/project-context.yaml .forge/config.yaml
+# Заполни config.yaml под проект
+
+# 4. Работай как обычно — агент видит .forge/config.yaml
+claude
+```
+
+---
+
+## Как агент понимает что делать?
+
+Агент получает два слоя контекста:
+
+```
+Слой A — Экспертиза этапа (из forge)
+  ~/Documents/Dev/gulyaev-forge/core/skills/[stage]/SKILL.md
+  Как писать PRD, как делать архитектуру, как деплоить и т.п.
+
+Слой B — Контекст проекта (из .forge/config.yaml)
+  Стратегия, бэклог, стек, метрики — отфильтрованные под роль агента
+  PRD-агент видит стратегию + бэклог, но не видит деплой-конфиг
+  DevOps-агент видит деплой-конфиг, но не видит бэклог
+```
+
+Пока адаптер не написан, агент читает скиллы по прямому пути. В `CLAUDE.md` проекта уже должна быть ссылка:
+```markdown
+## Forge Pipeline
+Skills: ~/Documents/Dev/gulyaev-forge/core/skills/
+Pipeline: ~/Documents/Dev/gulyaev-forge/core/pipeline/orchestrator.md
+```
 
 ---
 
@@ -271,26 +364,40 @@ gh label create "type/tech-debt" --color "FFFFFF" --description "Internal qualit
 
 ---
 
-## Шаг 2: Ежедневная работа
+## Как проходит pipeline (подробно)
 
-### Фича по pipeline (полный цикл)
+### Фича — полный цикл
 
 ```
 "Хочу сделать суперсеты"
     │
-    ▼ Агент читает forge/core/skills/prd/SKILL.md
-    ▼ Агент читает spodi/.forge/config.yaml → stages.prd.inject
-    ▼ Агент загружает: стратегию, бэклог
+    ▼ Strategy — нужна ли фича? совпадает со стратегией?
+    ▼ Discovery — ресерч конкурентов, пользователей
+    ▼ PRD — требования (EARS), user stories, метрики
+    │   ↓ Гейт → ты аппрувишь
+    │   ↓ Создаёт Epic + Stories в GitHub Issues
     │
-    ▼ Пишет PRD → гейт → ты аппрувишь
-    ▼ Создаёт Epic + Stories в GitHub Issues
-    ▼ Architecture → гейт → ты аппрувишь
-    ▼ Создаёт Tasks по дисциплинам
-    ▼ Implementation (TDD) → Code Review → QA
-    ▼ Deploy → Analytics → Monitoring → обратно в Strategy
+    ▼ Design — UI/UX, потоки, accessibility
+    ▼ Architecture — модель данных, API, ADR
+    │   ↓ Гейт → ты аппрувишь
+    │   ↓ Создаёт Tasks по дисциплинам (backend, frontend, mobile, test)
+    │
+    ▼ Test Plan — стратегия тестирования, E2E сценарии
+    ▼ Implementation — TDD: тесты → код → рефактор
+    ▼ Code Review — авто-ревью PR по REVIEW.md
+    ▼ Test Coverage — проверка покрытия, закрытие дыр
+    ▼ QA — E2E прогон (Playwright), accessibility, edge cases
+    │   ↓ Гейт → ты аппрувишь
+    │
+    ▼ Staging Deploy — деплой на тест, smoke test
+    ▼ Canary Deploy — 5% → 25% → 50% → 100%
+    ▼ Product Analytics — метрики vs цели, фаннелы
+    ▼ Tech Monitoring — ошибки, latency, SLA
+    │
+    ↺ Обратно в Strategy (continue / amplify / pivot / kill)
 ```
 
-### Баг / мелкий фикс (quick path)
+### Баг / мелкий фикс — quick path
 
 ```
 "Баг: кнопка не работает на iOS"
@@ -300,38 +407,28 @@ gh label create "type/tech-debt" --color "FFFFFF" --description "Internal qualit
     ▼ Фиксит → Code Review → Deploy
 ```
 
-### Оценка новой технологии
+### Оценка новой технологии — scout (в forge терминале!)
 
 ```
-"Вот штука X, посмотри"      ← в терминале forge
+"Вот штука X, посмотри"
     │
-    ▼ Scout: research → evaluate → recommend
+    ▼ Research → Evaluate → Recommend
     ▼ Вердикт: ADOPT / TRIAL / ASSESS / HOLD
-    ▼ После OK → внедряем
+    ▼ После OK → внедряем во все проекты
 ```
 
 ---
 
-## Шаг 3: Как агенты находят forge скиллы
+## Другие агенты (когда будут адаптеры)
 
-### Claude Code (сейчас)
-Пока нет адаптера — агент читает скиллы напрямую по пути:
-```
-~/Documents/Dev/gulyaev-forge/core/skills/[stage]/SKILL.md
-```
+| Агент | Как читает скиллы | Адаптер |
+|-------|-------------------|---------|
+| **Claude Code** | CLAUDE.md + прямые пути к skills/ | `adapters/claude-code/` (TODO) |
+| **Codex** | AGENTS.md | `adapters/codex/` (TODO) |
+| **Cursor** | `.cursorrules` + `.cursor/rules/` | `adapters/cursor/` (TODO) |
+| **Windsurf** | `.windsurfrules` | `adapters/windsurf/` (TODO) |
 
-В CLAUDE.md проекта добавь ссылку:
-```markdown
-## Forge Pipeline
-Skills: ~/Documents/Dev/gulyaev-forge/core/skills/
-Pipeline: ~/Documents/Dev/gulyaev-forge/core/pipeline/orchestrator.md
-```
-
-### Codex
-Codex читает AGENTS.md. Когда напишем адаптер `adapters/codex/` — он сгенерит AGENTS.md из core скиллов. Пока — тот же подход через ссылку.
-
-### Cursor
-Cursor читает `.cursorrules` и `.cursor/rules/`. Адаптер `adapters/cursor/` сгенерит их из core.
+Пока адаптеров нет — все агенты читают скиллы по прямым путям. Это работает.
 
 ---
 
