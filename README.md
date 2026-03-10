@@ -63,23 +63,15 @@ Each stage agent receives:
 
 ## Quick Start
 
-```bash
-# Connect forge to a project (generates .forge/config.yaml)
-forge init --project ./my-app --agents claude-code,cursor
+See **[QUICKSTART.md](QUICKSTART.md)** — step-by-step guide:
+1. MCP setup (Context7, Playwright, GitHub)
+2. Project initialization (`.forge/config.yaml`, labels, folder structure)
+3. Daily workflow (PRODUCT vs SELF mode)
+4. How agents find and use forge skills
 
-# Work on a product feature
-"PRODUCT: build feature X for my-app"
+## Docs
 
-# Improve the forge itself
-"SELF: add new MCP server for monitoring"
-
-# Evaluate a new tool
-"SELF/SCOUT: check out Context7 MCP"
-
-# See status across all projects
-"PRODUCT/DASHBOARD"
-```
-
-## Design
-
-Full architecture and roadmap: [docs/design.md](docs/design.md)
+- **[QUICKSTART.md](QUICKSTART.md)** — practical how-to-live-with-this guide
+- **[docs/design.md](docs/design.md)** — full architecture, pipeline stages, roadmap
+- **[core/pipeline/orchestrator.md](core/pipeline/orchestrator.md)** — stage order, gates, context injection
+- **[core/pipeline/issue-tracking.md](core/pipeline/issue-tracking.md)** — Epic→Story→Task hierarchy, labels

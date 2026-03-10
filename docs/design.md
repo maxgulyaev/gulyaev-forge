@@ -751,86 +751,71 @@ stages:
 
 ---
 
-### Phase 0: Фундамент
+### Phase 0: Фундамент ✅ (mostly done)
 > Цель: репа gulyaev-forge + core + первый адаптер
 
 - [x] **0.1** Создать репу `gulyaev-forge`
 - [x] **0.2** Перенести design doc из Spodi в forge
-- [ ] **0.3** Реструктурировать репу: `core/` + `adapters/` + `docs/`
-- [ ] **0.4** Написать core skills (чистый markdown) для первых 3 этапов
-- [ ] **0.5** Написать адаптер `claude-code` (первый адаптер)
-- [ ] **0.6** Реализовать `/init` — scaffolding + `.forge/config.yaml` в проекте
-- [ ] **0.7** Создать шаблон `config.yaml` с роль-ориентированной фильтрацией
-- [ ] **0.8** Установить ключевые MCP серверы (Context7, Playwright)
-- [ ] **0.9** Обкатать `/init` на Spodi
-- [ ] **0.10** Создать мастер-skill `/pipeline` — точка входа
+- [x] **0.3** Реструктурировать репу: `core/` + `adapters/` + `docs/`
+- [x] **0.4** Написать core skills (все 13 этапов!)
+- [x] **0.5** Pipeline orchestrator + issue tracking + hierarchy
+- [x] **0.6** Создать шаблоны (config.yaml, gate, REVIEW.md)
+- [x] **0.7** MCP registry (yaml каталог)
+- [x] **0.8** QUICKSTART.md — практические инструкции
+- [x] **0.9** Интегрировать Claude Code Review (Stage 6.5)
+- [ ] **0.10** Установить MCP серверы (Context7, Playwright, GitHub)
+- [ ] **0.11** Написать адаптер `claude-code`
+- [ ] **0.12** Реализовать `/init` скилл (автоматизация)
+- [ ] **0.13** Инициализировать Spodi (`.forge/config.yaml`, labels, папки)
+- [ ] **0.14** Обкатать pipeline на реальной фиче Spodi
 
-### Phase 1: Первые 3 этапа (Strategy → Discovery → PRD)
-> Цель: product-часть pipeline работает end-to-end
+### Phase 1: Обкатка product-этапов
+> Цель: прогнать реальную фичу через Strategy → PRD → Architecture → Implementation
 
-- [ ] **1.1** Skill `pipeline-strategy` (A: strategy frameworks + B: project context)
-- [ ] **1.2** Skill `pipeline-discovery` (A: research methods + B: strategy, аудитория)
-- [ ] **1.3** Skill `pipeline-prd` (A: PRD best practices + B: strategy, research, бэклог)
-- [ ] **1.4** Gate format — реализовать шаблон гейта (summary + detailed + rollback)
-- [ ] **1.5** Обкатать на реальной фиче Spodi: прогнать Strategy → Discovery → PRD
+- [ ] **1.1** Выбрать фичу для обкатки (суперсеты?)
+- [ ] **1.2** Прогнать Strategy → Discovery → PRD с гейтами
+- [ ] **1.3** Прогнать Design → Architecture с гейтами
+- [ ] **1.4** Прогнать Implementation → Code Review → QA
+- [ ] **1.5** Ретро: что работает, что нет, что улучшить в скиллах
 
-### Phase 2: Design + Architecture
-> Цель: от PRD до готового техдизайна
+### Phase 2: Deploy + Analytics (замыкаем цикл)
+> Цель: полный loop работает end-to-end
 
-- [ ] **2.1** Skill `pipeline-design` (A: UI/UX patterns + B: PRD, design system, бренд)
-- [ ] **2.2** Skill `pipeline-architecture` (A: arch patterns, scaling + B: PRD, design, стек)
-- [ ] **2.3** Интеграция Context7 MCP в architecture skill
-- [ ] **2.4** Обкатать: Design + Architecture для той же фичи
+- [ ] **2.1** Прогнать Staging → Canary deploy
+- [ ] **2.2** Прогнать Product Analytics + Tech Monitoring
+- [ ] **2.3** Decision engine: continue / amplify / pivot / kill
+- [ ] **2.4** Обратная связь: analytics → strategy
 
-### Phase 3: Implementation + Testing
-> Цель: от архитектуры до рабочего кода с тестами
+### Phase 3: Мультипроект + адаптеры
+> Цель: подключить второй проект, написать адаптеры для других агентов
 
-- [ ] **3.1** Skill `pipeline-implementation` (A: coding standards + B: arch doc, test plan)
-- [ ] **3.2** Skill `pipeline-test-plan` (A: testing strategies + B: PRD, arch doc)
-- [ ] **3.3** Skill `pipeline-test-coverage` (A: TDD + B: test plan, код)
-- [ ] **3.4** Skill `pipeline-qa` (A: e2e patterns + B: PRD acceptance criteria)
-- [ ] **3.5** Интеграция Playwright MCP в QA skill
-- [ ] **3.6** Обкатать: полный цикл Implementation → QA
+- [ ] **3.1** Подключить TG-бот к forge
+- [ ] **3.2** Адаптер Codex (AGENTS.md)
+- [ ] **3.3** Адаптер Cursor (.cursorrules)
+- [ ] **3.4** Валидация: один скилл → работает в 3 агентах
 
-### Phase 4: Deploy pipeline
-> Цель: от кода до прода
-
-- [ ] **4.1** Skill `pipeline-staging-deploy` (A: deploy patterns + B: deploy config)
-- [ ] **4.2** Skill `pipeline-canary-deploy` (A: canary patterns + B: prod config, SLA)
-- [ ] **4.3** Deploy strategy abstraction (single_vm → blue_green → k8s)
-- [ ] **4.4** Обкатать: staging + canary на Spodi
-
-### Phase 5: Analytics loop (замыкаем цикл)
-> Цель: данные из прода кормят следующую итерацию
-
-- [ ] **5.1** Skill `pipeline-product-analytics` (A: analytics methodology + B: KPI, baseline)
-- [ ] **5.2** Skill `pipeline-tech-monitoring` (A: SRE practices + B: SLA, baseline)
-- [ ] **5.3** Decision engine: continue / amplify / pivot / kill
-- [ ] **5.4** Auto-trigger: аналитика → новая итерация Strategy
-
-### Phase 6: Meta-agent
+### Phase 4: Meta-agent
 > Цель: pipeline умеет расширять сам себя
 
-- [ ] **6.1** Tool inventory — агент знает свои текущие скиллы и MCP
-- [ ] **6.2** Gap analysis — определяет чего не хватает для задачи
-- [ ] **6.3** Search — ищет в интернете / known sources
-- [ ] **6.4** Recommend + Install (после аппрува)
+- [ ] **4.1** Tool inventory — агент знает свои текущие скиллы и MCP
+- [ ] **4.2** Gap analysis — определяет чего не хватает
+- [ ] **4.3** Search + Recommend + Install (после аппрува)
 
-### Phase 7: Registry (отдельный проект)
-> Цель: централизованный каталог скиллов и MCP для любого пользователя
+### Phase 5: Registry (отдельный проект)
+> Цель: централизованный каталог скиллов и MCP
 
-- [ ] **7.1** Определить schema для registry entries
-- [ ] **7.2** Seed data: импорт everything-claude-code, superpowers, awesome-mcp-servers
-- [ ] **7.3** Search API
-- [ ] **7.4** Интеграция с meta-agent
+- [ ] **5.1** Schema для registry entries
+- [ ] **5.2** Seed data
+- [ ] **5.3** Search API
+- [ ] **5.4** Интеграция с meta-agent
 
 ---
 
 ### Порядок подбивки проектов под Pipeline 2.0
 
-1. **Spodi** — обкатка всех фаз, основной guinea pig
-2. **TG-бот** — подключение после Phase 1 (лёгкий проект, валидация generic-формата)
-3. **Новые проекты** — стартуют сразу с pipeline (после Phase 3)
+1. **Spodi** — обкатка Phase 0-2, guinea pig
+2. **TG-бот** — подключение в Phase 3 (валидация generic-формата)
+3. **Новые проекты** — стартуют сразу с pipeline
 
 ---
 
