@@ -264,13 +264,15 @@ Stage 11-12 (Analytics + Monitoring)
 ### Stage labels (auto-applied by pipeline)
 | Label | When Applied |
 |-------|-------------|
-| `stage/prd` | Issue created from story |
-| `stage/design` | Design task created |
-| `stage/architecture` | Tech hints added |
-| `stage/implementation` | Developer starts work |
-| `stage/review` | PR in code review |
-| `stage/qa` | QA in progress |
-| `stage/shipped` | Deployed to production |
+| `stage/strategy` | Стратегическая оценка начата (Stage 0) |
+| `stage/discovery` | Исследование начато (Stage 1) |
+| `stage/prd` | PRD написан / issue создан из story (Stage 2) |
+| `stage/design` | Дизайн-задача создана (Stage 3) |
+| `stage/architecture` | Техническая архитектура готова (Stage 4) |
+| `stage/implementation` | Разработка начата (Stage 6) |
+| `stage/review` | PR на code review (Stage 6.5) |
+| `stage/qa` | QA в процессе (Stage 8) |
+| `stage/shipped` | Задеплоено в прод (Stage 10) |
 
 ### Priority labels (from PRD)
 | Label | Meaning |

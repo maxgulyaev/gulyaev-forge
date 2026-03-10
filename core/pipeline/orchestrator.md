@@ -165,17 +165,44 @@ Must still have:
 
 ## State Tracking
 
-Pipeline state is tracked in the project:
+### Source of truth — таск-трекер
+
+Основное состояние pipeline хранится в таск-трекере (GitHub Issues).
+`pipeline-state.yaml` — локальный кеш для удобства оркестратора, НЕ source of truth.
+
+При каждом переходе между этапами оркестратор **обязан**:
+1. Обновить лейбл `stage/*` на issue фичи (убрать старый, добавить новый)
+2. Добавить комментарий к issue с результатом gate (артефакт, статус, решение)
+3. Обновить `pipeline-state.yaml` (локальный кеш)
+
+### Обновление issue при переходе
+
+```bash
+# Пример: фича #95 прошла Strategy gate → переход в Discovery
+
+# 1. Убрать старый stage-лейбл, добавить новый
+gh issue edit 95 --remove-label "stage/strategy" --add-label "stage/discovery"
+
+# 2. Комментарий с результатом gate
+gh issue comment 95 --body "## Pipeline: Strategy → Discovery
+**Gate:** approved
+**Артефакт:** docs/strategy/2026-03-10-supersets.md
+**Решение:** GO WITH CONCERNS — scope v1, приоритет повышен до P1"
+```
+
+### Локальный кеш (pipeline-state.yaml)
+
 ```
 project/.forge/
-  config.yaml              # Static config
-  pipeline-state.yaml      # Current state (auto-generated)
+  config.yaml              # Статичный конфиг
+  pipeline-state.yaml      # Локальный кеш (авто-генерируется)
 ```
 
 ```yaml
-# pipeline-state.yaml (auto-updated by orchestrator)
+# pipeline-state.yaml (авто-обновляется оркестратором)
 current_feature: "supersets"
 current_stage: 6          # implementation
+issue: 95
 stages_completed:
   - stage: 0
     date: 2026-03-10
