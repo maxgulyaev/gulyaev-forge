@@ -400,6 +400,12 @@ check_qa_tools() {
     else
       warn "QA tool use_for missing: $tool"
     fi
+
+    if [[ "$tool" == "playwright_mcp" ]] && [[ "$enabled" == "true" ]]; then
+      if [[ "$use_for" != *"web_feature_qa"* ]]; then
+        warn "QA tool playwright_mcp does not include web_feature_qa in use_for"
+      fi
+    fi
   done <<< "$tools"
 }
 

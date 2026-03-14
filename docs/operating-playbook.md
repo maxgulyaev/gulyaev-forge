@@ -224,11 +224,12 @@ For web-heavy products, declare preferred QA tools explicitly:
 qa_tools:
   playwright_mcp:
     enabled: true
-    use_for: web_bugfix_qa,web_release_smoke
+    use_for: web_feature_qa,web_bugfix_qa,web_release_smoke
     scope_paths: apps/web
 ```
 
 Operational rule:
+- for web feature QA, the agent should use Playwright MCP before defaulting to manual QA
 - if `playwright_mcp` is enabled and the surface is web UI, the agent should use it before defaulting to manual QA
 - if it is not used, the gate must explain why
 

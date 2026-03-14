@@ -37,7 +37,10 @@ Required behavior:
    - what condition will trigger the next gate
    - do not present a menu of internal implementation choices when the next unfinished item is already clear
    - do not ask the user to choose between commit timing, continued implementation, or QA unless a real human decision exists
-12. Start with a short preload summary and explain whether you are:
+12. If continuing into `qa` for a feature that touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, use Playwright MCP before presenting the QA gate unless it is unavailable or unsuitable.
+   - if not used, say why explicitly
+   - include `Playwright MCP used: yes/no` and which scenario was actually checked
+13. Start with a short preload summary and explain whether you are:
    - re-presenting a gate
    - recording a gate decision
    - continuing the next allowed stage

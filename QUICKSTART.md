@@ -763,7 +763,7 @@ Push bugfix-а блокируется, если в issue нет:
 qa_tools:
   playwright_mcp:
     enabled: true
-    use_for: web_bugfix_qa,web_release_smoke
+    use_for: web_feature_qa,web_bugfix_qa,web_release_smoke
     scope_paths: apps/web
 ```
 

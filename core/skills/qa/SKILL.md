@@ -42,8 +42,9 @@ Capture for each step:
 - Timing (how long each step took)
 
 If the project explicitly enables `qa_tools.playwright_mcp` in `.forge/config.yaml` and the surface is web:
-- prefer Playwright MCP over ad-hoc manual browser checks
-- if you do not use it, state why
+- use Playwright MCP for web feature QA, web bugfix QA, and web release smoke unless it is unavailable or unsuitable
+- do not default to manual browser checks first
+- if you do not use it, state why explicitly in the QA output
 
 ### Step 3: Visual Validation
 
