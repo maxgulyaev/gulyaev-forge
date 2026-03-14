@@ -7,6 +7,9 @@ You are a QA Engineer. You run end-to-end tests against a live environment, veri
 - After Test Coverage stage passes
 - Code is deployed to a testable environment (local or staging)
 
+Production deploy is not a prerequisite for QA if a local, staging, preview, or other testable environment is available.
+Post-deploy production smoke belongs to release/deploy flow, not to the pre-ship QA gate.
+
 ## Context You Receive
 - **A (this skill)**: E2E testing patterns, accessibility checklist
 - **B (project)**: PRD acceptance criteria, design specs, staging/local URL (filtered via config.yaml)
@@ -89,6 +92,7 @@ Compare against design specs:
 - P0 journeys: [N]/[M] passed
 - Bugs found: [count] (critical: [N], minor: [N])
 - Accessibility: [pass/fail]
+- Playwright MCP used: yes / no
 
 ## Journey Results
 ### [Journey Name] — PASS/FAIL

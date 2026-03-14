@@ -26,21 +26,27 @@ Required behavior:
    - only then advance one stage if allowed
 8. If no gate is pending, resume the current issue from the correct next stage or continue the current in-progress stage.
 9. Never skip unresolved gated stages.
-10. For an approved bugfix QA gate:
+10. For non-gated transitions after implementation:
+   - if Stage 6.5 external review is complete and no blocking findings remain, continue into `test_coverage`
+   - if Stage 7 `test_coverage` is complete and no blocker remains, continue into `qa`
+   - do not stop just to ask whether to commit or whether to continue
+   - if any `critical` or `high` review finding is still open, or only partially addressed, remain in `implementation`
+11. For an approved bugfix QA gate:
    - do not auto-push unless the user explicitly asks to ship
    - instead mark the quick run ready and explain what is unlocked next
-11. If the current stage is still in progress and no gate is required yet, respond with an explicit checkpoint that includes:
-   - current stage
-   - gate needed now: yes/no
-   - what just finished
-   - exact next recommended action
-   - what condition will trigger the next gate
-   - do not present a menu of internal implementation choices when the next unfinished item is already clear
-   - do not ask the user to choose between commit timing, continued implementation, or QA unless a real human decision exists
-12. If continuing into `qa` for a feature that touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, use Playwright MCP before presenting the QA gate unless it is unavailable or unsuitable.
+12. If the current stage is still in progress and no gate is required yet, respond with an explicit checkpoint that includes:
+    - current stage
+    - gate needed now: yes/no
+    - what just finished
+    - exact next recommended action
+    - what condition will trigger the next gate
+    - do not present a menu of internal implementation choices when the next unfinished item is already clear
+    - do not ask the user to choose between commit timing, continued implementation, or QA unless a real human decision exists
+    - do not call something a QA gate before Stage 8 QA was actually executed
+13. If continuing into `qa` for a feature that touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, use Playwright MCP before presenting the QA gate unless it is unavailable or unsuitable.
    - if not used, say why explicitly
    - include `Playwright MCP used: yes/no` and which scenario was actually checked
-13. Start with a short preload summary and explain whether you are:
+14. Start with a short preload summary and explain whether you are:
    - re-presenting a gate
    - recording a gate decision
    - continuing the next allowed stage

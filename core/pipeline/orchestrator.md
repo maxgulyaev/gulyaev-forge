@@ -23,11 +23,17 @@ This is the master document that defines how the pipeline runs — stage order, 
 ```
 
 **Stage 6.5: Code Review** — automated multi-agent PR review via Claude Code `/code-review`.
-Runs after implementation, before test coverage. Auto-proceed if no critical findings.
+Runs after implementation, before test coverage. Auto-proceed only if no blocking findings remain.
 Uses `REVIEW.md` in project root for project-specific review rules.
 
 [GATE] = requires human approval before proceeding
 [────] = auto-proceed if criteria met (human can still intervene)
+
+Non-gated transition rule:
+- Stage 6.5 (`code_review`) -> Stage 7 (`test_coverage`) should proceed automatically if blocking review findings are fixed
+- Stage 7 (`test_coverage`) -> Stage 8 (`qa`) should proceed automatically if automated verification is complete and no blocker remains
+- do not stop between these stages just to ask whether to commit or whether to continue
+- unresolved `critical` / `high` review findings, or findings marked only `partially addressed`, keep the workflow in `implementation`
 
 ## Related Documents
 - **Issue Tracking**: `core/pipeline/issue-tracking.md` — spec-to-issue bridge, label system, provider adapters
@@ -137,6 +143,8 @@ Checkpoint rules:
   unless there is a real product decision to make
 - if known implementation scope is still incomplete, do not present QA as a parallel option
 - if the next unfinished item is unambiguous, recommend it directly
+- do not label something a `QA gate` before Stage 8 QA was actually executed
+- do not require production deploy just to begin QA if a local, staging, or other testable environment exists
 
 ### Block 2: State Sync
 ```
@@ -167,6 +175,13 @@ This comment must make clear that:
 The agent should present an `Implementation Gate` only when the current implementation slice is actually ready to leave Stage 6 and move to Stage 7.
 
 Completing one story inside a multi-story implementation does **not** automatically mean a gate is needed.
+
+The agent should present a `QA Gate` only after:
+- Stage 7 test coverage is complete
+- Stage 8 QA was actually executed on a testable environment
+- evidence from QA is available
+
+Automated checks, review completion, migration planning, or deploy preparation are not themselves a QA gate.
 
 ## Context Injection Rules
 

@@ -23,9 +23,11 @@ Required behavior:
 10. If the work reaches `implementation` or later and `.forge/config.yaml` configures an external reviewer for `code_review/reviewer`, run it before presenting QA or a ship gate:
     - `bash __FORGE_DIR__/scripts/forge-stage-agent.sh run . code_review reviewer`
     - if it finds blocking issues, fix them and rerun once
+    - if any `critical` or `high` finding remains open, or is only partially addressed, remain in `implementation`
 11. If the work reaches `qa` and the feature touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, attempt QA verification via Playwright MCP before presenting the QA gate.
     - if Playwright MCP is unavailable or unsuitable, say so explicitly in the QA output
     - include `Playwright MCP used: yes/no` and which web scenario was checked
+    - do not present a QA gate before QA was actually executed on a testable environment
 12. Start by showing a short preload summary:
    - chosen issue
    - chosen stage/path

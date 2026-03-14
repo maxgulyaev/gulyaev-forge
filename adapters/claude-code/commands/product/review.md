@@ -20,6 +20,11 @@ Required behavior:
    - summarize findings by severity
    - fix them before moving to QA
    - rerun the reviewer once
+   - if any `critical` or `high` finding remains open, or is only partially addressed, stay in `implementation`
+   - do not present feature-level completion or a QA gate yet
 7. If there are no blocking findings:
    - say so explicitly
    - carry residual risks/testing gaps into the next QA gate
+   - continue to `test_coverage`, not directly to a QA gate
+8. Commit timing is an internal implementation concern.
+   - do not ask the user to choose between `commit now` and `continue`

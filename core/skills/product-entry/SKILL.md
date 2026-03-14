@@ -171,6 +171,7 @@ The agent must translate natural approval into the durable issue comment format 
 7. Work as that stage role.
    - Do not default to implementation unless the target stage really is implementation or later.
    - If the current stage remains in progress and no gate is required yet, present a checkpoint, not a vague progress note.
+   - For non-gated stages such as `code_review` and `test_coverage`, auto-proceed to the next allowed stage when criteria are satisfied instead of stopping for internal execution choices.
    - The checkpoint must explicitly say:
      - current stage
      - gate needed now: yes/no

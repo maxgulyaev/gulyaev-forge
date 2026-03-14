@@ -62,6 +62,18 @@ Run test suite 3 times. If any test fails intermittently:
 - Investigate: timing issue? shared state? network dependency?
 - Fix or quarantine (mark as skip with TODO)
 
+### Step 6: Transition Discipline
+
+This stage is automated verification, not a human gate.
+
+If automated checks are complete and no blocker remains:
+- record the coverage/test result
+- proceed to Stage 8 QA automatically
+- do not stop to ask the human whether to commit or whether to continue
+
+Do not present a `QA Gate` from Stage 7.
+The QA gate exists only after Stage 8 QA was actually run on a testable environment.
+
 ## Output Format
 
 ```markdown
@@ -93,6 +105,14 @@ Run test suite 3 times. If any test fails intermittently:
 
 ## Save To
 Coverage report attached to PR or saved in `docs/prd/coverage-[feature].md`
+
+## Handoff
+
+When this stage completes:
+- summarize what automated verification passed
+- summarize remaining accepted gaps, if any
+- state the exact QA environment to use next
+- make clear that production deploy is not required if local/staging QA is possible
 
 ## Anti-patterns
 - Chasing 100% coverage (diminishing returns — focus on critical paths)
