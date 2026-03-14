@@ -105,12 +105,32 @@ When all acceptance criteria pass:
    - story just completed
    - next story in priority order
    - what condition will trigger the implementation gate
+   - do not present multiple internal options when the next story is unambiguous
+   - do not ask the human to choose between `continue implementation`, `commit`, or `go to QA`
+     while implementation scope is still incomplete
 4. If pausing across sessions or handing work back to a human, write a durable issue comment with heading `## Implementation Checkpoint`
 5. Commit with reference to story slug
 6. Move to next story in priority order
 
 Only present an `Implementation Gate` when the implementation slice is actually ready to leave Stage 6.
 Finishing one story inside a multi-story feature is a checkpoint, not a gate.
+
+### Human Decisions During Implementation
+
+Do not stop for a human decision unless one of these is true:
+- a gated transition is actually ready
+- there is a real product/scope ambiguity
+- there is a blocker that requires a human choice
+
+Do not escalate internal execution choices such as:
+- whether to commit current progress
+- whether to continue the next already-planned story
+- whether to jump to QA while known implementation work is still open
+
+If implementation scope still has unfinished planned items, the default is:
+- continue implementation
+- recommend the exact next unfinished item
+- explain what remains before QA can start
 
 ### Parallel Implementation (multi-platform)
 

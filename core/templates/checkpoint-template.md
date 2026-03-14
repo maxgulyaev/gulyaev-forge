@@ -22,12 +22,17 @@
 **Next recommended action:**
 [exact next action the human or agent should take]
 
+Do not list multiple internal options here when the next step is already clear.
+
 **What happens next:**
 [next checkpoint or next gate condition]
 
 **Need anything from you now?:**
 - `No` — continue with `/forge:continue`
 - or `[specific decision / missing input]`
+
+Only ask for input here if a real human decision or blocker exists.
+Do not ask the human to choose between internal implementation steps, commit timing, or premature QA.
 
 ---
 

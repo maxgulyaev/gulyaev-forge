@@ -131,6 +131,13 @@ What happens next: next checkpoint or next gate condition
 Need anything from you now?: no / exact question
 ```
 
+Checkpoint rules:
+- `Next recommended action` must be one exact next step, not a menu of internal options
+- do not ask the human to choose between unfinished implementation items, `commit now`, or `go to QA`
+  unless there is a real product decision to make
+- if known implementation scope is still incomplete, do not present QA as a parallel option
+- if the next unfinished item is unambiguous, recommend it directly
+
 ### Block 2: State Sync
 ```
 Issue label: [current stage label]
@@ -153,6 +160,7 @@ This comment must make clear that:
 - no gate decision is being requested yet
 - exactly which story or shard was completed
 - exactly which story or shard is next
+- whether any unfinished implementation scope still blocks QA
 
 ### When To Ask For A Gate
 

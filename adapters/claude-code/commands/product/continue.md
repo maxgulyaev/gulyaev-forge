@@ -35,6 +35,8 @@ Required behavior:
    - what just finished
    - exact next recommended action
    - what condition will trigger the next gate
+   - do not present a menu of internal implementation choices when the next unfinished item is already clear
+   - do not ask the user to choose between commit timing, continued implementation, or QA unless a real human decision exists
 12. Start with a short preload summary and explain whether you are:
    - re-presenting a gate
    - recording a gate decision
