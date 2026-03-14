@@ -6,11 +6,11 @@ User request:
 $ARGUMENTS
 
 Required behavior:
-1. Load `~/Documents/Dev/gulyaev-forge/core/skills/product-entry/SKILL.md`.
+1. Load `__FORGE_DIR__/core/skills/product-entry/SKILL.md`.
 2. Load local rules from `AGENTS.md`, `CLAUDE.md`, `.forge/config.yaml`, `.forge/pipeline-state.yaml`.
 3. Run product preflight:
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-doctor.sh product .`
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-status.sh product .`
+   - `bash __FORGE_DIR__/scripts/forge-doctor.sh product .`
+   - `bash __FORGE_DIR__/scripts/forge-status.sh product .`
 4. Treat this as question / uncertainty / evidence-gathering intent.
 5. Prefer `discovery`, `product_analytics`, or `strategy` before implementation.
 6. Find or create an issue if the investigation is non-trivial.

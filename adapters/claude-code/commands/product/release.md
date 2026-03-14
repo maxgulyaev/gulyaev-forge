@@ -6,14 +6,14 @@ User request:
 $ARGUMENTS
 
 Required behavior:
-1. Load `~/Documents/Dev/gulyaev-forge/core/skills/product-entry/SKILL.md`.
+1. Load `__FORGE_DIR__/core/skills/product-entry/SKILL.md`.
 2. Load local rules from `AGENTS.md`, `CLAUDE.md`, `.forge/config.yaml`, `.forge/pipeline-state.yaml`.
 3. Run product preflight:
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-doctor.sh product .`
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-status.sh product .`
+   - `bash __FORGE_DIR__/scripts/forge-doctor.sh product .`
+   - `bash __FORGE_DIR__/scripts/forge-status.sh product .`
 4. Treat this as release/distribution intent, not generic implementation.
 5. Read configured release targets:
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-target.sh list .`
+   - `bash __FORGE_DIR__/scripts/forge-release-target.sh list .`
 6. Infer the target from the user's words when possible:
    - `testflight`, `тестфлайт` -> channel `testflight`
    - `app store`, `appstore`, `эпп стор` -> channel `app_store`
@@ -22,15 +22,15 @@ Required behavior:
    - `play production`, `google play`, `play store`, `прод в google play` -> channel `play_production`
 7. If the target is ambiguous, list the configured release targets and ask which one to use.
 8. Once a target is chosen, inspect it:
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-target.sh show . <target-name>`
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-scope.sh show . <target-name>`
+   - `bash __FORGE_DIR__/scripts/forge-release-target.sh show . <target-name>`
+   - `bash __FORGE_DIR__/scripts/forge-release-scope.sh show . <target-name>`
    - read the referenced runbook in `CLAUDE.md` or the configured doc path
 9. Verify release preconditions before any upload:
    - the target exists
    - the candidate work is already approved/shippable
    - if `.forge/active-run.env` exists, its gate must already allow shipping
    - the worktree/commit scope must be isolated to the approved change
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-scope.sh dirty . <target-name>` must report no dirty files in the target scope
+   - `bash __FORGE_DIR__/scripts/forge-release-scope.sh dirty . <target-name>` must report no dirty files in the target scope
 10. Start by showing a short preload summary:
    - chosen target
    - chosen candidate issue/run

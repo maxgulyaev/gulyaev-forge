@@ -8,8 +8,8 @@ Usage:
   bash scripts/forge-release-scope.sh dirty <project-dir> <target-name>
 
 Examples:
-  bash scripts/forge-release-scope.sh show /Users/maxgulyaev/Documents/Dev/spodi ios_testflight
-  bash scripts/forge-release-scope.sh dirty /Users/maxgulyaev/Documents/Dev/spodi web_production
+  bash scripts/forge-release-scope.sh show /path/to/project ios_testflight
+  bash scripts/forge-release-scope.sh dirty /path/to/project web_production
 EOF
 }
 

@@ -8,8 +8,8 @@ Usage:
   bash scripts/forge-release-target.sh show <project-dir> <target-name>
 
 Examples:
-  bash scripts/forge-release-target.sh list /Users/maxgulyaev/Documents/Dev/spodi
-  bash scripts/forge-release-target.sh show /Users/maxgulyaev/Documents/Dev/spodi ios_testflight
+  bash scripts/forge-release-target.sh list /path/to/project
+  bash scripts/forge-release-target.sh show /path/to/project ios_testflight
 EOF
 }
 

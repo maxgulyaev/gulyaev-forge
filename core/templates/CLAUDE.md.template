@@ -4,10 +4,10 @@ This file is the project-wide execution contract for AI agents.
 
 ## Forge Pipeline
 
-- Forge repo: `~/Documents/Dev/gulyaev-forge`
-- Core skills: `~/Documents/Dev/gulyaev-forge/core/skills/`
-- Operating playbook: `~/Documents/Dev/gulyaev-forge/docs/operating-playbook.md`
-- Pipeline orchestrator: `~/Documents/Dev/gulyaev-forge/core/pipeline/orchestrator.md`
+- Forge repo: `__FORGE_DIR__`
+- Core skills: `__FORGE_DIR__/core/skills/`
+- Operating playbook: `__FORGE_DIR__/docs/operating-playbook.md`
+- Pipeline orchestrator: `__FORGE_DIR__/core/pipeline/orchestrator.md`
 
 ## Project Rules
 

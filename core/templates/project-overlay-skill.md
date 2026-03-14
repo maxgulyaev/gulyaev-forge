@@ -5,7 +5,7 @@
 
 ## Use With
 
-- Base skill: `~/Documents/Dev/gulyaev-forge/core/skills/[stage]/SKILL.md`
+- Base skill: `__FORGE_DIR__/core/skills/[stage]/SKILL.md`
 - Project config: `project/.forge/config.yaml`
 - Current issue / approved artifact for this task
 

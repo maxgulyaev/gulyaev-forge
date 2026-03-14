@@ -26,14 +26,17 @@ In the forge repo:
 ## Install
 
 ```bash
+FORGE_DIR=/path/to/gulyaev-forge
+
 # Product repo
-bash ~/Documents/Dev/gulyaev-forge/scripts/install-claude-commands.sh product /path/to/project
+bash "$FORGE_DIR/scripts/install-claude-commands.sh" product /path/to/project
 
 # Forge repo
-bash ~/Documents/Dev/gulyaev-forge/scripts/install-claude-commands.sh self ~/Documents/Dev/gulyaev-forge
+bash "$FORGE_DIR/scripts/install-claude-commands.sh" self "$FORGE_DIR"
 ```
 
 The installer copies command files into `.claude/commands/forge/` in the target repo.
+If the forge checkout moves to another path or another machine, rerun the installer in each product repo to refresh those local command files.
 
 ## Why This Exists
 

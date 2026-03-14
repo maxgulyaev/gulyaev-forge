@@ -9,7 +9,7 @@ Usage:
 
 Examples:
   bash scripts/forge-doctor.sh self .
-  bash scripts/forge-doctor.sh product /Users/maxgulyaev/Documents/Dev/spodi
+  bash scripts/forge-doctor.sh product /path/to/project
 EOF
 }
 
@@ -412,7 +412,7 @@ check_product_hooks() {
   if [[ "$hooks_path" == ".githooks" ]] && [[ -x "$dir/.githooks/pre-push" ]]; then
     ok "Forge pre-push hook installed"
   else
-    warn "Forge pre-push hook missing; run bash ~/Documents/Dev/gulyaev-forge/scripts/install-claude-commands.sh product $dir"
+    warn "Forge pre-push hook missing; run bash $SCRIPT_DIR/install-claude-commands.sh product $dir"
   fi
 
   if [[ -f "$dir/.gitignore" ]] && grep -Fxq ".forge/active-run.env" "$dir/.gitignore"; then

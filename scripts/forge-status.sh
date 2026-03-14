@@ -9,7 +9,7 @@ Usage:
 
 Examples:
   bash scripts/forge-status.sh self .
-  bash scripts/forge-status.sh product /Users/maxgulyaev/Documents/Dev/spodi
+  bash scripts/forge-status.sh product /path/to/project
 EOF
 }
 
@@ -528,7 +528,7 @@ print_self_status() {
   printf '\nTrack progress in:\n'
   printf '  - docs/design.md roadmap checklists\n'
   printf '  - git status / git log\n'
-  printf '  - project pilot state in the target repo (for example Spodi)\n'
+  printf '  - pilot state in one connected product repo\n'
 }
 
 MODE=${1:-}

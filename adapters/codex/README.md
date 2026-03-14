@@ -21,7 +21,8 @@ stage_agents:
 Launch through forge:
 
 ```bash
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-stage-agent.sh run /path/to/project code_review reviewer
+FORGE_DIR=/path/to/gulyaev-forge
+bash "$FORGE_DIR/scripts/forge-stage-agent.sh" run /path/to/project code_review reviewer
 ```
 
 This is intentionally narrower than a full Codex router.

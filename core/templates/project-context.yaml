@@ -3,7 +3,7 @@
 # Fill in project-specific values
 
 project:
-  name: ""                    # e.g. "spodi"
+  name: ""                    # e.g. "example-product"
   description: ""             # One-line description
   stage: "mvp"                # mvp | growth | scale | mature
   repo: ""                    # GitHub URL

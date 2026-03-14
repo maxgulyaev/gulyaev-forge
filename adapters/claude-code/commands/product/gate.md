@@ -6,7 +6,7 @@ User decision:
 $ARGUMENTS
 
 Required behavior:
-1. Load `~/Documents/Dev/gulyaev-forge/core/skills/product-entry/SKILL.md`.
+1. Load `__FORGE_DIR__/core/skills/product-entry/SKILL.md`.
 2. Check `.forge/active-run.env` first; if an active bugfix run exists, treat it as the current workflow.
 3. Read `.forge/pipeline-state.yaml` and the linked GitHub issue.
 4. Identify the currently pending gate.
@@ -18,7 +18,7 @@ Required behavior:
    - `/gate approved`
    - `/gate approved_with_changes`
    - `/gate rejected`
-7. If this is an active bugfix QA gate, first run `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-issue-trail.sh check-bugfix-qa . <issue-number>` and stop if the durable issue trail is incomplete.
+7. If this is an active bugfix QA gate, first run `bash __FORGE_DIR__/scripts/forge-issue-trail.sh check-bugfix-qa . <issue-number>` and stop if the durable issue trail is incomplete.
 8. If this is an active bugfix run, also update `.forge/active-run.env` via `forge-run-state.sh set-gate`.
 9. Update labels and `.forge/pipeline-state.yaml` only if the decision allows advancement.
 10. Advance at most one gated transition.

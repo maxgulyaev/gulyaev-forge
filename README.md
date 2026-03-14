@@ -193,12 +193,16 @@ Why:
 Install:
 
 ```bash
+FORGE_DIR=/path/to/gulyaev-forge
+
 # PRODUCT repo
-bash ~/Documents/Dev/gulyaev-forge/scripts/install-claude-commands.sh product /path/to/project
+bash "$FORGE_DIR/scripts/install-claude-commands.sh" product /path/to/project
 
 # SELF repo
-bash ~/Documents/Dev/gulyaev-forge/scripts/install-claude-commands.sh self ~/Documents/Dev/gulyaev-forge
+bash "$FORGE_DIR/scripts/install-claude-commands.sh" self "$FORGE_DIR"
 ```
+
+If the forge checkout moves to another path or another machine, rerun install or `forge init --force` in each product repo so local command files point at the new `FORGE_DIR`.
 
 ### Codex CLI
 

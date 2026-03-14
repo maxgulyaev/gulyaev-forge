@@ -2,6 +2,13 @@
 
 This is the minimum working model for running `gulyaev-forge` today.
 
+Use portable shell variables in the examples below:
+
+```bash
+FORGE_DIR=/path/to/gulyaev-forge
+PROJECT_DIR=/path/to/project
+```
+
 ## Layer Model
 
 Short prompts should first route through an entry skill:
@@ -67,9 +74,9 @@ Practical rule:
 Run this from the product repo.
 
 ```bash
-cd ~/Documents/Dev/spodi
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-doctor.sh product .
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-status.sh product .
+cd "$PROJECT_DIR"
+bash "$FORGE_DIR/scripts/forge-doctor.sh" product .
+bash "$FORGE_DIR/scripts/forge-status.sh" product .
 ```
 
 `forge-status.sh product` should be the first place to look for the immediate next action:
@@ -141,13 +148,13 @@ The shape is generic even if current usage is narrow:
 - `stage_agents.<stage>.<role>` selects a secondary agent for that exact handoff
 - the project owns the mapping
 - forge owns the adapter invocation details
-- today `Spodi` uses only `code_review/reviewer`
+- today the pilot project uses only `code_review/reviewer`
 
 Useful commands:
 
 ```bash
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-stage-agent.sh show . code_review reviewer
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-stage-agent.sh run . code_review reviewer
+bash "$FORGE_DIR/scripts/forge-stage-agent.sh" show . code_review reviewer
+bash "$FORGE_DIR/scripts/forge-stage-agent.sh" run . code_review reviewer
 ```
 
 Practical model:
@@ -188,9 +195,9 @@ Practical model:
 Useful commands:
 
 ```bash
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-target.sh list .
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-target.sh show . ios_testflight
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-release-scope.sh dirty . ios_testflight
+bash "$FORGE_DIR/scripts/forge-release-target.sh" list .
+bash "$FORGE_DIR/scripts/forge-release-target.sh" show . ios_testflight
+bash "$FORGE_DIR/scripts/forge-release-scope.sh" dirty . ios_testflight
 ```
 
 ## Bugfix Trail
@@ -205,8 +212,8 @@ Required before ship:
 Useful commands:
 
 ```bash
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-issue-trail.sh show-bugfix . 101
-bash ~/Documents/Dev/gulyaev-forge/scripts/forge-issue-trail.sh check-bugfix-ship . 101
+bash "$FORGE_DIR/scripts/forge-issue-trail.sh" show-bugfix . 101
+bash "$FORGE_DIR/scripts/forge-issue-trail.sh" check-bugfix-ship . 101
 ```
 
 ## QA Tools
@@ -235,7 +242,7 @@ Look for these fields in `pipeline-state.yaml`:
 Run this from `gulyaev-forge`.
 
 ```bash
-cd ~/Documents/Dev/gulyaev-forge
+cd "$FORGE_DIR"
 bash scripts/forge-doctor.sh self .
 bash scripts/forge-status.sh self .
 ```
@@ -257,7 +264,7 @@ Good prompts:
 - `Хочу изменить процесс stage gates`
 - `Добавь новый MCP в forge`
 - `Улучши architecture skill`
-- `Нужно сделать forge более рабочим для пилота на Spodi`
+- `Нужно сделать forge более рабочим для нового пилота`
 
 Track progress in:
 - `docs/design.md` roadmap

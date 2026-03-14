@@ -137,9 +137,9 @@ The agent must translate natural approval into the durable issue comment format 
 
 ## Workflow
 
-1. Run product preflight:
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-doctor.sh product .`
-   - `bash ~/Documents/Dev/gulyaev-forge/scripts/forge-status.sh product .`
+1. Run product preflight from the current product repo using the same forge checkout that provided this skill:
+   - `bash <forge-root>/scripts/forge-doctor.sh product .`
+   - `bash <forge-root>/scripts/forge-status.sh product .`
 2. Read:
    - `.forge/active-run.env` first, if present
    - `.forge/config.yaml`
@@ -166,7 +166,7 @@ The agent must translate natural approval into the durable issue comment format 
    - otherwise infer the path from bug / feature / question / metrics intent
    - stop at the first unresolved gated stage on the path
 6. Load the correct stage context:
-   - forge base skill: `~/Documents/Dev/gulyaev-forge/core/skills/[stage]/SKILL.md`
+   - forge base skill: `<forge-root>/core/skills/[stage]/SKILL.md`
    - project overlay: `.forge/skills/[stage].md` if present
 7. Work as that stage role.
    - Do not default to implementation unless the target stage really is implementation or later.

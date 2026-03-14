@@ -8,7 +8,7 @@ Usage:
   bash scripts/forge-init.sh <project-dir> [--labels] [--no-claude-commands] [--force] [--dry-run]
 
 Examples:
-  bash scripts/forge-init.sh --project /Users/maxgulyaev/Documents/Dev/my-project
+  bash scripts/forge-init.sh --project /path/to/project
   bash scripts/forge-init.sh . --labels
 EOF
 }
@@ -19,6 +19,10 @@ note() {
 
 warn() {
   printf 'WARN %s\n' "$1" >&2
+}
+
+escape_sed_replacement() {
+  printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
 }
 
 copy_template() {
@@ -38,6 +42,29 @@ copy_template() {
 
   mkdir -p "$(dirname "$dest")"
   install -m "$mode" "$src" "$dest"
+  note "create $dest"
+}
+
+render_template() {
+  local src=$1
+  local dest=$2
+  local mode=${3:-0644}
+  local forge_dir_escaped
+
+  if [[ -e "$dest" && "$FORCE" -eq 0 ]]; then
+    note "skip  $dest (already exists)"
+    return
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    note "create $dest"
+    return
+  fi
+
+  forge_dir_escaped=$(escape_sed_replacement "$FORGE_DIR")
+  mkdir -p "$(dirname "$dest")"
+  sed "s|__FORGE_DIR__|$forge_dir_escaped|g" "$src" >"$dest"
+  chmod "$mode" "$dest"
   note "create $dest"
 }
 
@@ -211,15 +238,15 @@ fi
 
 copy_template "$FORGE_DIR/core/templates/project-context.yaml" "$PROJECT/.forge/config.yaml"
 copy_template "$FORGE_DIR/core/templates/pipeline-state.yaml" "$PROJECT/.forge/pipeline-state.yaml"
-copy_template "$FORGE_DIR/core/templates/CLAUDE.md.template" "$PROJECT/CLAUDE.md"
+render_template "$FORGE_DIR/core/templates/CLAUDE.md.template" "$PROJECT/CLAUDE.md"
 copy_template "$FORGE_DIR/core/templates/REVIEW.md.template" "$PROJECT/REVIEW.md"
 copy_template "$FORGE_DIR/core/templates/project-reviewer-prompt.md" "$PROJECT/.forge/reviewers/code-review.md"
 
-copy_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/strategy.md"
-copy_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/prd.md"
-copy_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/architecture.md"
-copy_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/implementation.md"
-copy_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/qa.md"
+render_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/strategy.md"
+render_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/prd.md"
+render_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/architecture.md"
+render_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/implementation.md"
+render_template "$FORGE_DIR/core/templates/project-overlay-skill.md" "$PROJECT/.forge/skills/qa.md"
 
 write_text_file "$PROJECT/.forge/skills/README.md" 0644 "# Project Overlay Skills\n\nХрани здесь тонкие stage-specific overlay инструкции для этого проекта.\nНе копируй целиком base skills из forge.\n"
 

@@ -30,6 +30,22 @@ HOOK_DEST="$TARGET/.githooks"
 
 mkdir -p "$DEST"
 
+escape_sed_replacement() {
+  printf '%s' "$1" | sed -e 's/[&|]/\\&/g'
+}
+
+render_file() {
+  local src=$1
+  local dest=$2
+  local mode=${3:-0644}
+  local forge_dir_escaped
+
+  forge_dir_escaped=$(escape_sed_replacement "$FORGE_DIR")
+  mkdir -p "$(dirname "$dest")"
+  sed "s|__FORGE_DIR__|$forge_dir_escaped|g" "$src" >"$dest"
+  chmod "$mode" "$dest"
+}
+
 copy_command() {
   local src=$1
   local dest_name=$2
@@ -37,9 +53,16 @@ copy_command() {
   printf 'Installed %s\n' "${DEST#$TARGET/}/$dest_name"
 }
 
+render_command() {
+  local src=$1
+  local dest_name=$2
+  render_file "$src" "$DEST/$dest_name" 0644
+  printf 'Installed %s\n' "${DEST#$TARGET/}/$dest_name"
+}
+
 install_product_hook() {
   mkdir -p "$HOOK_DEST"
-  install -m 0755 "$FORGE_DIR/core/templates/githooks/pre-push" "$HOOK_DEST/pre-push"
+  render_file "$FORGE_DIR/core/templates/githooks/pre-push" "$HOOK_DEST/pre-push" 0755
   printf 'Installed %s\n' "${HOOK_DEST#$TARGET/}/pre-push"
   if git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
     git -C "$TARGET" config core.hooksPath .githooks
@@ -51,13 +74,13 @@ install_product_hook() {
 
 case "$MODE" in
   product)
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/bugfix.md" "bugfix.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/feature.md" "feature.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/investigate.md" "investigate.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/continue.md" "continue.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/gate.md" "gate.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/review.md" "review.md"
-    copy_command "$FORGE_DIR/adapters/claude-code/commands/product/release.md" "release.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/bugfix.md" "bugfix.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/feature.md" "feature.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/investigate.md" "investigate.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/continue.md" "continue.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/gate.md" "gate.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/review.md" "review.md"
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/release.md" "release.md"
     install_product_hook
     ;;
   self)

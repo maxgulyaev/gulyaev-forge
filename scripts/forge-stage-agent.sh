@@ -8,8 +8,8 @@ Usage:
   bash scripts/forge-stage-agent.sh run <project-dir> <stage> <role>
 
 Examples:
-  bash scripts/forge-stage-agent.sh show /Users/maxgulyaev/Documents/Dev/spodi code_review reviewer
-  bash scripts/forge-stage-agent.sh run /Users/maxgulyaev/Documents/Dev/spodi code_review reviewer
+  bash scripts/forge-stage-agent.sh show /path/to/project code_review reviewer
+  bash scripts/forge-stage-agent.sh run /path/to/project code_review reviewer
 EOF
 }
 
