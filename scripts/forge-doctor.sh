@@ -222,56 +222,123 @@ collect_stage_agent_specs() {
   ' "$file"
 }
 
+CLAUDE_MCP_LIST_LOADED=0
+CLAUDE_MCP_LIST_OUTPUT=""
+
+claude_user_config_file() {
+  printf '%s' "${CLAUDE_USER_CONFIG_FILE:-$HOME/.claude.json}"
+}
+
 claude_settings_file() {
   printf '%s' "${CLAUDE_SETTINGS_FILE:-$HOME/.claude/settings.json}"
 }
 
-settings_contains() {
+config_contains() {
   local file=$1
   local pattern=$2
   [[ -f "$file" ]] && grep -Fq "$pattern" "$file"
 }
 
-check_self_mcp_server() {
-  local settings=$1
-  local name=$2
-  local key_pattern=$3
-  local command_pattern=$4
+settings_contains() {
+  config_contains "$@"
+}
 
-  if settings_contains "$settings" "$key_pattern" && settings_contains "$settings" "$command_pattern"; then
-    ok "Claude MCP configured: $name"
-  elif settings_contains "$settings" "$key_pattern"; then
+load_claude_mcp_list() {
+  if [[ "$CLAUDE_MCP_LIST_LOADED" -eq 1 ]]; then
+    return
+  fi
+
+  CLAUDE_MCP_LIST_LOADED=1
+  if command -v claude >/dev/null 2>&1; then
+    CLAUDE_MCP_LIST_OUTPUT=$(claude mcp list 2>/dev/null || true)
+  fi
+}
+
+claude_mcp_status_line() {
+  local name=$1
+  load_claude_mcp_list
+  if [[ -z "$CLAUDE_MCP_LIST_OUTPUT" ]]; then
+    return
+  fi
+
+  printf '%s\n' "$CLAUDE_MCP_LIST_OUTPUT" | awk -v name="$name" '
+    $0 ~ ("^" name ":") {
+      print
+      exit
+    }
+  '
+}
+
+check_self_mcp_server() {
+  local user_config=$1
+  local settings=$2
+  local name=$3
+  local key_pattern=$4
+  local command_pattern=$5
+  local status_line
+
+  if config_contains "$user_config" "$key_pattern" && config_contains "$user_config" "$command_pattern"; then
+    ok "Claude user MCP configured: $name"
+  elif config_contains "$settings" "$key_pattern" && config_contains "$settings" "$command_pattern"; then
+    warn "Claude settings contain $name, but Claude user config is missing it"
+  elif config_contains "$user_config" "$key_pattern" || config_contains "$settings" "$key_pattern"; then
     warn "Claude MCP entry present but command looks unexpected: $name"
   else
     warn "Claude MCP missing: $name"
   fi
+
+  status_line=$(claude_mcp_status_line "$name" || true)
+  if [[ -z "$status_line" ]]; then
+    return
+  fi
+
+  if [[ "$status_line" == *"✓ Connected"* ]]; then
+    ok "Claude MCP connected: $name"
+  elif [[ "$status_line" == *"✗ Failed to connect"* ]]; then
+    warn "Claude MCP configured but failed to connect: $name"
+  else
+    ok "Claude MCP visible to Claude CLI: $name"
+  fi
 }
 
 check_self_mcp_setup() {
+  local user_config
   local settings
+  user_config=$(claude_user_config_file)
   settings=$(claude_settings_file)
+
+  if [[ -f "$user_config" ]]; then
+    ok "Claude user config present: $user_config"
+  else
+    warn "Claude user config missing: $user_config"
+  fi
 
   if [[ -f "$settings" ]]; then
     ok "Claude settings present: $settings"
   else
-    warn "Claude settings missing: $settings"
-    return
+    ok "Claude settings optional and not present: $settings"
   fi
 
-  if settings_contains "$settings" '"mcpServers"'; then
-    ok "Claude settings define mcpServers"
+  if config_contains "$user_config" '"mcpServers"'; then
+    ok "Claude user config defines mcpServers"
+  elif config_contains "$settings" '"mcpServers"'; then
+    warn "Claude settings define mcpServers, but Claude user config does not"
   else
-    warn "Claude settings missing mcpServers block"
+    warn "Claude MCP config missing mcpServers block"
   fi
 
-  check_self_mcp_server "$settings" "context7" '"context7"' '@upstash/context7-mcp'
-  check_self_mcp_server "$settings" "playwright" '"playwright"' '@playwright/mcp'
-  check_self_mcp_server "$settings" "github" '"github"' '@modelcontextprotocol/server-github'
+  check_self_mcp_server "$user_config" "$settings" "context7" '"context7"' '@upstash/context7-mcp'
+  check_self_mcp_server "$user_config" "$settings" "playwright" '"playwright"' '@playwright/mcp'
+  check_self_mcp_server "$user_config" "$settings" "github" '"github"' '@modelcontextprotocol/server-github'
 
-  if settings_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
+  if config_contains "$user_config" 'GITHUB_PERSONAL_ACCESS_TOKEN' || config_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
     ok "Claude GitHub MCP env configured"
   else
     warn "Claude GitHub MCP env missing GITHUB_PERSONAL_ACCESS_TOKEN"
+  fi
+
+  if config_contains "$settings" '@anthropic-ai/mcp-server-playwright'; then
+    warn "Claude settings contain legacy playwright package; use bin/forge mcp install playwright"
   fi
 }
 
@@ -537,6 +604,7 @@ doctor_self() {
   [[ -f "$dir/scripts/forge-doctor.sh" ]] && ok "forge-doctor.sh present" || err "forge-doctor.sh missing"
   [[ -f "$dir/scripts/forge-status.sh" ]] && ok "forge-status.sh present" || err "forge-status.sh missing"
   [[ -f "$dir/scripts/forge-init.sh" ]] && ok "forge-init.sh present" || err "forge-init.sh missing"
+  [[ -f "$dir/scripts/forge-mcp.sh" ]] && ok "forge-mcp.sh present" || err "forge-mcp.sh missing"
   [[ -f "$dir/scripts/forge-stage-agent.sh" ]] && ok "forge-stage-agent.sh present" || err "forge-stage-agent.sh missing"
   [[ -f "$dir/scripts/forge-release-target.sh" ]] && ok "forge-release-target.sh present" || err "forge-release-target.sh missing"
   [[ -f "$dir/scripts/forge-release-scope.sh" ]] && ok "forge-release-scope.sh present" || err "forge-release-scope.sh missing"

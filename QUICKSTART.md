@@ -290,21 +290,8 @@ Pipeline: $FORGE_DIR/core/pipeline/orchestrator.md
 
 ### Context7 (свежие доки библиотек)
 
-Через marketplace (рекомендуется):
 ```bash
-claude /install-plugin context7
-```
-
-Или вручную — добавь в `~/.claude/settings.json`:
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    }
-  }
-}
+claude mcp add -s user context7 -- npx -y @upstash/context7-mcp@latest
 ```
 
 Проверка: в claude напиши "найди доки Fiber v2" — должен подтянуть актуальные.
@@ -312,56 +299,27 @@ claude /install-plugin context7
 ### Playwright (браузерное тестирование)
 
 ```bash
-claude /install-plugin playwright
+FORGE_DIR=/path/to/gulyaev-forge
+bash "$FORGE_DIR/bin/forge" mcp install playwright
 ```
 
-Или вручную:
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
-    }
-  }
-}
-```
+Для Claude Code канонический источник истины здесь — `claude mcp` и `~/.claude.json`, не ручной блок в `~/.claude/settings.json`.
 
 ### GitHub (issues, PRs, boards)
 
 ```bash
-claude /install-plugin github
-```
-
-Или вручную:
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "<твой токен>"
-      }
-    }
-  }
-}
+FORGE_DIR=/path/to/gulyaev-forge
+export GITHUB_PERSONAL_ACCESS_TOKEN=<токен>
+bash "$FORGE_DIR/bin/forge" mcp install github
 ```
 
 GitHub токен: Settings → Developer settings → Personal access tokens → Generate new token (repo, project scopes).
 
 ### Figma (дизайн, макеты)
 
-Remote MCP (OAuth авторизация) — добавь в `~/.claude/settings.json`:
-```json
-{
-  "mcpServers": {
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    }
-  }
-}
+Remote MCP (OAuth авторизация):
+```bash
+claude mcp add -s user --transport http figma https://mcp.figma.com/mcp
 ```
 
 После добавления перезапусти Claude Code — Figma попросит авторизоваться через OAuth в браузере.
@@ -825,7 +783,7 @@ OpenClaw лучше использовать как dashboard / orchestration UI
 | `forge init` | ГОТОВО (MVP) | `scripts/forge-init.sh`, `bin/forge` |
 | Claude Code адаптер | ГОТОВО (entry commands) | `adapters/claude-code/` |
 | Codex адаптер | PARTIAL | External reviewer via `forge-stage-agent.sh`, full intent router позже |
-| MCP setup | ГОТОВО на текущей машине + есть валидация | `~/.claude/settings.json`, `scripts/forge-doctor.sh self .` |
+| MCP setup | ГОТОВО на текущей машине + есть валидация | `~/.claude.json`, `bin/forge mcp status`, `scripts/forge-doctor.sh self .` |
 
 ---
 
@@ -867,24 +825,32 @@ git clone git@github.com:your-org/your-product.git
 
 ### 3. Настрой MCP серверы (глобально)
 
-MCP серверы ставятся один раз в `~/.claude/settings.json` — доступны из любого проекта.
+MCP серверы ставятся один раз на уровне пользователя Claude Code и доступны из любого проекта.
+Канонический source of truth:
+- `claude mcp add -s user ...`
+- `claude mcp list`
+- `~/.claude.json`
+
+`~/.claude/settings.json` может существовать для плагинов, statusline и legacy-настроек, но не считай его главным реестром MCP для Claude Code.
+
+```bash
+FORGE_DIR="${WORKSPACE_DIR:-$HOME/workspace}/gulyaev-forge"
+```
 
 ```bash
 # Context7 — свежие доки библиотек
-claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+claude mcp add -s user context7 -- npx -y @upstash/context7-mcp@latest
 
-# Playwright — браузерное тестирование (этап QA)
-claude mcp add playwright -- npx -y @playwright/mcp@latest
+# Playwright — браузерное тестирование (этап QA), стабильная установка
+bash "$FORGE_DIR/bin/forge" mcp install playwright
 
-# GitHub — issues, PRs, boards (spec-to-issue bridge)
-claude mcp add github -- npx -y @modelcontextprotocol/server-github
-# Потом в ~/.claude/settings.json добавь env:
-# "github": { ..., "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>" } }
+# GitHub — issues, PRs, boards (spec-to-issue bridge), стабильная установка
+export GITHUB_PERSONAL_ACCESS_TOKEN=<токен>
+bash "$FORGE_DIR/bin/forge" mcp install github
 
 # Figma — дизайн, макеты (remote OAuth)
-# Добавь вручную в ~/.claude/settings.json:
-# "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" }
-# После рестарта Claude Code → авторизуйся через OAuth в браузере
+claude mcp add -s user --transport http figma https://mcp.figma.com/mcp
+# После рестарта Claude Code авторизуйся через OAuth в браузере
 ```
 
 GitHub токен: [Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) — scopes: `repo`, `project`.
@@ -904,7 +870,7 @@ claude /install-plugin swift-lsp
 
 ### 5. Настрой глобальные параметры
 
-В `~/.claude/settings.json` должно быть:
+В `~/.claude/settings.json` должны остаться глобальные параметры Claude Code, например плагины и statusline:
 
 ```json
 {
@@ -912,27 +878,6 @@ claude /install-plugin swift-lsp
     "superpowers@claude-plugins-official": true,
     "everything-claude-code@everything-claude-code": true,
     "swift-lsp@claude-plugins-official": true
-  },
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "<токен>"
-      }
-    },
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    }
   }
 }
 ```
@@ -940,6 +885,9 @@ claude /install-plugin swift-lsp
 ### 6. Проверь что всё работает
 
 ```bash
+bash "$FORGE_DIR/bin/forge" mcp status
+bash "$FORGE_DIR/scripts/forge-doctor.sh" self "$FORGE_DIR"
+
 cd "$PROJECT_DIR"
 claude
 
@@ -956,7 +904,7 @@ claude
 - [ ] `gulyaev-forge` склонирован в удобную для тебя папку
 - [ ] Продукты склонированы рядом
 - [ ] `bash "$FORGE_DIR/scripts/forge-doctor.sh" self .` проходит без ошибок
-- [ ] MCP: Context7, Playwright, GitHub, Figma — в `~/.claude/settings.json`
+- [ ] MCP: Context7, Playwright, GitHub, Figma — видны через `claude mcp list`
 - [ ] GitHub токен добавлен
 - [ ] Figma OAuth авторизация пройдена
 - [ ] Плагины: superpowers, everything-claude-code
@@ -973,7 +921,7 @@ claude
 Core скиллы — чистый markdown. Любой агент может их прочитать по пути. Адаптеры добавим позже.
 
 **Q: Где хранить креды для MCP?**
-В `~/.claude/settings.json` (не в репе). GitHub токен — через env переменные.
+В user-level MCP config Claude Code, то есть в `~/.claude.json` через `claude mcp add-json ...`. Не в репе.
 
 **Q: Как обновить скилл?**
 `cd gulyaev-forge` → правишь `core/skills/[stage]/SKILL.md` → commit → push. Все проекты сразу видят обновление.

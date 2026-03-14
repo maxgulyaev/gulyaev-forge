@@ -332,7 +332,7 @@ The durable approval record should live in the issue trail, but the user does no
 ## Quick Start
 
 See **[QUICKSTART.md](QUICKSTART.md)** — step-by-step guide:
-1. MCP setup (Context7, Playwright, GitHub)
+1. MCP bootstrap (`claude mcp add -s user`, `bin/forge mcp install playwright`)
 2. Project initialization (`bin/forge init`, `.forge/config.yaml`, labels, folder structure)
 3. Daily workflow (PRODUCT vs SELF mode)
 4. How agents find and use forge skills
@@ -340,6 +340,7 @@ See **[QUICKSTART.md](QUICKSTART.md)** — step-by-step guide:
 ## Docs
 
 - **[QUICKSTART.md](QUICKSTART.md)** — practical how-to-live-with-this guide
+- **[docs/mcp-bootstrap.md](docs/mcp-bootstrap.md)** — canonical machine-level MCP setup for Claude Code
 - **[docs/operating-playbook.md](docs/operating-playbook.md)** — exact commands, working model, status tracking
 - **[docs/design.md](docs/design.md)** — full architecture, pipeline stages, roadmap
 - **[core/pipeline/orchestrator.md](core/pipeline/orchestrator.md)** — stage order, gates, context injection

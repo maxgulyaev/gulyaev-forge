@@ -260,6 +260,7 @@ If you are using Claude Code here, prefer:
 
 Canonical source of truth:
 - `core/pipeline/entry-surface.md`
+- `docs/mcp-bootstrap.md` for machine-level Claude MCP setup
 
 Good prompts:
 - `Хочу изменить процесс stage gates`
@@ -293,7 +294,7 @@ What already works:
 What is still manual:
 - full orchestration between stages
 - adapter generation
-- per-machine MCP installation from `QUICKSTART.md`
+- per-machine MCP installation from `docs/mcp-bootstrap.md` and `bin/forge mcp`
 - automatic issue label sync and artifact writing
 
 Until those are automated, you drive the transitions manually and use the docs plus scripts as the control surface.

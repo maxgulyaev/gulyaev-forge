@@ -169,56 +169,117 @@ collect_stage_agent_specs() {
   ' "$file"
 }
 
+CLAUDE_MCP_LIST_LOADED=0
+CLAUDE_MCP_LIST_OUTPUT=""
+
+claude_user_config_file() {
+  printf '%s' "${CLAUDE_USER_CONFIG_FILE:-$HOME/.claude.json}"
+}
+
 claude_settings_file() {
   printf '%s' "${CLAUDE_SETTINGS_FILE:-$HOME/.claude/settings.json}"
 }
 
-settings_contains() {
+config_contains() {
   local file=$1
   local pattern=$2
   [[ -f "$file" ]] && grep -Fq "$pattern" "$file"
 }
 
+settings_contains() {
+  config_contains "$@"
+}
+
+load_claude_mcp_list() {
+  if [[ "$CLAUDE_MCP_LIST_LOADED" -eq 1 ]]; then
+    return
+  fi
+
+  CLAUDE_MCP_LIST_LOADED=1
+  if command -v claude >/dev/null 2>&1; then
+    CLAUDE_MCP_LIST_OUTPUT=$(claude mcp list 2>/dev/null || true)
+  fi
+}
+
+claude_mcp_status_line() {
+  local name=$1
+  load_claude_mcp_list
+  if [[ -z "$CLAUDE_MCP_LIST_OUTPUT" ]]; then
+    return
+  fi
+
+  printf '%s\n' "$CLAUDE_MCP_LIST_OUTPUT" | awk -v name="$name" '
+    $0 ~ ("^" name ":") {
+      print
+      exit
+    }
+  '
+}
+
 print_self_mcp_status() {
+  local user_config
   local settings
+  local line
+  user_config=$(claude_user_config_file)
   settings=$(claude_settings_file)
 
   printf '\nClaude MCP:\n'
+  if [[ -f "$user_config" ]]; then
+    printf '  user config: present (%s)\n' "$user_config"
+  else
+    printf '  user config: missing (%s)\n' "$user_config"
+  fi
+
   if [[ -f "$settings" ]]; then
     printf '  settings: present (%s)\n' "$settings"
   else
     printf '  settings: missing (%s)\n' "$settings"
-    return
   fi
 
-  if settings_contains "$settings" '"context7"' && settings_contains "$settings" '@upstash/context7-mcp'; then
-    printf '  context7: configured\n'
+  line=$(claude_mcp_status_line "context7" || true)
+  if [[ -n "$line" ]]; then
+    printf '  context7: %s\n' "${line#context7: }"
+  elif config_contains "$settings" '"context7"' || config_contains "$user_config" '"context7"' ; then
+    printf '  context7: configured but not visible in claude mcp list\n'
   else
     printf '  context7: missing\n'
   fi
 
-  if settings_contains "$settings" '"playwright"' && settings_contains "$settings" '@playwright/mcp'; then
-    printf '  playwright: configured\n'
+  line=$(claude_mcp_status_line "playwright" || true)
+  if [[ -n "$line" ]]; then
+    printf '  playwright: %s\n' "${line#playwright: }"
+  elif config_contains "$settings" '"playwright"' || config_contains "$user_config" '"playwright"' ; then
+    printf '  playwright: configured but not visible in claude mcp list\n'
   else
     printf '  playwright: missing\n'
   fi
 
-  if settings_contains "$settings" '"github"' && settings_contains "$settings" '@modelcontextprotocol/server-github'; then
-    printf '  github: configured\n'
+  line=$(claude_mcp_status_line "github" || true)
+  if [[ -n "$line" ]]; then
+    printf '  github: %s\n' "${line#github: }"
+  elif config_contains "$settings" '"github"' || config_contains "$user_config" '"github"' ; then
+    printf '  github: configured but not visible in claude mcp list\n'
   else
     printf '  github: missing\n'
   fi
 
-  if settings_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
+  if config_contains "$user_config" 'GITHUB_PERSONAL_ACCESS_TOKEN' || config_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
     printf '  github env: configured\n'
   else
     printf '  github env: missing\n'
   fi
 
-  if settings_contains "$settings" '"figma"' && settings_contains "$settings" 'https://mcp.figma.com/mcp'; then
-    printf '  figma: configured\n'
+  line=$(claude_mcp_status_line "figma" || true)
+  if [[ -n "$line" ]]; then
+    printf '  figma: %s\n' "${line#figma: }"
+  elif config_contains "$settings" '"figma"' || config_contains "$user_config" '"figma"' ; then
+    printf '  figma: configured but not visible in claude mcp list\n'
   else
     printf '  figma: missing\n'
+  fi
+
+  if config_contains "$settings" '@anthropic-ai/mcp-server-playwright'; then
+    printf '  playwright settings override: legacy package in ~/.claude/settings.json\n'
   fi
 }
 
@@ -507,6 +568,11 @@ print_self_status() {
     printf '  forge init: present\n'
   else
     printf '  forge init: missing\n'
+  fi
+  if [[ -f "$dir/scripts/forge-mcp.sh" ]]; then
+    printf '  forge mcp: present\n'
+  else
+    printf '  forge mcp: missing\n'
   fi
 
   print_self_mcp_status

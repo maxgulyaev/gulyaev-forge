@@ -18,6 +18,10 @@ case "$CMD" in
     shift
     bash "$FORGE_DIR/scripts/forge-status.sh" "$@"
     ;;
+  mcp)
+    shift
+    bash "$FORGE_DIR/scripts/forge-mcp.sh" "$@"
+    ;;
   ""|-h|--help|help)
     cat <<'EOF'
 Usage:
@@ -26,6 +30,9 @@ Usage:
   bin/forge doctor product [project-dir]
   bin/forge status self [forge-dir]
   bin/forge status product [project-dir]
+  bin/forge mcp status
+  bin/forge mcp install playwright
+  bin/forge mcp install github
 EOF
     ;;
   *)
