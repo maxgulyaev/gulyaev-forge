@@ -53,6 +53,23 @@ Context: this repo.
 
 Sub-modes: Scout, Meta, Upgrade, Retrospective
 
+## Session Router
+
+This repo is `SELF` by default.
+
+Short prompts like these must work without a long setup prompt:
+- `Улучши pipeline`
+- `Добавь новый MCP`
+- `Сделай forge более рабочим`
+- `Упрости запуск PRODUCT/SELF сценариев`
+
+Before substantial forge work:
+1. Run `bash scripts/forge-doctor.sh self .`
+2. Run `bash scripts/forge-status.sh self .`
+3. Read `core/skills/self-entry/SKILL.md`
+4. Use `docs/operating-playbook.md` + `docs/design.md` as operational context
+5. If the change affects connected projects, validate the target project repo after editing forge
+
 ## Pipeline Stages
 
 0. Strategy → 1. Discovery → 2. PRD → 3. Design → 4. Architecture →

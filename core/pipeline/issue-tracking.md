@@ -463,6 +463,7 @@ body:
 - **Board**: GitHub Projects V2 API
 - **Templates**: `.github/ISSUE_TEMPLATE/*.yml`
 - **MCP**: `@modelcontextprotocol/server-github`
+- **Gate decisions**: record human approval in issue comments as `/gate approved`, `/gate approved_with_changes`, or `/gate rejected`
 
 ### Linear (future)
 - **Epic**: Linear Project

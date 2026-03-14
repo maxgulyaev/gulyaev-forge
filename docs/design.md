@@ -299,6 +299,15 @@ SELF
 - Зависимости: что ещё может сломаться при откате
 ```
 
+Гейт не считается пройденным, пока человек явно не зафиксировал решение.
+
+Стандарт записи решения в issue:
+- `/gate approved`
+- `/gate approved_with_changes`
+- `/gate rejected`
+
+До этого нельзя двигать `stage/*` label, `current_stage` или `stages_completed`.
+
 ---
 
 ## Мета-агент: Skill над скиллами
@@ -542,6 +551,42 @@ forge init --project ./spodi
 Ядро — чистый markdown. Любой AI-агент может прочитать markdown.
 Адаптер оборачивает его в нативный формат агента, но суть не меняется.
 
+### Project overlay skills
+
+Не всё должно жить в `config.yaml`.
+
+`config.yaml` — это декларативный слой: какие файлы инжектить, какие этапы включены,
+какие трекеры и env есть у проекта.
+
+Но проекту также нужны семантические уточнения по ролям, которые не хочется размазывать
+по `CLAUDE.md` или дублировать в base skill. Для этого у проекта есть overlay-скиллы:
+
+```text
+project/.forge/skills/
+  strategy.md
+  prd.md
+  architecture.md
+  implementation.md
+  qa.md
+  ...
+```
+
+Каждый такой файл:
+- дополняет forge base skill конкретикой продукта
+- НЕ копирует base skill целиком
+- описывает локальные инварианты, приоритеты, зоны риска, запреты и важные документы
+
+### Merge order
+
+Если инструкции конфликтуют, приоритет такой:
+
+1. Issue / acceptance criteria / approved artifacts
+2. `project/.forge/skills/[stage].md`
+3. `forge/core/skills/[stage]/SKILL.md`
+4. adapter shim (`.claude/skills`, `AGENTS.md`, `.cursor/rules/...`)
+
+Adapter-файлы должны считаться доставочным слоем, а не первичным source of truth.
+
 ---
 
 ## Роль-ориентированная фильтрация контекста (B)
@@ -751,7 +796,7 @@ stages:
 
 ---
 
-### Phase 0: Фундамент ✅ (mostly done)
+### Phase 0: Фундамент ✅
 > Цель: репа gulyaev-forge + core + первый адаптер
 
 - [x] **0.1** Создать репу `gulyaev-forge`
@@ -763,16 +808,16 @@ stages:
 - [x] **0.7** MCP registry (yaml каталог)
 - [x] **0.8** QUICKSTART.md — практические инструкции
 - [x] **0.9** Интегрировать Claude Code Review (Stage 6.5)
-- [ ] **0.10** Установить MCP серверы (Context7, Playwright, GitHub)
-- [ ] **0.11** Написать адаптер `claude-code`
-- [ ] **0.12** Реализовать `/init` скилл (автоматизация)
-- [ ] **0.13** Инициализировать Spodi (`.forge/config.yaml`, labels, папки)
-- [ ] **0.14** Обкатать pipeline на реальной фиче Spodi
+- [x] **0.10** Подключить и валидировать MCP серверы (Context7, Playwright, GitHub)
+- [x] **0.11** Написать адаптер `claude-code`
+- [x] **0.12** Реализовать `forge init` (MVP scaffolding automation)
+- [x] **0.13** Инициализировать Spodi (`.forge/config.yaml`, labels, папки)
+- [x] **0.14** Обкатать pipeline на реальной фиче Spodi (`#95`, supersets pilot)
 
 ### Phase 1: Обкатка product-этапов
 > Цель: прогнать реальную фичу через Strategy → PRD → Architecture → Implementation
 
-- [ ] **1.1** Выбрать фичу для обкатки (суперсеты?)
+- [x] **1.1** Выбрать фичу для обкатки (суперсеты, `#95`)
 - [ ] **1.2** Прогнать Strategy → Discovery → PRD с гейтами
 - [ ] **1.3** Прогнать Design → Architecture с гейтами
 - [ ] **1.4** Прогнать Implementation → Code Review → QA

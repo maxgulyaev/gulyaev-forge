@@ -31,6 +31,7 @@ Uses `REVIEW.md` in project root for project-specific review rules.
 
 ## Related Documents
 - **Issue Tracking**: `core/pipeline/issue-tracking.md` — spec-to-issue bridge, label system, provider adapters
+- **Entry Surface**: `core/pipeline/entry-surface.md` — public commands and routing contract
 
 ## How to Start the Pipeline
 
@@ -45,12 +46,28 @@ Uses `REVIEW.md` in project root for project-specific review rules.
 5. Present gate (if applicable)
 6. On approval → advance to next stage
 
+### For natural-language prompts:
+The user does not need to name stages explicitly.
+
+The entry router should infer the path:
+- bug/regression/outage → quick path toward Implementation
+- feature/change request → earliest valid product stage
+- evidence/analysis question → Discovery or Product Analytics
+- short approval reply like `ok, go ahead` → gate decision for the current presented gate
+
 ### For analytics loop:
 1. Start at Stage 11 (Product Analytics)
 2. Analytics produces recommendation: continue/amplify/pivot/kill
 3. This feeds into Stage 0 (Strategy) for the next cycle
 
 ## Gate Protocol
+
+**Hard rule:** a gated stage remains unresolved until a human records one of these decisions:
+- `/gate approved`
+- `/gate approved_with_changes`
+- `/gate rejected`
+
+The decision should live in the issue trail. If approval happens in the agent chat using natural language such as `ok`, `go ahead`, or `approved with changes`, the agent must mirror that decision into the issue before moving labels or `pipeline-state.yaml`.
 
 At each gate, present:
 
@@ -85,6 +102,8 @@ Dependencies: what else might break
 - **Approved with changes** → apply feedback, re-present gate
 - **Rejected** → go back to current stage with feedback
 - **Rejected 3x** → escalate: "This stage has been rejected 3 times. Consider: going back to a previous stage, reframing the problem, or pausing to discuss the approach."
+
+Do not update `stage/*` labels, `current_stage`, or `stages_completed` for the next stage before one of the explicit gate decisions above is recorded.
 
 ## Context Injection Rules
 
@@ -155,13 +174,25 @@ For small changes (bug fixes, copy changes, minor tweaks):
 Skip to Stage 6 (Implementation) directly
   → Stage 7 (Test Coverage)
   → Stage 8 (QA) — abbreviated
-  → Stage 9/10 (Deploy)
+  → Ship only after QA approval
 ```
 
 Must still have:
 - Clear problem statement (even if one sentence)
+- Bug issue as execution contract for any non-trivial fix
 - Tests for the fix
 - QA verification
+- Stop at QA gate before `git push` / merge / deploy
+
+Quick-path local state:
+
+```
+project/.forge/
+  active-run.env          # локальный quick-run state для bugfix/hotfix
+```
+
+Use `active-run.env` for bugfix continuity across sessions when the main
+`pipeline-state.yaml` still points to a different feature.
 
 ## State Tracking
 
@@ -169,25 +200,39 @@ Must still have:
 
 Основное состояние pipeline хранится в таск-трекере (GitHub Issues).
 `pipeline-state.yaml` — локальный кеш для удобства оркестратора, НЕ source of truth.
+Для quick-path bugfix дополнительно используется `active-run.env` как локальный state
+текущего short-lived run; issue trail всё равно остаётся durable source of truth.
 
 При каждом переходе между этапами оркестратор **обязан**:
-1. Обновить лейбл `stage/*` на issue фичи (убрать старый, добавить новый)
-2. Добавить комментарий к issue с результатом gate (артефакт, статус, решение)
-3. Обновить `pipeline-state.yaml` (локальный кеш)
+1. После завершения gated stage записать артефакт и добавить gate comment в issue
+2. Выставить `current_gate_status: pending_approval` в `pipeline-state.yaml`
+3. Остановиться и ждать явного решения человека
+4. Только после `/gate approved` или `/gate approved_with_changes`:
+   - обновить лейбл `stage/*` на issue фичи (убрать старый, добавить новый)
+   - добавить комментарий о зафиксированном решении
+   - обновить `pipeline-state.yaml` и перевести `current_stage` дальше
 
 ### Обновление issue при переходе
 
 ```bash
-# Пример: фича #95 прошла Strategy gate → переход в Discovery
+# Пример: фича #95 завершила Strategy stage и ждёт решения
 
-# 1. Убрать старый stage-лейбл, добавить новый
+# 1. Комментарий с результатом gate
+gh issue comment 95 --body "## Pipeline: Strategy → Discovery
+**Gate:** pending approval
+**Артефакт:** docs/strategy/2026-03-10-supersets.md
+**Решение:** GO WITH CONCERNS — scope v1, приоритет повышен до P1
+
+Decision command:
+/gate approved
+/gate approved_with_changes
+/gate rejected"
+
+# 2. После явного approval обновить stage label
 gh issue edit 95 --remove-label "stage/strategy" --add-label "stage/discovery"
 
-# 2. Комментарий с результатом gate
-gh issue comment 95 --body "## Pipeline: Strategy → Discovery
-**Gate:** approved
-**Артефакт:** docs/strategy/2026-03-10-supersets.md
-**Решение:** GO WITH CONCERNS — scope v1, приоритет повышен до P1"
+# 3. Комментарий с зафиксированным решением
+gh issue comment 95 --body "/gate approved"
 ```
 
 ### Локальный кеш (pipeline-state.yaml)
@@ -201,21 +246,11 @@ project/.forge/
 ```yaml
 # pipeline-state.yaml (авто-обновляется оркестратором)
 current_feature: "supersets"
-current_stage: 6          # implementation
+current_stage: 0          # strategy
+current_gate_status: pending_approval
+current_stage_artifact: docs/strategy/2026-03-10-supersets.md
 issue: 95
-stages_completed:
-  - stage: 0
-    date: 2026-03-10
-    gate: approved
-    artifact: docs/strategy/2026-03-10-supersets.md
-  - stage: 2
-    date: 2026-03-10
-    gate: approved
-    artifact: docs/prd/2026-03-10-supersets.md
-  - stage: 4
-    date: 2026-03-11
-    gate: approved_with_changes
-    artifact: docs/architecture/2026-03-11-supersets.md
+stages_completed: []
 stages_skipped:
   - stage: 3
     reason: "Backend-only feature, no UI changes in this iteration"

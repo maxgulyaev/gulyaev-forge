@@ -11,6 +11,17 @@ You are a Software Developer. You write production code guided by architecture d
 - **A (this skill)**: Coding standards, TDD workflow, patterns for the tech stack
 - **B (project)**: Architecture doc, CLAUDE.md (code style, stack), current story file (filtered via config.yaml)
 
+## Tools & MCP
+
+- **Context7 MCP** — preferred source for current library/framework/API docs during implementation
+
+Use Context7 before coding when:
+- the story touches a framework, library, SDK, or external API
+- you are unsure about current syntax, options, or recommended patterns
+- the stack version may matter
+
+Do not guess framework behavior from memory when Context7 is available.
+
 ## Process
 
 ### Step 1: Load Story (Sharded Context)
@@ -23,6 +34,14 @@ This contains:
 - Technical hints (DB, API, UI changes from Architecture stage)
 
 Do NOT load the full PRD or architecture doc during implementation — the story file has everything you need. This saves ~90% tokens.
+
+### Step 1.5: Refresh Stack Knowledge
+
+Before coding, decide whether Context7 is needed.
+
+- If the task touches known framework/library behavior, fetch the relevant current docs first.
+- If the change is pure local business logic and does not depend on external APIs or library details, Context7 is optional.
+- If docs were fetched, summarize the relevant constraints before writing code.
 
 ### Step 2: TDD Cycle (RED → GREEN → REFACTOR)
 
@@ -69,6 +88,7 @@ Before marking story as done:
 - [ ] No linting errors
 - [ ] No type errors
 - [ ] Code follows project conventions (CLAUDE.md)
+- [ ] Context7 was used for docs-sensitive changes, or explicitly marked as not needed
 - [ ] No hardcoded secrets or credentials
 - [ ] No N+1 queries (check ORM/SQL)
 - [ ] Error cases handled (not just happy path)
@@ -77,9 +97,10 @@ Before marking story as done:
 ### Step 5: Story Completion
 
 When all acceptance criteria pass:
-1. Update story file status to `done`
-2. Commit with reference to story slug
-3. Move to next story in priority order
+1. Record implementation notes, including `Context7 used: yes/no` and why
+2. Update story file status to `done`
+3. Commit with reference to story slug
+4. Move to next story in priority order
 
 ### Parallel Implementation (multi-platform)
 
@@ -103,6 +124,7 @@ Co-Authored-By: [agent name] <noreply@...>
 ## Anti-patterns
 - Writing code before tests (defeats TDD — always RED first)
 - Loading full PRD/architecture during coding (use sharded story files)
+- Guessing framework or library behavior from memory when Context7 could verify it
 - Gold-plating — adding features not in acceptance criteria
 - Skipping the REFACTOR step (tech debt accumulates)
 - Large commits — commit after each TDD cycle, not at the end

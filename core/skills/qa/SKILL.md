@@ -41,6 +41,10 @@ Capture for each step:
 - Console errors (if any)
 - Timing (how long each step took)
 
+If the project explicitly enables `qa_tools.playwright_mcp` in `.forge/config.yaml` and the surface is web:
+- prefer Playwright MCP over ad-hoc manual browser checks
+- if you do not use it, state why
+
 ### Step 3: Visual Validation
 
 Compare against design specs:

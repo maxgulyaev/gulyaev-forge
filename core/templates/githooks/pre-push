@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)
+STATE_FILE="$REPO_ROOT/.forge/active-run.env"
+CONFIG_FILE="$REPO_ROOT/.forge/config.yaml"
+
+if [[ ! -f "$STATE_FILE" ]]; then
+  exit 0
+fi
+
+read_value() {
+  local file=$1
+  local key=$2
+  awk -v key="$key" '
+    index($0, key "=") == 1 {
+      print substr($0, length(key) + 2)
+      exit
+    }
+  ' "$file"
+}
+
+trim_quotes() {
+  sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//; s/^"//; s/"$//'
+}
+
+read_project_repo() {
+  local file=$1
+  awk '
+    /^project:$/ { in_project=1; next }
+    in_project && /^[^ ]/ { exit }
+    in_project && /^  repo:/ {
+      sub("^[^:]+:[[:space:]]*", "", $0)
+      sub(/[[:space:]]+#.*/, "", $0)
+      print $0
+      exit
+    }
+  ' "$file" | trim_quotes
+}
+
+read_stage_agent_scalar() {
+  local file=$1
+  local stage=$2
+  local role=$3
+  local key=$4
+  awk -v stage="$stage" -v role="$role" -v key="$key" '
+    /^stage_agents:$/ { in_agents=1; next }
+    in_agents && /^[^ ]/ { in_agents=0; in_stage=0; in_role=0 }
+    in_agents && $0 ~ ("^  " stage ":$") { in_stage=1; in_role=0; next }
+    in_agents && /^  [a-z_]+:$/ && $0 !~ ("^  " stage ":$") { in_stage=0; in_role=0 }
+    in_stage && $0 ~ ("^    " role ":$") { in_role=1; next }
+    in_stage && /^    [a-z_]+:$/ && $0 !~ ("^    " role ":$") { in_role=0 }
+    in_role && $0 ~ ("^      " key ":") {
+      sub("^[^:]+:[[:space:]]*", "", $0)
+      sub(/[[:space:]]+#.*/, "", $0)
+      print $0
+      exit
+    }
+  ' "$file" | trim_quotes
+}
+
+normalize_github_repo() {
+  local value=$1
+  value=${value#https://github.com/}
+  value=${value#http://github.com/}
+  value=${value#git@github.com:}
+  value=${value%.git}
+  printf '%s\n' "$value"
+}
+
+bugfix_trail_ready_for_ship() {
+  local repo_url
+  local repo
+  local comments
+  local review_adapter
+
+  if [[ ! -f "$CONFIG_FILE" ]]; then
+    printf 'Forge push blocked: .forge/config.yaml missing, cannot validate bugfix trail.\n'
+    return 1
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    printf 'Forge push blocked: gh CLI is required to validate durable bugfix trail.\n'
+    return 1
+  fi
+
+  repo_url=$(read_project_repo "$CONFIG_FILE")
+  repo=$(normalize_github_repo "$repo_url")
+  if [[ -z "$repo" ]]; then
+    printf 'Forge push blocked: project repo URL missing in .forge/config.yaml.\n'
+    return 1
+  fi
+
+  if ! comments=$(gh issue view "$FORGE_RUN_ISSUE" --repo "$repo" --json comments --jq '.comments[].body' 2>/dev/null); then
+    printf 'Forge push blocked: could not read issue trail for #%s via gh.\n' "$FORGE_RUN_ISSUE"
+    return 1
+  fi
+
+  if ! printf '%s\n' "$comments" | grep -E -q '(^## QA Gate|QA Gate —)'; then
+    printf 'Forge push blocked: missing durable QA gate comment in issue #%s.\n' "$FORGE_RUN_ISSUE"
+    return 1
+  fi
+
+  review_adapter=$(read_stage_agent_scalar "$CONFIG_FILE" "code_review" "reviewer" "adapter")
+  if [[ -n "$review_adapter" && "$review_adapter" != "none" ]]; then
+    if ! printf '%s\n' "$comments" | grep -E -q '(^## Stage 6\.5|Stage 6\.5 — External Code Review)'; then
+      printf 'Forge push blocked: missing durable Stage 6.5 review comment in issue #%s.\n' "$FORGE_RUN_ISSUE"
+      return 1
+    fi
+  fi
+
+  if ! printf '%s\n' "$comments" | grep -E -q '/gate approved(_with_changes)?'; then
+    printf 'Forge push blocked: missing durable /gate approved comment in issue #%s.\n' "$FORGE_RUN_ISSUE"
+    return 1
+  fi
+
+  return 0
+}
+
+FORGE_RUN_KIND=$(read_value "$STATE_FILE" "FORGE_RUN_KIND")
+FORGE_RUN_ISSUE=$(read_value "$STATE_FILE" "FORGE_RUN_ISSUE")
+FORGE_RUN_STAGE=$(read_value "$STATE_FILE" "FORGE_RUN_STAGE")
+FORGE_RUN_GATE_STATUS=$(read_value "$STATE_FILE" "FORGE_RUN_GATE_STATUS")
+
+if [[ "${FORGE_RUN_KIND:-}" != "bugfix" ]]; then
+  exit 0
+fi
+
+if [[ "${FORGE_RUN_STAGE:-}" == "qa" ]] && [[ "${FORGE_RUN_GATE_STATUS:-}" =~ ^(approved|approved_with_changes)$ ]]; then
+  if bugfix_trail_ready_for_ship; then
+    exit 0
+  fi
+  printf '\nDo not bypass this hook; fix the missing durable issue trail first.\n'
+  exit 1
+fi
+
+printf 'Forge push blocked: active bugfix run #%s is not ready to ship.\n' "${FORGE_RUN_ISSUE:-unknown}"
+printf '  stage: %s\n' "${FORGE_RUN_STAGE:-unknown}"
+printf '  gate: %s\n' "${FORGE_RUN_GATE_STATUS:-none}"
+printf '\n'
+printf 'Expected quick path:\n'
+printf '  implementation -> test_coverage -> qa\n'
+printf '  stop at QA gate and record approval before push\n'
+printf '\n'
+printf 'If QA is done and approved, update the active run state first:\n'
+printf '  bash ~/Documents/Dev/gulyaev-forge/scripts/forge-run-state.sh set-stage . qa\n'
+printf '  bash ~/Documents/Dev/gulyaev-forge/scripts/forge-run-state.sh set-gate . approved\n'
+printf '\n'
+printf 'Do not bypass this hook; fix the missing bugfix trail instead.\n'
+exit 1

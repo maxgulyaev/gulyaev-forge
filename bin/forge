@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+FORGE_DIR=$(cd "$SCRIPT_DIR/.." && pwd -P)
+CMD=${1:-}
+
+case "$CMD" in
+  init)
+    shift
+    bash "$FORGE_DIR/scripts/forge-init.sh" "$@"
+    ;;
+  doctor)
+    shift
+    bash "$FORGE_DIR/scripts/forge-doctor.sh" "$@"
+    ;;
+  status)
+    shift
+    bash "$FORGE_DIR/scripts/forge-status.sh" "$@"
+    ;;
+  ""|-h|--help|help)
+    cat <<'EOF'
+Usage:
+  bin/forge init --project <project-dir> [--labels] [--no-claude-commands] [--force] [--dry-run]
+  bin/forge doctor self [forge-dir]
+  bin/forge doctor product [project-dir]
+  bin/forge status self [forge-dir]
+  bin/forge status product [project-dir]
+EOF
+    ;;
+  *)
+    printf 'Unknown command: %s\n' "$CMD" >&2
+    exit 1
+    ;;
+esac

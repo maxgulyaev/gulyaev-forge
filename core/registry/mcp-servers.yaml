@@ -133,6 +133,14 @@
   installed: true
   notes: "Already installed. Key source for process skills."
 
+- name: pm-skills
+  type: skill-collection
+  description: PM skills marketplace — discovery, strategy, execution, launch, and growth
+  url: https://github.com/phuryn/pm-skills
+  stages: [strategy, discovery, prd, product-analytics]
+  verdict: trial
+  notes: "Strong donor source for strategy/discovery/PRD frameworks. Claude commands are tool-specific, but `SKILL.md` assets are portable. Trial as selective input for stage refinement, not as a wholesale dependency."
+
 - name: bmad-method
   type: framework
   description: Agile AI-driven development — 9 agent roles, 4 phases, story sharding
@@ -161,3 +169,19 @@
   stages: [prd, implementation]
   verdict: assess
   notes: "15.5k stars. Could complement our PRD→story sharding. Assess overlap."
+
+- name: cli-anything
+  type: tool
+  description: Generate agent-friendly CLI wrappers around existing software
+  url: https://github.com/HKUDS/CLI-Anything
+  stages: [design, architecture, implementation]
+  verdict: assess
+  notes: "Interesting capability layer for software that lacks a usable MCP/API. Not a current forge priority; trial only if a concrete workflow needs stable CLI access to external tools."
+
+- name: big-project-orchestrator
+  type: workflow-pattern
+  description: Codex-native milestone orchestration for long-running implementation work
+  url: https://github.com/HBTCFO/big-project-orchestrator
+  stages: [implementation, test-coverage, qa]
+  verdict: trial
+  notes: "Useful donor for implementation loops, repair loops, worktree lanes, and report-first long-running tasks. Do not adopt as a second source of truth; trial only as a Codex-specific implementation pack or selective pattern import."

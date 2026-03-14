@@ -11,6 +11,8 @@
 - No hardcoded secrets, tokens, or credentials
 - Authentication/authorization checks on protected endpoints
 - SQL queries are parameterized (no string interpolation)
+- If the change touches framework/library/API behavior, implementation notes must state `Context7 used: yes/no` and why
+- Flag docs-sensitive code that appears guessed from memory instead of checked against current docs
 
 ## Style
 

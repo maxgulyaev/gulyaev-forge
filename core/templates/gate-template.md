@@ -25,6 +25,13 @@
 **Question for you:**
 [Specific question requiring approval to proceed]
 
+**Decision command (record in issue comment):**
+- `/gate approved`
+- `/gate approved_with_changes`
+- `/gate rejected`
+
+Do not advance labels or `pipeline-state.yaml` until that decision is recorded.
+
 ---
 
 ## Detailed Review
@@ -35,6 +42,12 @@
 - [ ] [What to verify]
 - [ ] [What to verify]
 - [ ] [What to verify]
+
+**Process evidence:**
+- Context7 used: yes / no
+- Why: [framework/library/API docs needed or not needed]
+- Playwright MCP used: yes / no / N/A
+- Why: [web UI scenario automated or why it was skipped]
 
 **Trade-offs considered:**
 | Option | Pros | Cons | Chosen? |

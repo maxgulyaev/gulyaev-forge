@@ -1,0 +1,17 @@
+# Project Agent Rules
+
+This file is the project-wide execution contract for AI agents.
+
+## Forge Pipeline
+
+- Forge repo: `~/Documents/Dev/gulyaev-forge`
+- Core skills: `~/Documents/Dev/gulyaev-forge/core/skills/`
+- Operating playbook: `~/Documents/Dev/gulyaev-forge/docs/operating-playbook.md`
+- Pipeline orchestrator: `~/Documents/Dev/gulyaev-forge/core/pipeline/orchestrator.md`
+
+## Project Rules
+
+- Fill in stack-specific coding rules here
+- Add deploy, migration, and release constraints here
+- Add product invariants that must not be broken here
+- Keep this file project-wide; stage-specific guidance belongs in `.forge/skills/*.md`

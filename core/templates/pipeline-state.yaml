@@ -1,0 +1,11 @@
+# Pipeline State (auto-updated by orchestrator)
+# Initial empty state for a newly connected project.
+
+current_feature: ""
+current_stage: ""
+current_gate_status: ""
+current_stage_artifact: ""
+issue: ""
+stages_completed: []
+draft_artifacts: []
+stages_skipped: []

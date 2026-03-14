@@ -26,7 +26,7 @@ tracking:
   project_board: true         # auto-add issues to project board
   labels:
     stage_prefix: "stage/"    # stage/prd, stage/implementation, etc.
-    priority_prefix: "priority/"  # priority/p0, priority/p1, priority/p2
+    priority_prefix: "p"      # p0, p1, p2
 
 deploy:
   current: "single_vm"        # single_vm | blue_green | canary_alb | kubernetes
@@ -39,27 +39,129 @@ metrics:
   analytics_provider: ""      # posthog | amplitude | custom
   monitoring_provider: ""     # sentry | grafana | custom
 
+# Optional QA tool registry.
+# Shape is generic: qa_tools.<tool_name>
+# Current common use:
+# qa_tools:
+#   playwright_mcp:
+#     enabled: true
+#     use_for: web_bugfix_qa,web_release_smoke
+#     scope_paths: apps/web
+qa_tools: {}
+
+# Optional distribution/release surfaces.
+# Shape is generic: release_targets.<target_name>
+# Current common uses:
+# release_targets:
+#   ios_testflight:
+#     platform: ios
+#     channel: testflight
+#     deploy_stage: canary_deploy
+#     runbook: CLAUDE.md#testflight--ios-distribution
+#     scope_paths: apps/ios
+#   ios_app_store:
+#     platform: ios
+#     channel: app_store
+#     deploy_stage: canary_deploy
+#     runbook: CLAUDE.md#testflight--ios-distribution
+#     scope_paths: apps/ios
+#   web_production:
+#     platform: web
+#     channel: production
+#     deploy_stage: canary_deploy
+#     runbook: CLAUDE.md#web--production-deploy
+#     scope_paths: apps/web,apps/api,deploy,migrations
+#   android_internal:
+#     platform: android
+#     channel: play_internal
+#     deploy_stage: canary_deploy
+#     runbook: docs/release/android-internal.md
+#     scope_paths: apps/android
+release_targets: {}
+
+# Optional external agents for specific handoffs.
+# Shape is generic: stage_agents.<stage>.<role>
+# Current common use:
+# stage_agents:
+#   code_review:
+#     reviewer:
+#       adapter: codex-review
+#       prompt_file: .forge/reviewers/code-review.md
+stage_agents: {}
+
 # Which files to inject as context B for each pipeline stage
+# Use:
+# - required: must exist or the stage cannot start
+# - if_exists: include when present
+# - search: glob patterns for role-specific discovery
 stages:
   strategy:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   discovery:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   prd:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   design:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   architecture:
-    inject: []
-  implementation:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   test_plan:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
+  implementation:
+    inject:
+      required: []
+      if_exists: []
+      search: []
+  code_review:
+    inject:
+      required: []
+      if_exists: []
+      search: []
+  test_coverage:
+    inject:
+      required: []
+      if_exists: []
+      search: []
   qa:
-    inject: []
-  deploy:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
+  staging_deploy:
+    inject:
+      required: []
+      if_exists: []
+      search: []
+  canary_deploy:
+    inject:
+      required: []
+      if_exists: []
+      search: []
   product_analytics:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
   tech_monitoring:
-    inject: []
+    inject:
+      required: []
+      if_exists: []
+      search: []
