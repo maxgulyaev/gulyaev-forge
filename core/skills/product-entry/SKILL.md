@@ -170,6 +170,13 @@ The agent must translate natural approval into the durable issue comment format 
    - project overlay: `.forge/skills/[stage].md` if present
 7. Work as that stage role.
    - Do not default to implementation unless the target stage really is implementation or later.
+   - If the current stage remains in progress and no gate is required yet, present a checkpoint, not a vague progress note.
+   - The checkpoint must explicitly say:
+     - current stage
+     - gate needed now: yes/no
+     - what just finished
+     - exact next recommended action
+     - what condition will trigger the next gate
 
 ## Expected Outputs
 
@@ -185,6 +192,11 @@ If the current gate is still unresolved:
 - re-present the current gate or explain the blocker
 - ask for an explicit decision
 - do not advance `stage/*` labels or `.forge/pipeline-state.yaml`
+
+If the current stage is still in progress and no gate is needed yet:
+- present a checkpoint
+- make it explicit that no approval is being requested now
+- say exactly what the next step is
 
 If the task is implementation or later, follow the stage skill and project rules for code/test/deploy work.
 

@@ -72,6 +72,11 @@ bash ~/Documents/Dev/gulyaev-forge/scripts/forge-doctor.sh product .
 bash ~/Documents/Dev/gulyaev-forge/scripts/forge-status.sh product .
 ```
 
+`forge-status.sh product` should be the first place to look for the immediate next action:
+- reconcile state mismatch
+- record a gate decision
+- or continue the current stage without a gate
+
 Then start the agent in the product repo:
 
 ```bash
@@ -103,6 +108,7 @@ Gate rule:
 - a gated stage does not advance until approval is recorded
 - the user does not need to type slash commands
 - the agent mirrors natural replies like `ок`, `поехали дальше`, or `да, но поправь X` into `/gate ...` comments in the issue trail
+- if the stage is still in progress and no approval is needed yet, the agent must present a checkpoint with `Gate needed now: yes/no` and one exact next step
 - when the work reaches `implementation`, use Context7 for framework/library/API docs instead of guessing from memory
 - for bugfix quick path, create/select the bug issue before code if the fix is non-trivial
 - for bugfix quick path, keep `.forge/active-run.env` in sync and do not push before the QA gate is approved

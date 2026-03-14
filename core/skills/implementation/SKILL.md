@@ -99,8 +99,18 @@ Before marking story as done:
 When all acceptance criteria pass:
 1. Record implementation notes, including `Context7 used: yes/no` and why
 2. Update story file status to `done`
-3. Commit with reference to story slug
-4. Move to next story in priority order
+3. If the full implementation stage is not complete yet, present an explicit implementation checkpoint:
+   - current stage: `implementation`
+   - gate needed now: `no`
+   - story just completed
+   - next story in priority order
+   - what condition will trigger the implementation gate
+4. If pausing across sessions or handing work back to a human, write a durable issue comment with heading `## Implementation Checkpoint`
+5. Commit with reference to story slug
+6. Move to next story in priority order
+
+Only present an `Implementation Gate` when the implementation slice is actually ready to leave Stage 6.
+Finishing one story inside a multi-story feature is a checkpoint, not a gate.
 
 ### Parallel Implementation (multi-platform)
 

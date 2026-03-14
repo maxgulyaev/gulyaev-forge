@@ -105,6 +105,61 @@ Dependencies: what else might break
 
 Do not update `stage/*` labels, `current_stage`, or `stages_completed` for the next stage before one of the explicit gate decisions above is recorded.
 
+## Checkpoint Protocol
+
+Not every pause in the pipeline is a gate.
+
+When the current stage is still **in progress** and no human decision is required yet, the agent must present a **checkpoint**, not a vague progress update.
+
+This is especially important for long-running stages such as:
+- Stage 6: Implementation
+- multi-story discovery or architecture work
+- release preparation before the actual release gate
+
+At each checkpoint, explicitly state:
+
+### Block 1: Status
+```
+## Checkpoint: [Stage Name]
+Status: in progress
+Gate needed now: yes / no
+Current unit: [story / shard / task]
+What just finished: 2-5 bullets
+What is still in progress: 1-3 bullets
+Next recommended action: one exact next step
+What happens next: next checkpoint or next gate condition
+Need anything from you now?: no / exact question
+```
+
+### Block 2: State Sync
+```
+Issue label: [current stage label]
+pipeline-state: [current local stage]
+Sync status: aligned / mismatch fixed / blocked
+```
+
+If issue label and `.forge/pipeline-state.yaml` disagree, the agent must resolve or surface that mismatch before giving "what next" guidance.
+
+### Durable Trail
+
+For long-running implementation work, when the agent pauses after a completed story or shard, it should write a durable issue comment with heading:
+
+```text
+## Implementation Checkpoint
+```
+
+This comment must make clear that:
+- the stage is still `implementation`
+- no gate decision is being requested yet
+- exactly which story or shard was completed
+- exactly which story or shard is next
+
+### When To Ask For A Gate
+
+The agent should present an `Implementation Gate` only when the current implementation slice is actually ready to leave Stage 6 and move to Stage 7.
+
+Completing one story inside a multi-story implementation does **not** automatically mean a gate is needed.
+
 ## Context Injection Rules
 
 ### Принцип: inline injection

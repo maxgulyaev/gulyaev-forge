@@ -68,6 +68,11 @@ claude    # или codex, cursor — любой
 # 4. Скажи что делать
 ```
 
+Смотри на строку `Immediate next action` в `forge-status.sh product .`:
+- если там `reconcile...` — сначала чини sync состояния
+- если там `record the current gate decision...` — сейчас нужен gate
+- если там `continue the current ... stage...` — gate сейчас не нужен, проси checkpoint и следующий шаг
+
 Если это Claude Code, лучший практический вход сейчас через slash-команды:
 
 ```text
@@ -96,6 +101,12 @@ Source of truth для этих entrypoints:
 | "Кнопка не работает на iOS. Почини." | Агент распознает bug intent и пойдёт по quick path |
 | "Почему люди не доходят до оплаты? Разберись." | Агент пойдёт в аналитику/исследование, а не сразу в код |
 | "Ок, едем дальше" | Агент воспримет это как gate decision и сам отзеркалит approval в issue |
+
+Если gate сейчас не нужен, агент обязан сказать это явно в формате checkpoint:
+- `Current stage`
+- `Gate needed now: no`
+- `What just finished`
+- `Next recommended action`
 
 На code stage правило простое:
 - если задача трогает библиотеку, фреймворк, SDK или внешний API, агент должен сначала тянуть актуальные доки через Context7

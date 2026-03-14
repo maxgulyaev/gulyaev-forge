@@ -41,7 +41,7 @@ If the user says `доведи до PRD gate`, that is a destination hint, not p
 
 - `/forge:continue [reply]`
   Use to continue the current workflow or answer the current gate in natural language.
-  Default behavior: resume active workflow; if a gate is pending, mirror the decision into the issue and advance at most one transition.
+  Default behavior: resume active workflow; if a gate is pending, mirror the decision into the issue and advance at most one transition; if no gate is pending, return an explicit checkpoint with `Gate needed now: yes/no` and one exact next action.
 
 - `/forge:gate <decision>`
   Use when the human wants to record an explicit gate decision directly.

@@ -526,6 +526,7 @@ doctor_self() {
   [[ -f "$dir/core/templates/project-reviewer-prompt.md" ]] && ok "project reviewer prompt template present" || err "project reviewer prompt template missing"
   [[ -f "$dir/core/templates/pipeline-state.yaml" ]] && ok "pipeline state template present" || err "pipeline state template missing"
   [[ -f "$dir/core/templates/scout-note-template.md" ]] && ok "scout note template present" || err "scout note template missing"
+  [[ -f "$dir/core/templates/checkpoint-template.md" ]] && ok "checkpoint template present" || err "checkpoint template missing"
   [[ -f "$dir/core/templates/gate-template.md" ]] && ok "gate template present" || err "gate template missing"
   [[ -f "$dir/scripts/forge-doctor.sh" ]] && ok "forge-doctor.sh present" || err "forge-doctor.sh missing"
   [[ -f "$dir/scripts/forge-status.sh" ]] && ok "forge-status.sh present" || err "forge-status.sh missing"

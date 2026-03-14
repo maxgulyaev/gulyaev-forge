@@ -313,6 +313,8 @@ print_product_status() {
   local release_targets=''
   local qa_tools=''
   local scope_paths=''
+  local stage_sync_ok=1
+  local immediate_next_action=''
 
   printf '== PRODUCT status ==\n'
   printf 'Project dir: %s\n' "$dir"
@@ -372,6 +374,7 @@ print_product_status() {
     fi
     if [[ "${FORGE_RUN_KIND:-}" == "bugfix" ]] && { [[ ! "${FORGE_RUN_STAGE:-}" =~ ^(qa|done)$ ]] || [[ ! "${FORGE_RUN_GATE_STATUS:-}" =~ ^(approved|approved_with_changes)$ ]]; }; then
       printf '  push guard: active until QA gate approval is recorded\n'
+      immediate_next_action='continue the active bugfix quick run before resuming the unrelated feature pipeline'
     fi
   fi
 
@@ -425,6 +428,7 @@ print_product_status() {
       printf 'Issue status: %s\n' "$issue_summary"
       if [[ -n "$stage_prefix" ]] && [[ "$issue_summary" != *"${stage_prefix}$(stage_name "$stage")"* ]]; then
         printf 'Stage sync warning: issue labels do not match local current_stage (%s%s expected)\n' "$stage_prefix" "$(stage_name "$stage")"
+        stage_sync_ok=0
       fi
     fi
   fi
@@ -434,6 +438,21 @@ print_product_status() {
     printf '  - do not advance past %s until approval is recorded\n' "$(stage_name "$stage")"
     printf '  - issue comment commands: /gate approved | /gate approved_with_changes | /gate rejected\n'
     printf '  - if approval was given in chat, mirror it to the issue before changing labels/state\n'
+  fi
+
+  if [[ -z "$immediate_next_action" ]]; then
+    if [[ "$stage_sync_ok" -eq 0 ]]; then
+      immediate_next_action='reconcile issue stage label and .forge/pipeline-state.yaml before continuing'
+    elif is_gated_stage "$stage" && [[ "$gate_status" =~ ^(pending_approval|unknown) ]]; then
+      immediate_next_action='record the current gate decision via /forge:continue or /forge:gate before advancing'
+    elif [[ -n "$stage" ]] && [[ "$stage" != "-" ]]; then
+      immediate_next_action="continue the current ${stage} stage; no gate is needed right now, so expect an explicit checkpoint with the exact next step"
+    fi
+  fi
+
+  if [[ -n "$immediate_next_action" ]]; then
+    printf '\nImmediate next action:\n'
+    printf '  - %s\n' "$immediate_next_action"
   fi
 
   if [[ -f "$state" ]]; then

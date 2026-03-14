@@ -28,4 +28,10 @@ Required behavior:
    - chosen stage/path
    - what context is being loaded
    - whether Context7 is expected at code stage
-12. Stop at the next gate. Do not auto-approve it.
+12. If the current stage remains in progress and no gate is needed yet, stop at an explicit checkpoint instead of a vague summary:
+   - current stage
+   - gate needed now: yes/no
+   - what just finished
+   - exact next recommended action
+   - what condition will trigger the next gate
+13. Stop at the next gate when a gate is actually required. Do not auto-approve it.
