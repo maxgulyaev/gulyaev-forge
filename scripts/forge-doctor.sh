@@ -265,7 +265,7 @@ check_self_mcp_setup() {
   fi
 
   check_self_mcp_server "$settings" "context7" '"context7"' '@upstash/context7-mcp'
-  check_self_mcp_server "$settings" "playwright" '"playwright"' '@anthropic-ai/mcp-server-playwright'
+  check_self_mcp_server "$settings" "playwright" '"playwright"' '@playwright/mcp'
   check_self_mcp_server "$settings" "github" '"github"' '@modelcontextprotocol/server-github'
 
   if settings_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then

@@ -321,7 +321,7 @@ claude /install-plugin playwright
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
+      "args": ["-y", "@playwright/mcp@latest"]
     }
   }
 }
@@ -874,7 +874,7 @@ MCP серверы ставятся один раз в `~/.claude/settings.json`
 claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
 
 # Playwright — браузерное тестирование (этап QA)
-claude mcp add playwright -- npx -y @anthropic-ai/mcp-server-playwright
+claude mcp add playwright -- npx -y @playwright/mcp@latest
 
 # GitHub — issues, PRs, boards (spec-to-issue bridge)
 claude mcp add github -- npx -y @modelcontextprotocol/server-github
@@ -920,7 +920,7 @@ claude /install-plugin swift-lsp
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
+      "args": ["-y", "@playwright/mcp@latest"]
     },
     "github": {
       "command": "npx",

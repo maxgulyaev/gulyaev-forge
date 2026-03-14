@@ -197,7 +197,7 @@ print_self_mcp_status() {
     printf '  context7: missing\n'
   fi
 
-  if settings_contains "$settings" '"playwright"' && settings_contains "$settings" '@anthropic-ai/mcp-server-playwright'; then
+  if settings_contains "$settings" '"playwright"' && settings_contains "$settings" '@playwright/mcp'; then
     printf '  playwright: configured\n'
   else
     printf '  playwright: missing\n'

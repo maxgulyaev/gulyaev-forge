@@ -15,10 +15,10 @@
 - name: playwright
   type: mcp
   description: Browser automation — navigate, click, screenshot, test user flows
-  url: https://github.com/anthropics/anthropic-mcp-servers
+  url: https://github.com/microsoft/playwright-mcp
   stages: [qa, design]
   verdict: adopt
-  install: "npx @anthropic-ai/mcp-server-playwright"
+  install: "npx @playwright/mcp@latest"
   notes: "Core tool for automated QA stage. Also useful for visual validation in Design."
 
 - name: github
