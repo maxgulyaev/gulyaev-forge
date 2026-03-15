@@ -155,6 +155,11 @@ The agent must translate natural approval into the durable issue comment format 
 4. Check gate lock before advancing:
    - if the current stage is gated and `current_gate_status` is `pending_approval`, stop at that gate
    - if the current stage is gated and there is no explicit approval recorded yet, treat it as `pending_approval`
+   - when a gate is pending or the user asks for an approval decision, assess it independently from:
+     - the issue acceptance criteria
+     - approved upstream artifacts
+     - the current stage evidence and open findings
+   - treat prior gate summaries, QA reports, and subagent verdicts as input evidence, not as the gate decision itself
    - for cross-session continuity, record decisions in the issue trail as:
      - `/gate approved`
      - `/gate approved_with_changes`
@@ -191,6 +196,10 @@ Examples:
 
 If the current gate is still unresolved:
 - re-present the current gate or explain the blocker
+- explicitly separate:
+  - required scope that is proven
+  - required scope that is still unverified
+  - evidence that contradicts the reported status, if any
 - ask for an explicit decision
 - do not advance `stage/*` labels or `.forge/pipeline-state.yaml`
 
@@ -211,3 +220,4 @@ If the task is implementation or later, follow the stage skill and project rules
 - Loading the whole repository when stage-specific context is enough
 - Skipping `.forge/pipeline-state.yaml` and then guessing the current stage
 - Updating issue labels or `.forge/pipeline-state.yaml` to the next gated stage before approval is recorded
+- Approving a gate just because a stage report says `PASS` without checking the underlying contract coverage and evidence

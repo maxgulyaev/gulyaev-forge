@@ -43,6 +43,17 @@ Do not advance labels or `pipeline-state.yaml` until that decision is recorded.
 - [ ] [What to verify]
 - [ ] [What to verify]
 
+**Execution contract for this gate:**
+- Issue / acceptance criteria: [link or summary]
+- Approved upstream artifacts: [link or summary]
+- Stage-specific checklist: [what defines done here]
+
+**Stage advancement basis:**
+- Required scope proven: [what is actually evidenced]
+- Required scope still unverified or deferred: [if none, say none]
+- Evidence contradictions: none / [list]
+- Why this status is justified: [why `go` / `go with concerns` / `stop` matches the evidence]
+
 **Process evidence:**
 - Context7 used: yes / no
 - Why: [framework/library/API docs needed or not needed]

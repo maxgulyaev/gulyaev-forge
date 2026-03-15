@@ -43,6 +43,8 @@ Required behavior:
    - if `.forge/config.yaml` enables `qa_tools.playwright_mcp`, attempt reproduction and verification via Playwright MCP before presenting QA
    - if Playwright MCP is unavailable or unsuitable, say so explicitly and record why in the QA comment
    - QA comment must include `Playwright MCP used: yes/no` and what scenario was actually checked
+   - compare the QA evidence back to the bug issue contract before presenting the gate
+   - do not call the fix ready to ship if required current-stage verification is still missing or contradicted by the evidence
 16. Before presenting QA, update the quick-run state:
    - `bash __FORGE_DIR__/scripts/forge-run-state.sh set-stage . qa`
    - `bash __FORGE_DIR__/scripts/forge-run-state.sh set-gate . pending_approval`

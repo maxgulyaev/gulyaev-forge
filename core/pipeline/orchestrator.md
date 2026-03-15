@@ -75,6 +75,23 @@ The entry router should infer the path:
 
 The decision should live in the issue trail. If approval happens in the agent chat using natural language such as `ok`, `go ahead`, or `approved with changes`, the agent must mirror that decision into the issue before moving labels or `pipeline-state.yaml`.
 
+### What A Gate Decision Means
+
+A gate decision is a judgment about whether the pipeline may unlock the **next** stage.
+It is not a reward for effort and not a restatement of the previous agent's recommendation.
+
+Judge the gate against:
+- the execution contract: GitHub issue acceptance criteria, approved upstream artifacts, and any stage-specific checklist
+- the current evidence: tests, screenshots, logs, review findings, deploy notes, and other proof collected in this stage
+- movement along the pipeline: whether the current stage is complete enough that exposing the next stage is actually safe and coherent
+
+Use these rules:
+- `approved` only when required current-stage scope is covered and the evidence is internally consistent
+- `approved_with_changes` only when the next stage can safely start and the remaining changes are bounded, explicit, and do not reopen the current-stage contract
+- `rejected` when required scope is still unverified, incomplete, contradicted by evidence, or when useful work happened but it is still not enough to unlock the next stage
+
+A prior gate summary, QA verdict, or subagent recommendation is input evidence, not the decision itself.
+
 At each gate, present:
 
 ### Block 1: Summary
@@ -180,6 +197,9 @@ The agent should present a `QA Gate` only after:
 - Stage 7 test coverage is complete
 - Stage 8 QA was actually executed on a testable environment
 - evidence from QA is available
+- the QA evidence was checked back against the issue contract and required surfaces/flows, not only against the QA agent's own summary
+
+If required flows remain `NOT TESTED`, if evidence contradicts the reported outcome, or if only build/route registration checks passed, stay in Stage 8.
 
 Automated checks, review completion, migration planning, or deploy preparation are not themselves a QA gate.
 

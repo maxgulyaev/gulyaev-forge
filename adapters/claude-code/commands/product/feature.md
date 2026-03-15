@@ -27,6 +27,9 @@ Required behavior:
 11. If the work reaches `qa` and the feature touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, attempt QA verification via Playwright MCP before presenting the QA gate.
     - if Playwright MCP is unavailable or unsuitable, say so explicitly in the QA output
     - include `Playwright MCP used: yes/no` and which web scenario was checked
+    - compare the QA evidence back to the issue acceptance criteria, approved artifacts, and any QA story/checklist before presenting the gate
+    - name any required surfaces or flows that remain untested
+    - do not call the feature ready for Stage 9 / deploy if required current-stage coverage is still missing or contradicted by the evidence
     - do not present a QA gate before QA was actually executed on a testable environment
 12. Start by showing a short preload summary:
    - chosen issue

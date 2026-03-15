@@ -113,6 +113,10 @@ Gate rule:
 - the user can speak in business language; stage selection is internal
 - `до PRD gate` means "move toward PRD, but stop at the first unresolved gated stage"
 - a gated stage does not advance until approval is recorded
+- a gate decision asks whether the current stage is ready to unlock the next stage, not whether some useful work happened
+- the agent must judge a gate from the issue contract, approved upstream artifacts, and current evidence; a prior agent's `PASS` / `go` is input evidence, not source of truth
+- `approved_with_changes` is only for bounded follow-ups that do not reopen the current stage contract
+- if required current-stage scope is still unverified or contradicted by evidence, reject the gate instead of advancing with TODOs
 - the user does not need to type slash commands
 - the agent mirrors natural replies like `ок`, `поехали дальше`, or `да, но поправь X` into `/gate ...` comments in the issue trail
 - if the stage is still in progress and no approval is needed yet, the agent must present a checkpoint with `Gate needed now: yes/no` and one exact next step
@@ -120,6 +124,7 @@ Gate rule:
 - for bugfix quick path, create/select the bug issue before code if the fix is non-trivial
 - for bugfix quick path, keep `.forge/active-run.env` in sync and do not push before the QA gate is approved
 - if `stage_agents.code_review.reviewer` is configured, run it before QA and include its findings in the gate summary
+- for QA gates, route registration, build success, or unauthenticated `401` checks do not replace required user-facing journey evidence
 
 Track progress in:
 - GitHub issue labels and comments

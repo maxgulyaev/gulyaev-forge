@@ -20,6 +20,8 @@ Required behavior:
    - otherwise stop and present the mismatch before giving "what next" guidance
 7. If the current gate is pending approval:
    - interpret `$ARGUMENTS` as the user's natural-language decision when possible
+   - when re-evaluating or re-presenting the gate, judge whether the current stage can unlock the next one from the issue contract, approved artifacts, current evidence, and open findings
+   - treat the previous gate summary or QA verdict as input evidence, not as the decision itself
    - if this is an active bugfix QA gate, first run `bash __FORGE_DIR__/scripts/forge-issue-trail.sh check-bugfix-qa . <issue-number>` and refuse to advance until the issue trail is complete
    - mirror that decision into the issue as `/gate approved`, `/gate approved_with_changes`, or `/gate rejected`
    - if this is an active bugfix run, mirror the decision into `.forge/active-run.env` via `forge-run-state.sh set-gate`
@@ -46,6 +48,9 @@ Required behavior:
 13. If continuing into `qa` for a feature that touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, use Playwright MCP before presenting the QA gate unless it is unavailable or unsuitable.
    - if not used, say why explicitly
    - include `Playwright MCP used: yes/no` and which scenario was actually checked
+   - compare the QA evidence back to the issue acceptance criteria, approved artifacts, and any QA story/checklist before presenting the gate
+   - name any required surfaces or flows that remain untested
+   - do not call the feature ready for Stage 9 / deploy if required current-stage coverage is still missing or contradicted by the evidence
 14. Start with a short preload summary and explain whether you are:
    - re-presenting a gate
    - recording a gate decision

@@ -80,8 +80,10 @@ The adapter or entry skill should map these to the same intents above.
 2. Read `.forge/pipeline-state.yaml` and the linked issue.
 3. Resolve intent first, then the earliest valid stage.
 4. Never skip an unresolved gated stage.
-5. If the user approves in chat, mirror that approval into the issue before moving labels or state.
-6. Advance at most one gated transition per gate decision.
+5. A gate decision is an independent judgment about whether the current stage can unlock the next one.
+6. Judge gates from the issue contract, approved upstream artifacts, and current evidence; do not simply echo the last agent's `PASS` / `FAIL` recommendation.
+7. If the user approves in chat, mirror that approval into the issue before moving labels or state.
+8. Advance at most one gated transition per gate decision.
 
 ## Where The Surface Lives
 
