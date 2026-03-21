@@ -17,6 +17,28 @@ trim_quotes() {
   sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//; s/^"//; s/"$//'
 }
 
+extract_final_review_from_log() {
+  local log_file=$1
+
+  awk '
+    /^codex$/ {
+      capture = 1
+      buffer = ""
+      next
+    }
+    /^Warning: no last agent message/ {
+      capture = 0
+      next
+    }
+    capture {
+      buffer = buffer $0 ORS
+    }
+    END {
+      printf "%s", buffer
+    }
+  ' "$log_file"
+}
+
 canonical_repo_root() {
   local dir=$1
   if git -C "$dir" rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -48,6 +70,19 @@ read_stage_agent_scalar() {
   ' "$file" | trim_quotes
 }
 
+resolve_transport() {
+  local config=$1
+  local stage=$2
+  local role=$3
+  local transport
+
+  transport=$(read_stage_agent_scalar "$config" "$stage" "$role" "transport")
+  if [[ -z "$transport" ]]; then
+    transport="local_cli"
+  fi
+  printf '%s\n' "$transport"
+}
+
 default_reviewer_prompt() {
   cat <<'EOF'
 Review the current repository change as the forge code-review stage reviewer.
@@ -72,8 +107,16 @@ run_codex_review() {
   local prompt
   local output_file
   local log_file
+  local timeout_flag
   local before_status
   local after_status
+  local review_commit=${FORGE_CODE_REVIEW_COMMIT:-}
+  local review_base=${FORGE_CODE_REVIEW_BASE:-}
+  local timeout_seconds=${FORGE_STAGE_AGENT_TIMEOUT_SECONDS:-900}
+  local -a codex_cmd
+  local codex_pid=
+  local watchdog_pid=
+  local cmd_rc=0
 
   if ! command -v codex >/dev/null 2>&1; then
     printf 'Configured reviewer adapter requires `codex`, but it is not installed in PATH.\n' >&2
@@ -98,16 +141,62 @@ run_codex_review() {
   before_status=$(git -C "$repo_dir" status --porcelain=v1 --untracked-files=all)
   output_file=$(mktemp "${TMPDIR:-/tmp}/forge-codex-review-output.XXXXXX")
   log_file=$(mktemp "${TMPDIR:-/tmp}/forge-codex-review-log.XXXXXX")
-  trap 'rm -f "$output_file" "$log_file"' RETURN
+  timeout_flag=$(mktemp "${TMPDIR:-/tmp}/forge-codex-review-timeout.XXXXXX")
+  rm -f "$timeout_flag"
+  trap 'rm -f "$output_file" "$log_file" "$timeout_flag"; if [[ -n "${watchdog_pid:-}" ]]; then kill "$watchdog_pid" 2>/dev/null || true; fi' RETURN
 
-  if ! codex exec \
-    -C "$repo_dir" \
-    -s workspace-write \
-    --ephemeral \
-    --color never \
-    -o "$output_file" \
-    "$prompt" >"$log_file" 2>&1; then
-    cat "$log_file" >&2
+  codex_cmd=(
+    codex exec review
+    --full-auto
+    --ephemeral
+    -o "$output_file"
+  )
+
+  if [[ -n "$review_commit" ]]; then
+    codex_cmd+=(--commit "$review_commit")
+  elif [[ -n "$review_base" ]]; then
+    codex_cmd+=(--base "$review_base")
+  else
+    codex_cmd+=(--uncommitted)
+  fi
+
+  if [[ -z "$review_commit" && -z "$review_base" ]]; then
+    codex_cmd+=("$prompt")
+  fi
+
+  (
+    cd "$repo_dir"
+    "${codex_cmd[@]}"
+  ) > >(tee "$log_file" >&2) 2>&1 &
+  codex_pid=$!
+
+  if [[ "$timeout_seconds" =~ ^[0-9]+$ ]] && (( timeout_seconds > 0 )); then
+    (
+      sleep "$timeout_seconds"
+      if kill -0 "$codex_pid" 2>/dev/null; then
+        printf 'timed_out\n' >"$timeout_flag"
+        kill "$codex_pid" 2>/dev/null || true
+      fi
+    ) &
+    watchdog_pid=$!
+  fi
+
+  set +e
+  wait "$codex_pid"
+  cmd_rc=$?
+  set -e
+
+  if [[ -n "$watchdog_pid" ]]; then
+    kill "$watchdog_pid" 2>/dev/null || true
+    wait "$watchdog_pid" 2>/dev/null || true
+  fi
+
+  if [[ -f "$timeout_flag" ]]; then
+    printf 'Codex reviewer timed out after %ss.\n' "$timeout_seconds" >&2
+    exit 1
+  fi
+
+  if (( cmd_rc != 0 )); then
     exit 1
   fi
 
@@ -120,10 +209,13 @@ run_codex_review() {
   fi
 
   if [[ ! -s "$output_file" ]]; then
-    printf 'Codex reviewer completed without a final message.\n' >&2
-    if [[ -s "$log_file" ]]; then
-      cat "$log_file" >&2
+    local fallback_output
+    fallback_output=$(extract_final_review_from_log "$log_file")
+    if [[ -n "$fallback_output" ]]; then
+      printf '%s' "$fallback_output"
+      return
     fi
+    printf 'Codex reviewer completed without a final message.\n' >&2
     exit 1
   fi
 
@@ -150,6 +242,7 @@ fi
 
 ADAPTER=$(read_stage_agent_scalar "$CONFIG" "$STAGE" "$ROLE" "adapter")
 PROMPT_FILE=$(read_stage_agent_scalar "$CONFIG" "$STAGE" "$ROLE" "prompt_file")
+TRANSPORT=$(resolve_transport "$CONFIG" "$STAGE" "$ROLE")
 
 case "$MODE" in
   show)
@@ -160,6 +253,7 @@ case "$MODE" in
     printf 'Configured stage agent:\n'
     printf '  stage: %s\n' "$STAGE"
     printf '  role: %s\n' "$ROLE"
+    printf '  transport: %s\n' "$TRANSPORT"
     printf '  adapter: %s\n' "$ADAPTER"
     if [[ -n "$PROMPT_FILE" ]]; then
       printf '  prompt_file: %s\n' "$PROMPT_FILE"
@@ -174,11 +268,17 @@ case "$MODE" in
     printf 'Project: %s\n' "$TARGET"
     printf 'Stage: %s\n' "$STAGE"
     printf 'Role: %s\n' "$ROLE"
+    printf 'Transport: %s\n' "$TRANSPORT"
     printf 'Adapter: %s\n' "$ADAPTER"
     if [[ -n "$PROMPT_FILE" ]]; then
       printf 'Prompt file: %s\n' "$PROMPT_FILE"
     fi
     printf '\n'
+    if [[ "$TRANSPORT" != "local_cli" ]]; then
+      printf 'Configured transport `%s` is not implemented by forge runtime yet.\n' "$TRANSPORT" >&2
+      printf 'Current supported transport: local_cli\n' >&2
+      exit 1
+    fi
     case "$ADAPTER" in
       codex-review)
         run_codex_review "$TARGET" "$PROMPT_FILE"
