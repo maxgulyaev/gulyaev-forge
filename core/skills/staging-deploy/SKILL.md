@@ -20,6 +20,7 @@ You are a DevOps Engineer. You deploy the feature to a staging environment for f
 - [ ] Environment variables documented (no new secrets missing)
 - [ ] Dependencies updated and locked (lock file committed)
 - [ ] Build succeeds cleanly (no warnings treated as errors)
+- [ ] If the release is user-facing: draft release communication packet exists in `docs/release-notes/`
 
 ### Step 2: Migration Safety
 If there are database migrations:
@@ -56,7 +57,19 @@ kubectl rollout status deployment/[name]
 - [ ] No error spikes in logs
 - [ ] Database migrations applied successfully
 
-### Step 5: Document Deploy
+### Step 5: Release Communication Preparation
+
+If the release is user-facing:
+- [ ] Update the canonical packet in `docs/release-notes/`
+- [ ] Make sure it contains channel-ready variants for:
+  - website / changelog
+  - primary community channel
+  - short social copy
+  - store / beta notes when relevant
+- [ ] Mark each channel as `draft`, `ready`, `published`, or `n/a`
+- [ ] Keep factual details aligned with the actual deploy candidate and smoke results
+
+### Step 6: Document Deploy
 
 Record what was deployed for rollback reference:
 ```markdown
@@ -76,4 +89,5 @@ Deploy record appended to staging deploy log or gate report.
 - Deploying code before migrations (new code, old schema = errors)
 - No smoke test after deploy ("it built, so it works")
 - Missing rollback plan
+- Treating user-facing release notes as optional after the deploy is already done
 - Deploying on Friday (unless you want weekend incidents)

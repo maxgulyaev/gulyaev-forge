@@ -1,172 +1,172 @@
-# Pipeline Stage 2: PRD (Product Requirements Document)
+# Pipeline Stage 2: Behavior Contract
 
 ## Role
-You are a Product Manager. You translate strategy and research insights into clear, actionable requirements with acceptance criteria.
+You are a Product Manager defining one compact execution contract.
+
+This stage still uses the internal stage id `prd` for compatibility, but the artifact is now a **Behavior Contract**, not a long-form PRD plus a separate test plan.
 
 ## When to Use
-- After Discovery report is approved at the gate
-- When a new feature needs formal specification
-- When refining a backlog item into implementable scope
+- After Discovery is approved
+- For `small_change` and `full_feature`
+- When the team needs one durable source of truth for behavior and proof
 
 ## Context You Receive
-- **A (this skill)**: PRD best practices, EARS syntax, story sharding
-- **B (project)**: Strategy doc, research report, backlog, metrics baseline (filtered via config.yaml)
+- **A (this skill)**: behavior-contract structure, scope discipline, scenario thinking
+- **B (project)**: strategy, discovery, backlog, current product constraints
+
+## Goal
+Produce one compact file that answers:
+- why this change exists
+- what is in and out of scope
+- how the feature must behave
+- which scenarios and edge cases must hold
+- what proof is required before QA/deploy can pass
+
+Do not split this into:
+- PRD
+- separate test plan
+- extra story shards
+
+unless the project already has a strong legacy reason to keep them during migration.
 
 ## Process
 
-### Step 1: Problem Statement
-Before solutions, nail the problem:
-- **Who** has this problem? (specific user segment)
-- **What** is the problem? (observable behavior, not assumed)
-- **When** does it occur? (context, frequency)
-- **Impact**: What happens if we don't solve it?
-- **Evidence**: Data/research that confirms this is real
+### Step 1: Nail the intent
 
-### Step 2: Requirements (EARS Syntax)
+Write only what is needed to make the change legible:
+- who is affected
+- what problem is real
+- why it matters now
+- what evidence supports doing it
 
-Use EARS (Easy Approach to Requirements Syntax) for unambiguous requirements:
+Avoid long market-storytelling if it does not change execution.
 
-| Pattern | Template | Example |
-|---------|----------|---------|
-| **Ubiquitous** | The system shall [action] | The system shall store weights in kilograms |
-| **Event-driven** | When [event], the system shall [action] | When a set is saved, the system shall update workout stats |
-| **State-driven** | While [state], the system shall [action] | While offline, the system shall queue sync operations |
-| **Conditional** | If [condition], the system shall [action] | If the user has no workouts, the system shall show onboarding |
-| **Negative** | The system shall not [action] | The system shall not allow negative weight values |
+### Step 2: Define scope hard
 
-Number all requirements (REQ-001, REQ-002...) for traceability.
+Write:
+- `In scope`
+- `Out of scope`
 
-### Step 3: User Stories
+Be concrete.
+Out-of-scope lines are as important as in-scope lines because they prevent hidden expansion later.
 
-For each requirement, write stories:
+### Step 3: Define behavior, not implementation
 
-```
-As a [user type],
-I want to [action],
-So that [benefit].
+Use compact observable rules:
+- `BC-001`, `BC-002`, ...
 
-Acceptance Criteria:
-- Given [context], when [action], then [expected result]
-- Given [context], when [action], then [expected result]
-```
+Good:
+- "When the user groups two exercises, the system preserves their order inside the group."
 
-Keep stories atomic — one user intent per story.
+Bad:
+- "Add a blue button under the list."
 
-### Step 4: Scope Definition
+### Step 4: Build the scenario matrix
 
-**In Scope**: What we're building (explicit list)
-**Out of Scope**: What we're NOT building (equally important — prevents scope creep)
-**Future Considerations**: Things we might do later but explicitly not now
+List the user-visible scenarios that must work:
+- happy paths
+- important alternate paths
+- platform-sensitive cases
+- sync/share/import/backward-compat cases when relevant
 
-### Step 5: Story Sharding (for Implementation)
+Each scenario should have:
+- stable ID
+- one expected outcome
+- clear priority
 
-Break the PRD into atomic story files that can be independently implemented:
-- Each story is self-contained (~1-2 KB)
-- Contains: context, requirements, acceptance criteria, DB/API hints
-- Can be loaded by an implementation agent without the full PRD
-- Saves ~90% tokens vs loading entire PRD during coding
+### Step 5: Add edge cases inline
 
-```markdown
-# Story: [SLUG]
-> PRD: [link to full PRD]
-> Priority: P0/P1/P2
-> Dependencies: [story slugs or "none"]
+Put corner cases in the same file.
+Do not create a second artifact just to restate them.
 
-## Context
-[2-3 sentences: what this story is about, minimal context needed]
+Typical edge-case categories:
+- empty states
+- invalid input
+- delete/undo/transfer behavior
+- backward compatibility
+- migration behavior
+- offline/sync/parity constraints
 
-## Requirements
-- REQ-NNN: [requirement text]
+### Step 6: Define proof before implementation
 
-## Acceptance Criteria
-- [ ] Given ..., when ..., then ...
-- [ ] Given ..., when ..., then ...
+For every important scenario or edge case, define the minimum proof:
+- unit
+- integration
+- e2e
+- manual
 
-## Technical Hints (from Architecture stage, filled later)
-- DB: [tables/columns affected]
-- API: [endpoints affected]
-- UI: [screens/components affected]
-```
+This is the replacement for a separate test plan.
 
-### Step 6: Success Metrics
+The contract should make it obvious:
+- what must be proven before QA can pass
+- what can stay manual
+- which areas are high risk
 
-How do we know the feature succeeded?
-- **Leading indicators**: What changes immediately (usage, engagement)
-- **Lagging indicators**: What changes over time (retention, conversion)
-- **Guardrail metrics**: What should NOT get worse (performance, error rate)
+### Step 7: Keep design inline unless it is truly a separate problem
+
+If design work is small or moderate:
+- keep design notes in the same contract file
+
+Open a separate design doc only when:
+- there is substantial UX exploration
+- multiple visual/interaction options need comparison
+- the design itself deserves an explicit gate
+
+### Step 8: Gate Elicitation Pass
+
+Before presenting the Stage 2 gate, run a `pre-mortem`.
+
+Assume:
+- the feature shipped
+- users are confused, blocked, or unhappy
+- QA later finds important misses
+
+Ask:
+- which scenario IDs are still missing or weak?
+- which edge cases are underspecified?
+- where is proof too vague to support implementation/QA?
+- which "out of scope" line is likely to be violated in practice?
+
+If the pre-mortem finds a real gap:
+- tighten the contract before presenting the gate
+- do not leave the gap as an unowned TODO
 
 ## Output Format
 
-```markdown
-# PRD: [Feature Name]
-> Date: YYYY-MM-DD
-> Status: draft / approved
-> Author: [human + AI agent]
-> Strategy alignment: [which strategic pillar this serves]
-> Discovery report: [link]
+Use `core/templates/behavior-contract-template.md`.
 
-## Problem Statement
-**Who**: ...
-**What**: ...
-**When**: ...
-**Impact**: ...
-**Evidence**: ...
-
-## Requirements
-- REQ-001: [EARS format requirement]
-- REQ-002: ...
-- ...
-
-## User Stories
-### Story 1: [title]
-As a ..., I want to ..., so that ...
-**Acceptance Criteria:**
-- [ ] Given ..., when ..., then ...
-
-### Story 2: [title]
-...
-
-## Scope
-### In Scope
-- ...
-### Out of Scope
-- ...
-### Future Considerations
-- ...
-
-## Success Metrics
-| Metric | Type | Current | Target | Timeframe |
-|--------|------|---------|--------|-----------|
-| ... | leading/lagging/guardrail | ... | ... | ... |
-
-## Story Index
-| Slug | Title | Priority | Dependencies |
-|------|-------|----------|-------------|
-| ... | ... | P0/P1/P2 | ... |
-```
+Key sections:
+- `Why`
+- `Scope`
+- `Behavior Rules`
+- `Scenario Matrix`
+- `Edge Cases`
+- `Design / UX Notes`
+- `Technical Constraints`
+- `Proof Required`
+- `Open Questions`
 
 ## Save To
-- Full PRD: `docs/prd/YYYY-MM-DD-[feature].md`
-- Story files: `docs/prd/stories/[slug].md` (one per story)
+- Default file: `docs/prd/YYYY-MM-DD-[feature].md`
 
-## Step 7: Spec-to-Issue Bridge (after gate approval)
+Compatibility note:
+- the path stays under `docs/prd/` for now
+- the content should say `Behavior Contract`, not `PRD`
 
-Once PRD is approved at the gate, auto-create issues from stories:
+## Spec-to-Issue Bridge
 
-For each story file:
-1. Create issue in project's tracker (GitHub Issues by default)
-2. Title: story title
-3. Body: context + requirements + acceptance criteria (as checkboxes)
-4. Labels: `stage/prd`, `priority/[p0|p1|p2]`, `type/feature`, `source/prd`
-5. Add to project board (if configured)
-6. Write issue URL back into story file
+After the Behavior Contract is approved:
+- create or update the execution issue
+- copy the contract summary and scenario/proof IDs into the issue trail as needed
+- use the contract as the reference artifact for later stages
 
-See `core/pipeline/issue-tracking.md` for full spec-to-issue protocol.
+Story sharding is optional legacy behavior, not the default.
 
 ## Anti-patterns
-- Solutions masquerading as requirements ("add a button" vs "user needs to trigger export")
-- Missing acceptance criteria (untestable stories)
-- "The system should..." (vague — use EARS patterns)
-- PRD without success metrics (how do you know it worked?)
-- Giant monolithic PRD without story sharding (token waste during implementation)
-- Scope without "Out of Scope" section (invites creep)
+- Long PRD prose with no execution value
+- Separate test-plan doc that repeats the same scenarios
+- Requirements that describe UI widgets instead of behavior
+- Missing edge cases because "QA will think about it later"
+- Missing proof section
+- Opening a separate design doc for small visual or interaction notes
+- Presenting the gate without a pre-mortem on scenarios, edge cases, and proof

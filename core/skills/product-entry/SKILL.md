@@ -1,6 +1,6 @@
 ---
 name: product-entry
-description: Start PRODUCT work in a connected product repo. Use for short prompts like "run issue #95 to PRD gate", "next stage for current feature", "work on issue #N via forge pipeline", or any feature/bug/product request that should route into the correct pipeline stage instead of defaulting to implementation.
+description: Start PRODUCT work in a connected product repo. Use for short prompts like "run issue #95 to the behavior-contract gate", "next stage for current feature", "work on issue #N via forge pipeline", or any feature/bug/product request that should route into the correct pipeline stage instead of defaulting to implementation.
 ---
 
 # Product Entry
@@ -19,6 +19,7 @@ Public command surface is defined in `core/pipeline/entry-surface.md`.
 
 - `Сломалось сохранение тренировки. Почини.`
 - `Хочу, чтобы в продукте были суперсеты.`
+- `Поменяй порядок шаблонов в iOS по дате добавления.`
 - `Почему падает активация? Разберись.`
 - `Кажется, люди отваливаются на онбординге. Посмотри.`
 - `Залей на TestFlight апдейт.`
@@ -62,6 +63,73 @@ Default behavior:
 - if there is already an issue with current stage state, resume from there
 - if scope is already well-defined and aligned, start from the earliest valid stage
 - if scope is still fuzzy, start from `strategy` or `discovery`
+
+## Execution Lane Router
+
+After intent resolution, choose exactly one execution lane.
+
+### A. `bugfix`
+
+Use when the request is primarily about broken behavior, regression, or incident response.
+
+Default behavior:
+- use the quick path
+- create/select the bug issue before code when the fix is non-trivial
+- keep `.forge/active-run.env` in sync
+
+### B. `micro_change`
+
+Use when all of these are true:
+- one platform or one narrow surface
+- no API/schema/migration/sync/shared-contract change
+- no new multi-step user journey
+- rollback is simple
+- a full contract/design packet would be disproportionate
+
+Typical examples:
+- list sort order
+- local copy tweak
+- default tab or filter
+- local menu item order
+- spacing / label / empty-state polish with bounded behavior
+
+Default behavior:
+- create/select the issue first
+- write a durable `## Change Brief` using `core/templates/change-brief-template.md`
+- keep the brief minimal: lane, scope, non-goals, acceptance, proof
+- route directly to `implementation`
+- then continue through `test_coverage` -> `qa`
+
+### C. `small_change`
+
+Use when the change is still bounded, but at least one of these is true:
+- touches more than one surface or platform
+- changes an interaction model, parity expectation, or meaningful UX behavior
+- needs one short product contract before code
+- may reopen a small amount of design/contract thinking, but not full discovery
+
+Default behavior:
+- create/select the issue first
+- produce a short `Change Brief` or compact Behavior Contract
+- start from the earliest valid gated stage, usually Stage 2 (`prd` stage id) or `design`
+- do not force `strategy` / `discovery` unless the scope is still genuinely unclear
+
+### D. `full_feature`
+
+Use when any of these are true:
+- new flow or substantial workflow addition
+- backend/API/schema/migration change
+- sync/share/import/export behavior
+- cross-platform contract or parity work with material blast radius
+- multiple stories are likely
+
+Default behavior:
+- start from the earliest valid full stage
+- use the normal feature pipeline
+
+Promotion rule:
+- if new evidence shows the chosen lane was too small, promote it immediately
+- do not keep a `micro_change` or `small_change` in the short lane once backend/shared-contract complexity appears
 
 ### 3. Product question / uncertainty / investigation intent
 
@@ -111,6 +179,7 @@ Default behavior:
 - if multiple targets match or the request is ambiguous, ask which release target to use
 - treat this as deploy/distribution work, not implementation
 - require an already approved candidate before upload
+- if the release is user-facing, prepare or verify a canonical communication packet in `docs/release-notes/` before calling the target ready
 
 ### 6. Gate response intent
 
@@ -169,6 +238,7 @@ The agent must translate natural approval into the durable issue comment format 
 5. Resolve the target stage from intent:
    - if the user names a target stage or gate, treat it as the desired destination, not permission to skip unresolved gates
    - otherwise infer the path from bug / feature / question / metrics intent
+   - for feature/change requests, choose `micro_change`, `small_change`, or `full_feature` before choosing the starting stage
    - stop at the first unresolved gated stage on the path
 6. Load the correct stage context:
    - forge base skill: `<forge-root>/core/skills/[stage]/SKILL.md`
@@ -179,10 +249,16 @@ The agent must translate natural approval into the durable issue comment format 
    - For non-gated stages such as `code_review` and `test_coverage`, auto-proceed to the next allowed stage when criteria are satisfied instead of stopping for internal execution choices.
    - The checkpoint must explicitly say:
      - current stage
+     - chosen lane
      - gate needed now: yes/no
      - what just finished
      - exact next recommended action
      - what condition will trigger the next gate
+   - If the stage will continue through multiple milestones before the next gate, include a compact `Execution Proposal`:
+     - current slice
+     - milestone order
+     - proof for each milestone
+     - stop-and-fix rule
 
 ## Expected Outputs
 
@@ -190,9 +266,11 @@ For pre-implementation stages, produce the stage artifact plus a forge gate summ
 
 Examples:
 - `strategy` -> strategy doc + strategy gate
-- `prd` -> PRD doc + PRD gate
+- `prd` -> Behavior Contract + Behavior Contract gate
 - `architecture` -> architecture doc + architecture gate
 - `bug fix` -> code change + tests + QA gate
+- `micro_change` -> `Change Brief` + targeted code/test/QA without forcing a full contract packet
+- `small_change` -> compact Behavior Contract + the next valid gated stage, not automatic Strategy/Discovery by default
 
 If the current gate is still unresolved:
 - re-present the current gate or explain the blocker
@@ -213,7 +291,7 @@ If the task is implementation or later, follow the stage skill and project rules
 ## Anti-Patterns
 
 - Treating every issue as an implementation task
-- Treating `до PRD gate` as permission to auto-approve Strategy or Discovery
+- Treating `до Behavior Contract gate` or `до PRD gate` as permission to auto-approve Strategy or Discovery
 - Forcing the user to speak in stage names when their intent is already clear
 - Asking the user to type `/gate approved` manually when they already said `ok, go ahead`
 - Asking the user to restate all context that already exists in repo files

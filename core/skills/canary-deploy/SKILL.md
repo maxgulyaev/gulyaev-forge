@@ -29,8 +29,35 @@ Choose based on project's deploy strategy:
 - [ ] Rollback plan documented and tested
 - [ ] Monitoring dashboards ready (error rate, latency, key metrics)
 - [ ] On-call person identified (who responds if something breaks)
-- [ ] Communication ready (changelog, release notes if user-facing)
+- [ ] Communication packet ready in `docs/release-notes/` if the release is user-facing
 - [ ] Backup verified (database, if applicable)
+
+### Step 2.5: Publication Readiness
+
+For user-facing releases:
+- [ ] Canonical release communication packet exists and is factually aligned with the candidate
+- [ ] Website / changelog copy is ready
+- [ ] Primary community-channel copy is ready
+- [ ] Short social copy is ready
+- [ ] Store / beta notes are ready when relevant
+- [ ] Channel statuses are explicit: `published`, `scheduled`, `ready`, or `n/a`
+
+If publication itself is manual, stop at the release gate with the packet ready and say exactly what remains to be posted.
+
+### Step 2.6: Gate Elicitation Pass
+
+Before presenting the canary gate, run a `pre-mortem`.
+
+Assume rollout goes wrong and ask:
+- what signal would tell us too late?
+- what rollback trigger is underspecified or too soft?
+- what user-facing communication gap would worsen the incident?
+- what dependency or migration could fail under real traffic?
+
+Record:
+- the strongest failure path
+- whether monitoring/rollback/publication coverage is sufficient
+- what changed because of the pass
 
 ### Step 3: Progressive Rollout
 
@@ -93,6 +120,7 @@ Document: what was rolled back, why, what to fix before retry.
 - Phases completed: [1/4]
 - Status: ROLLING OUT / COMPLETE / ROLLED BACK
 - Metrics: error rate [X]%, latency [Y]ms, [business metric] [Z]
+- Communication: website [status], community [status], social [status], store/beta [status]
 ```
 
 ## Anti-patterns
@@ -101,3 +129,5 @@ Document: what was rolled back, why, what to fix before retry.
 - No rollback plan ("we'll figure it out")
 - Rolling out during low-traffic hours only (bugs appear at peak)
 - Canary without comparing metrics to baseline (what's "normal"?)
+- Shipping user-facing changes with no prepared communication packet
+- Presenting the canary gate without a rollout pre-mortem

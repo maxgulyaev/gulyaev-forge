@@ -63,7 +63,7 @@ Every agent should use the same forge contract underneath:
 
 - **State**: GitHub issue + `.forge/pipeline-state.yaml`
 - **Knowledge**: forge base skills + project overlays
-- **Artifacts**: `docs/strategy`, `docs/research`, `docs/prd`, `docs/architecture`, and later-stage outputs
+- **Artifacts**: `docs/strategy`, `docs/research`, `docs/prd` (Behavior Contracts), `docs/architecture`, and later-stage outputs
 - **Canonical intents**:
   - `bugfix`
   - `feature`
@@ -85,6 +85,7 @@ The config shape is generic:
 stage_agents:
   code_review:
     reviewer:
+      transport: local_cli
       adapter: codex-review
       prompt_file: .forge/reviewers/code-review.md
 ```
@@ -95,9 +96,19 @@ Meaning:
 - today the standard use is Stage 6.5 (`code_review`) with role `reviewer`
 - the project decides which reviewer to use
 - forge owns the adapter invocation details
+- the transport is execution-only; it is not the source of truth
 
 Current built-in adapter:
 - `codex-review` -> `codex exec -s workspace-write` with a no-edit review prompt, project `prompt_file`, and post-run worktree-drift guard
+
+Transport classes:
+- `local_cli` — current runtime; forge launches a local adapter/command
+- `mcp` — future candidate for tool-exposed remote/local agents
+- `acp_a2a` — future candidate for agent-to-agent transport between independent agents
+
+Forge rule:
+- issue trail, approved artifacts, and `.forge/pipeline-state.yaml` remain the source of truth
+- transport only affects how a stage agent is reached, not how gates are decided
 
 Practical combinations:
 - `code_review/reviewer` -> external code reviewer before QA
@@ -294,7 +305,7 @@ gulyaev-forge/
   core/                      # Universal knowledge (pure markdown, any agent reads)
     skills/                  # A-context: expertise per pipeline stage
     pipeline/                # Stage definitions, gate format, processes
-    templates/               # Artifact templates (PRD, arch doc, gate report...)
+    templates/               # Artifact templates (Behavior Contract, arch doc, gate report...)
     registry/                # Skill & MCP server catalog
   adapters/                  # Translate core → agent-native format
     claude-code/             # .claude/ + SKILL.md
@@ -317,7 +328,7 @@ Projects may use direct references or thin adapter shims, but should avoid diver
 ## Pipeline (13 stages + code review checkpoint)
 
 ```
-Strategy → Discovery → PRD → Design → Architecture → Test Plan →
+Strategy → Discovery → Behavior Contract → Design → Architecture → Proof Hardening →
 Implementation → Code Review → Test Coverage → Automated QA → Staging Deploy →
 Canary Deploy → Product Analytics → Tech Monitoring → back to Strategy
 ```
@@ -332,15 +343,16 @@ The durable approval record should live in the issue trail, but the user does no
 ## Quick Start
 
 See **[QUICKSTART.md](QUICKSTART.md)** — step-by-step guide:
-1. MCP bootstrap (`claude mcp add -s user`, `bin/forge mcp install playwright`)
-2. Project initialization (`bin/forge init`, `.forge/config.yaml`, labels, folder structure)
-3. Daily workflow (PRODUCT vs SELF mode)
-4. How agents find and use forge skills
+1. Choose the right setup path for your case: [docs/setup-scenarios.md](docs/setup-scenarios.md)
+2. Run machine-level MCP bootstrap for Claude Code and Codex: [docs/mcp-bootstrap.md](docs/mcp-bootstrap.md)
+3. Initialize or refresh the product repo (`bin/forge init`, `.forge/config.yaml`, labels, folder structure)
+4. Work daily in PRODUCT vs SELF mode with the same pipeline contract
 
 ## Docs
 
 - **[QUICKSTART.md](QUICKSTART.md)** — practical how-to-live-with-this guide
-- **[docs/mcp-bootstrap.md](docs/mcp-bootstrap.md)** — canonical machine-level MCP setup for Claude Code
+- **[docs/setup-scenarios.md](docs/setup-scenarios.md)** — onboarding by scenario: first machine, another product, another device/VPS
+- **[docs/mcp-bootstrap.md](docs/mcp-bootstrap.md)** — canonical machine-level MCP setup for Claude Code and Codex
 - **[docs/operating-playbook.md](docs/operating-playbook.md)** — exact commands, working model, status tracking
 - **[docs/design.md](docs/design.md)** — full architecture, pipeline stages, roadmap
 - **[core/pipeline/orchestrator.md](core/pipeline/orchestrator.md)** — stage order, gates, context injection

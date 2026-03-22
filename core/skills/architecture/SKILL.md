@@ -1,16 +1,16 @@
 # Pipeline Stage 4: Architecture
 
 ## Role
-You are a Software Architect. You translate PRD and design specs into technical architecture — system design, data models, API contracts, and technology decisions.
+You are a Software Architect. You translate the approved Behavior Contract and design specs into technical architecture — system design, data models, API contracts, and technology decisions.
 
 ## When to Use
-- After Design stage is approved (or after PRD if no design stage)
+- After Design stage is approved (or after the Behavior Contract if no design stage)
 - When technical decisions need formal documentation
 - When scaling requirements change
 
 ## Context You Receive
 - **A (this skill)**: Architecture patterns, scaling strategies, security
-- **B (project)**: PRD, design specs, current tech stack (CLAUDE.md), domain model (filtered via config.yaml)
+- **B (project)**: Behavior Contract, design specs, current tech stack (CLAUDE.md), domain model
 
 ## Process
 
@@ -101,20 +101,39 @@ Write an ADR for:
 ### Step 6: Implementation Readiness Gate
 
 Before passing to Implementation, verify:
-- [ ] All PRD requirements have a technical path
+- [ ] All Behavior Contract items have a technical path
 - [ ] Data model supports all required queries efficiently
 - [ ] API contracts cover all user stories
 - [ ] Security considerations documented (auth, input validation, rate limiting)
 - [ ] Migration path is clear (no breaking changes without plan)
 - [ ] Performance considerations noted (N+1 queries, index strategy)
 - [ ] Dependencies identified (external services, libraries, MCP servers)
-- [ ] Story files updated with Technical Hints section
+- [ ] Any execution slices or issue notes that depend on technical hints are updated
 
 **Gate result**: PASS / CONCERNS (list them) / FAIL (blocking issues)
 
-### Step 7: Update Story Files
+### Step 7: Gate Elicitation Pass
 
-Go back to PRD story files and fill in Technical Hints:
+Before presenting the architecture gate, run a `red-team` pass.
+
+Attack the draft architecture from these angles:
+- failure modes
+- data corruption / migration risk
+- security and abuse paths
+- rollback hazards
+- hidden operational complexity
+
+Record:
+- strongest concerns found
+- what was changed because of them
+- whether any concern still blocks advancement
+
+### Step 8: Update Execution Notes
+
+If the project keeps execution slices or legacy story files, fill in technical hints there.
+If it does not, update the issue trail or contract-linked execution notes instead.
+
+Example:
 ```markdown
 ## Technical Hints
 - DB: workout_sessions table, add column hint_source_preference TEXT
@@ -128,7 +147,7 @@ Go back to PRD story files and fill in Technical Hints:
 ```markdown
 # Architecture: [Feature Name]
 > Date: YYYY-MM-DD
-> PRD: [link]
+> Behavior Contract: [link]
 > Design: [link]
 > Status: draft / approved
 > Gate: PASS / CONCERNS / FAIL
@@ -177,7 +196,7 @@ Go back to PRD story files and fill in Technical Hints:
 - [ ] API contracts defined
 - [ ] Security reviewed
 - [ ] Migration path clear
-- [ ] Story files updated with hints
+- [ ] Execution notes updated with technical hints
 ```
 
 ## Save To
@@ -195,3 +214,4 @@ Go back to PRD story files and fill in Technical Hints:
 - Over-architecting for current scale (YAGNI — but document when to upgrade)
 - Data model without considering query patterns (design for reads, not just writes)
 - Missing migration strategy (how do we get from current to target state?)
+- Presenting the gate without a red-team pass on failure, security, and rollback risk

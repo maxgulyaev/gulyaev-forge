@@ -92,6 +92,7 @@ claude
 ```
 
 If you are using Claude Code, prefer explicit entry commands:
+- `/forge:work <request>`
 - `/forge:bugfix <problem>`
 - `/forge:feature <request>`
 - `/forge:investigate <question>`
@@ -100,10 +101,15 @@ If you are using Claude Code, prefer explicit entry commands:
 - `/forge:review`
 - `/forge:release <distribution request>`
 
+Practical rule:
+- use `/forge:work` as the default single PRODUCT command
+- use specialist commands only when you want to bias the router explicitly
+
 Canonical source of truth for this public command surface:
 - `core/pipeline/entry-surface.md`
 
 Good prompts:
+- `Поменяй порядок шаблонов в iOS по дате добавления.`
 - `Сломалось сохранение тренировки. Почини.`
 - `Хочу, чтобы можно было собирать суперсеты.`
 - `Разберись, почему люди отваливаются на онбординге.`
@@ -111,15 +117,32 @@ Good prompts:
 
 Gate rule:
 - the user can speak in business language; stage selection is internal
-- `до PRD gate` means "move toward PRD, but stop at the first unresolved gated stage"
+- `до Behavior Contract gate` or legacy phrasing like `до PRD gate` means "move toward Stage 2, but stop at the first unresolved gated stage"
 - a gated stage does not advance until approval is recorded
 - a gate decision asks whether the current stage is ready to unlock the next stage, not whether some useful work happened
 - the agent must judge a gate from the issue contract, approved upstream artifacts, and current evidence; a prior agent's `PASS` / `go` is input evidence, not source of truth
 - `approved_with_changes` is only for bounded follow-ups that do not reopen the current stage contract
 - if required current-stage scope is still unverified or contradicted by evidence, reject the gate instead of advancing with TODOs
+- for high-risk gated stages, run one explicit elicitation pass before presenting the gate:
+  - `strategy` -> inversion
+  - `Behavior Contract` -> pre-mortem
+  - `architecture` -> red-team
+  - `canary_deploy` -> pre-mortem
 - the user does not need to type slash commands
+- the router should also choose an execution lane for feature/change work:
+  - `micro_change` for low-blast-radius local tweaks
+  - `small_change` for bounded behavior changes needing a short contract
+  - `full_feature` for the normal full pipeline
+- `micro_change` should produce a durable `## Change Brief` and go straight to implementation instead of forcing a full contract/design loop
+- `small_change` should default to a compact Behavior Contract and the earliest valid gated stage, not automatically to Strategy/Discovery
 - the agent mirrors natural replies like `ок`, `поехали дальше`, or `да, но поправь X` into `/gate ...` comments in the issue trail
 - if the stage is still in progress and no approval is needed yet, the agent must present a checkpoint with `Gate needed now: yes/no` and one exact next step
+- for long implementation / investigation / release-prep runs, the checkpoint should also include a compact `Execution Proposal`:
+  - current slice
+  - milestone order
+  - proof for each milestone
+  - stop-and-fix rule if validation fails or scope drifts
+- this `Execution Proposal` replaces ad-hoc prompt dumps for long runs; it does not create a new `plans.md` or `status.md`
 - when the work reaches `implementation`, use Context7 for framework/library/API docs instead of guessing from memory
 - for bugfix quick path, create/select the bug issue before code if the fix is non-trivial
 - for bugfix quick path, keep `.forge/active-run.env` in sync and do not push before the QA gate is approved
@@ -132,6 +155,12 @@ Track progress in:
 - `project/.forge/active-run.env` for active bugfix/hotfix runs
 - stage artifacts in `docs/strategy`, `docs/prd`, `docs/architecture`, and so on
 
+Behavior Contract rule:
+- Stage 2 public artifact is now a compact **Behavior Contract**
+- it lives under `docs/prd/` for compatibility
+- it should contain product intent, scenarios, edge cases, and required proof in one file
+- Stage 5 should harden that same file in place instead of creating a separate test-plan doc by default
+
 ## Stage Agents
 
 Forge can attach secondary agents to explicit stage/role pairs.
@@ -142,9 +171,18 @@ Current supported shape in `project/.forge/config.yaml`:
 stage_agents:
   code_review:
     reviewer:
+      transport: local_cli
       adapter: codex-review
       prompt_file: .forge/reviewers/code-review.md
 ```
+
+Transport model:
+- **source of truth is not the transport**
+  - issue trail
+  - approved artifacts
+  - `.forge/pipeline-state.yaml`
+- `stage_agents` only define how a secondary agent is reached for one exact handoff
+- the transport/runtime must never decide stage transitions, gate verdicts, or overwrite the approved artifact chain
 
 Current built-in adapter registry:
 - `codex-review` -> runs `codex exec -s workspace-write` with a no-edit review prompt, optional project prompt overlay, and a worktree-drift guard
@@ -154,6 +192,29 @@ The shape is generic even if current usage is narrow:
 - the project owns the mapping
 - forge owns the adapter invocation details
 - today the pilot project uses only `code_review/reviewer`
+
+Current and future transport classes:
+- `local_cli`
+  - current supported runtime
+  - forge launches a local command or adapter in the same machine/workspace
+- `mcp`
+  - future candidate
+  - forge would call an already-available MCP-exposed agent/tool runtime
+- `acp_a2a`
+  - future candidate
+  - forge would hand off to a remote agent over an agent-to-agent transport such as ACP/A2A
+
+Adoption rule:
+- do not introduce `mcp` or `acp_a2a` just because the protocol is interesting
+- revisit them only when `stage_agents` need more than review-only local helpers:
+  - multiple long-running secondary agents
+  - remote agents outside the current workspace
+  - clear pain from the explicit local adapter model
+
+Practical boundary:
+- use forge to decide **what stage/role handoff should happen**
+- use the transport only to decide **how the secondary agent is reached**
+- keep gates, approved artifacts, and pipeline progression in forge itself
 
 Useful commands:
 
@@ -166,6 +227,7 @@ Practical model:
 - Claude stays the builder/orchestrator
 - Codex acts as the external reviewer
 - future projects can swap the reviewer by config without rewriting the pipeline
+- future transport upgrades should preserve this mental model instead of replacing forge with an agent mesh
 
 ## Release Targets
 
@@ -204,6 +266,53 @@ bash "$FORGE_DIR/scripts/forge-release-target.sh" list .
 bash "$FORGE_DIR/scripts/forge-release-target.sh" show . ios_testflight
 bash "$FORGE_DIR/scripts/forge-release-scope.sh" dirty . ios_testflight
 ```
+
+## Release Communication
+
+User-facing releases should produce a durable communication artifact, not just an upload.
+
+Default rule:
+- if a release changes what users see, do, or feel, prepare a canonical packet in `docs/release-notes/`
+- treat that packet as the source of truth for user-facing wording across website, store/beta notes, and owned channels
+- do not reduce `release notes` to App Store text only
+
+Minimum packet contents:
+- canonical summary of what changed for users
+- concrete user-visible additions, fixes, or behavior changes
+- availability / rollout note
+- channel adaptations:
+  - product website or changelog
+  - primary community channel such as Telegram / Discord / email
+  - short social variant for X / LinkedIn / other socials
+  - store or beta notes when the target is mobile/distribution
+- publication plan with status per channel: `draft`, `ready`, `published`, or `n/a`
+
+Operational rule:
+- Stage 9/10 release work is not fully ready for a user-facing ship until the communication packet exists
+- publication itself may still be manual, but the release gate must say what is already published versus only prepared
+- internal-only or invisible releases may mark the packet `n/a`, but that decision should be explicit
+
+Recommended path:
+- `docs/release-notes/YYYY-MM-DD-<slug>.md`
+- template: `core/templates/release-notes-template.md`
+
+Optional project metadata in `.forge/config.yaml`:
+
+```yaml
+release_communication:
+  channels:
+    website:
+      type: changelog
+    community:
+      type: telegram_post
+    social_short:
+      type: short_social
+    beta_notes:
+      type: store_notes
+```
+
+Use this as lightweight routing metadata for the agent.
+If absent, fall back to the generic channel set above.
 
 ## Bugfix Trail
 

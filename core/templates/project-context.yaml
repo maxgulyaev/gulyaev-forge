@@ -81,12 +81,29 @@ release_targets: {}
 
 # Optional external agents for specific handoffs.
 # Shape is generic: stage_agents.<stage>.<role>
+# Transport and source-of-truth rules:
+# - stage_agents are execution helpers only
+# - issue trail, approved artifacts, and `.forge/pipeline-state.yaml` stay the source of truth
+# - transport/runtime for a secondary agent must never own stage transitions or gate decisions
+# Current runtime support:
+# - `transport: local_cli` only
+# Future transport classes may include:
+# - `mcp` for tool-exposed agent runtimes
+# - `acp_a2a` for remote agent-to-agent transport
 # Current common use:
 # stage_agents:
 #   code_review:
 #     reviewer:
+#       transport: local_cli
 #       adapter: codex-review
 #       prompt_file: .forge/reviewers/code-review.md
+# Future-looking example (not yet implemented by forge runtime):
+# stage_agents:
+#   qa:
+#     reviewer:
+#       transport: acp_a2a
+#       endpoint: https://agents.example.com/qa-reviewer
+#       agent_id: qa-reviewer-v1
 stage_agents: {}
 
 # Which files to inject as context B for each pipeline stage

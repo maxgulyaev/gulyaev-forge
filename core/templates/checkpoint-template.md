@@ -34,6 +34,25 @@ Do not list multiple internal options here when the next step is already clear.
 Only ask for input here if a real human decision or blocker exists.
 Do not ask the human to choose between internal implementation steps, commit timing, or premature QA.
 
+## Execution Proposal
+
+Use this block only when the stage will continue through multiple milestones before the next gate or handoff.
+
+- Current slice: [contract slice / story / investigation question]
+- Milestones:
+  1. [first milestone]
+  2. [second milestone]
+  3. [third milestone if needed]
+- Validation:
+  - [milestone 1] -> [proof / check]
+  - [milestone 2] -> [proof / check]
+  - [milestone 3] -> [proof / check]
+- Stop-and-fix rule:
+  - if a milestone fails validation, reveals source-of-truth drift, or expands scope beyond the approved slice, stop, repair or re-scope, and re-check before proceeding
+- Active milestone now: [exact next milestone]
+
+Do not add this block for short one-step updates.
+
 ---
 
 ## State Sync

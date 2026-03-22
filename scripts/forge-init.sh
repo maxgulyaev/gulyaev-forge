@@ -139,7 +139,7 @@ create_standard_labels() {
 
   create_label "$repo" "stage/strategy" "E0E0E0" "Strategy in progress"
   create_label "$repo" "stage/discovery" "E0E0E0" "Discovery in progress"
-  create_label "$repo" "stage/prd" "E0E0E0" "Requirements defined"
+  create_label "$repo" "stage/prd" "E0E0E0" "Behavior contract defined"
   create_label "$repo" "stage/design" "E0E0E0" "Design in progress"
   create_label "$repo" "stage/architecture" "E0E0E0" "Architecture defined"
   create_label "$repo" "stage/implementation" "E0E0E0" "In development"
@@ -155,7 +155,7 @@ create_standard_labels() {
   create_label "$repo" "discipline/devops" "E0E0E0" "Deploy/infra work"
   create_label "$repo" "discipline/analytics" "FFF0C0" "Metrics/monitoring work"
 
-  create_label "$repo" "source/prd" "FFFFFF" "From PRD"
+  create_label "$repo" "source/prd" "FFFFFF" "From behavior contract"
   create_label "$repo" "source/bug" "FFFFFF" "From bug report"
   create_label "$repo" "source/analytics" "FFFFFF" "From product analytics"
   create_label "$repo" "source/monitoring" "FFFFFF" "From tech monitoring"
@@ -252,8 +252,7 @@ write_text_file "$PROJECT/.forge/skills/README.md" 0644 "# Project Overlay Skill
 
 write_text_file "$PROJECT/docs/strategy/README.md" 0644 "# Strategy\n\nСтратегические документы и обновления направления продукта.\n"
 write_text_file "$PROJECT/docs/research/README.md" 0644 "# Research\n\nDiscovery-отчеты, конкурентный ресерч и исследовательские заметки по продукту.\n"
-write_text_file "$PROJECT/docs/prd/README.md" 0644 "# PRD\n\nПолные продуктовые спецификации.\n"
-write_text_file "$PROJECT/docs/prd/stories/README.md" 0644 "# Story Shards\n\nАтомарные story-файлы, подготовленные из PRD для дальнейшей реализации.\n"
+write_text_file "$PROJECT/docs/prd/README.md" 0644 "# Behavior Contracts\n\nКомпактные продуктовые контракты: intent, behavior, corner cases, proof.\n"
 write_text_file "$PROJECT/docs/architecture/README.md" 0644 "# Architecture\n\nТехнические дизайны, ADR и архитектурные решения.\n"
 write_text_file "$PROJECT/docs/analytics/README.md" 0644 "# Analytics\n\nБазовые метрики, отчеты и post-ship аналитика.\n"
 

@@ -1,21 +1,21 @@
 # Pipeline Stage 3: Design
 
 ## Role
-You are a UX/UI Designer. You translate PRD requirements into visual and interaction design specifications that developers can implement.
+You are a UX/UI Designer. You translate Behavior Contract requirements into visual and interaction design specifications that developers can implement.
 
 ## When to Use
-- After PRD is approved at the gate
+- After the Behavior Contract is approved at the gate
 - When a feature needs UI/UX specification before implementation
 - When redesigning existing flows based on analytics
 
 ## Context You Receive
 - **A (this skill)**: UI/UX design patterns, accessibility standards
-- **B (project)**: PRD, brand guidelines, design system tokens, current UI state (filtered via config.yaml)
+- **B (project)**: Behavior Contract, brand guidelines, design system tokens, current UI state
 
 ## Process
 
 ### Step 1: Understand User Flows
-From PRD user stories, map the user journey:
+From the Behavior Contract scenarios, map the user journey:
 - Entry point: How does the user get here?
 - Happy path: What's the ideal flow?
 - Edge cases: Empty states, errors, loading, offline
@@ -68,7 +68,7 @@ For each screen, provide:
 ```markdown
 # Design Spec: [Feature Name]
 > Date: YYYY-MM-DD
-> PRD: [link]
+> Behavior Contract: [link]
 > Status: draft / approved
 
 ## User Flows

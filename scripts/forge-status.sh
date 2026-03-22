@@ -171,6 +171,8 @@ collect_stage_agent_specs() {
 
 CLAUDE_MCP_LIST_LOADED=0
 CLAUDE_MCP_LIST_OUTPUT=""
+CODEX_MCP_LIST_LOADED=0
+CODEX_MCP_LIST_OUTPUT=""
 
 claude_user_config_file() {
   printf '%s' "${CLAUDE_USER_CONFIG_FILE:-$HOME/.claude.json}"
@@ -210,6 +212,36 @@ claude_mcp_status_line() {
 
   printf '%s\n' "$CLAUDE_MCP_LIST_OUTPUT" | awk -v name="$name" '
     $0 ~ ("^" name ":") {
+      print
+      exit
+    }
+  '
+}
+
+codex_config_file() {
+  printf '%s' "${CODEX_CONFIG_FILE:-$HOME/.codex/config.toml}"
+}
+
+load_codex_mcp_list() {
+  if [[ "$CODEX_MCP_LIST_LOADED" -eq 1 ]]; then
+    return
+  fi
+
+  CODEX_MCP_LIST_LOADED=1
+  if command -v codex >/dev/null 2>&1; then
+    CODEX_MCP_LIST_OUTPUT=$(codex mcp list 2>/dev/null || true)
+  fi
+}
+
+codex_mcp_status_line() {
+  local name=$1
+  load_codex_mcp_list
+  if [[ -z "$CODEX_MCP_LIST_OUTPUT" ]]; then
+    return
+  fi
+
+  printf '%s\n' "$CODEX_MCP_LIST_OUTPUT" | awk -v name="$name" '
+    NR > 1 && $1 == name {
       print
       exit
     }
@@ -280,6 +312,34 @@ print_self_mcp_status() {
 
   if config_contains "$settings" '@anthropic-ai/mcp-server-playwright'; then
     printf '  playwright settings override: legacy package in ~/.claude/settings.json\n'
+  fi
+}
+
+print_self_codex_mcp_status() {
+  local config
+  local line
+  config=$(codex_config_file)
+
+  printf '\nCodex MCP:\n'
+  if command -v codex >/dev/null 2>&1; then
+    printf '  codex cli: present\n'
+  else
+    printf '  codex cli: missing\n'
+  fi
+
+  if [[ -f "$config" ]]; then
+    printf '  config: present (%s)\n' "$config"
+  else
+    printf '  config: missing (%s)\n' "$config"
+  fi
+
+  line=$(codex_mcp_status_line "figma" || true)
+  if [[ -n "$line" ]]; then
+    printf '  figma: %s\n' "${line#figma }"
+  elif config_contains "$config" '[mcp_servers.figma]' ; then
+    printf '  figma: configured but not visible in codex mcp list\n'
+  else
+    printf '  figma: missing\n'
   fi
 }
 
@@ -576,6 +636,7 @@ print_self_status() {
   fi
 
   print_self_mcp_status
+  print_self_codex_mcp_status
 
   printf '\nRoadmap focus:\n'
   pending=$(awk '

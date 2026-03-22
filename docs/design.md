@@ -5,6 +5,14 @@
 > Автор: Max + Claude brainstorm session
 > Репа: gulyaev-forge
 
+## Migration Note
+
+Public artifact model is being simplified:
+- Stage 2 public artifact is now a **Behavior Contract**
+- Stage 5 is now **Proof Hardening** of that same file
+- internal stage ids stay `prd` and `test_plan` for compatibility during migration
+- default path stays `docs/prd/`
+
 ## Концепция
 
 Полный product loop где каждый этап выполняет специализированный AI-агент.
@@ -61,7 +69,7 @@ Forge добавляет в проект **только** `.forge/` — ника
 │                    PRODUCT LOOP                         │
 │                                                         │
 │  ┌──────────┐    ┌───────────┐    ┌──────┐             │
-│  │ Strategy │───→│ Discovery │───→│ PRD  │             │
+│  │ Strategy │───→│ Discovery │───→│Behavior Contract│  │
 │  └────▲─────┘    └───────────┘    └──┬───┘             │
 │       │                              │                  │
 │       │                        ┌─────▼──────┐          │
@@ -73,7 +81,7 @@ Forge добавляет в проект **только** `.forge/` — ника
 │       │                     └────────┬────────┘        │
 │       │                              │                  │
 │       │                      ┌───────▼───────┐         │
-│       │                      │  Test Plan    │         │
+│       │                      │Proof Hardening│         │
 │       │                      └───────┬───────┘         │
 │       │                              │                  │
 │       │                    ┌─────────▼─────────┐       │
@@ -166,9 +174,13 @@ Decision points после аналитики:
 **Триггеры:** "сделаем фичу X", "issue #N", "баг в Y"
 
 1. Загружает product-context проекта
-2. Определяет текущий этап pipeline
-3. Запускает с нужного этапа (PRD / Architecture / Implementation...)
-4. Гейты между этапами
+2. Выбирает execution lane: `bugfix`, `micro_change`, `small_change`, `full_feature`
+3. Определяет текущий этап pipeline
+4. Запускает с нужного этапа:
+   - `micro_change` → short `Change Brief` + Implementation
+   - `small_change` → short contract + earliest valid gated stage
+   - `full_feature` → normal pipeline
+5. Гейты между этапами
 
 #### Pivot
 **Триггеры:** "нужно менять направление", "метрики плохие", "переосмыслить продукт"
@@ -253,16 +265,16 @@ SELF
 |---|------|--------------------|--------------------|-------------------|----------|------|
 | 0 | **Strategy** | product-strategy best practices | текущая стратегия, метрики, аналитика прошлых циклов | — | strategy doc (.md) | YES |
 | 1 | **Discovery** | market-research, user-research методологии | стратегия, целевая аудитория, текущие боли | WebSearch, WebFetch, PostHog API | research report (.md) | YES |
-| 2 | **PRD** | PRD best practices, user stories шаблоны | стратегия, research report, бэклог | — | PRD (.md) с acceptance criteria | YES |
-| 3 | **Design** | UI/UX паттерны, design system | PRD, текущий дизайн, бренд гайдлайны | **Figma MCP** | макеты / design specs | YES |
-| 4 | **Architecture** | arch patterns, масштабирование, security | PRD, design, текущий стек, схема БД | **Context7 MCP** (свежие доки) | arch doc + diagrams | YES |
-| 5 | **Test Plan** | testing strategies, coverage patterns | PRD (acceptance criteria), arch doc | — | test plan (.md) | NO |
-| 6 | **Implementation** | coding standards, паттерны стека | arch doc, test plan, текущий код | **Context7 MCP** | PR с кодом | YES |
-| 7 | **Test Coverage** | TDD, coverage best practices | test plan, написанный код | — | тесты + coverage report | NO |
-| 8 | **Automated QA** | e2e testing patterns | PRD (acceptance criteria), staging URL | **Playwright MCP** | QA report + скриншоты | YES |
+| 2 | **Behavior Contract** (`prd`) | product contract, scenarios, edge cases, proof | стратегия, research report, бэклог | — | compact contract (.md) | YES |
+| 3 | **Design** | UI/UX паттерны, design system | Behavior Contract, текущий дизайн, бренд гайдлайны | **Figma MCP** | макеты / design specs | YES |
+| 4 | **Architecture** | arch patterns, масштабирование, security | Behavior Contract, design, текущий стек, схема БД | **Context7 MCP** (свежие доки) | arch doc + diagrams | YES |
+| 5 | **Proof Hardening** (`test_plan`) | testing strategies, coverage patterns | Behavior Contract, arch doc | — | contract updated in place | NO |
+| 6 | **Implementation** | coding standards, паттерны стека | arch doc, Behavior Contract, текущий код | **Context7 MCP** | PR с кодом | YES |
+| 7 | **Test Coverage** | TDD, coverage best practices | Behavior Contract proof section, написанный код | — | тесты + coverage report | NO |
+| 8 | **Automated QA** | e2e testing patterns | Behavior Contract, staging URL | **Playwright MCP** | QA report + скриншоты | YES |
 | 9 | **Staging Deploy** | deploy patterns | текущая инфра, deploy config | Docker MCP / Bash | работающий staging | NO |
 | 10 | **Canary Deploy** | canary/blue-green patterns | deploy strategy, prod config | Bash + SSH (или K8s когда дорастём) | canary live | YES |
-| 11 | **Product Analytics** | analytics methodology, A/B testing | метрики до фичи, target KPI из PRD | PostHog/Amplitude API | analytics report | YES |
+| 11 | **Product Analytics** | analytics methodology, A/B testing | метрики до фичи, target KPI из Behavior Contract | PostHog/Amplitude API | analytics report | YES |
 | 12 | **Tech Monitoring** | SRE best practices, alerting | baseline метрики, SLA | **Sentry MCP**, Grafana API | monitoring report | YES |
 
 ---
@@ -446,8 +458,8 @@ docs/design/                 # UI/UX спеки, скриншоты макето
 migrations/                  # SQL миграции (numbered)
 docs/runbooks/               # Deploy, rollback, incident response
 
-# Mobile (iOS/Android)
-docs/release-notes/          # Чейнджлоги для App Store / Google Play
+# Mobile / distribution
+docs/release-notes/          # Канонические user-facing release packets: сайт, store/beta, community, socials
 
 # ML/AI
 docs/experiments/            # A/B тесты, модели, эксперименты
@@ -826,6 +838,27 @@ stages:
 - [ ] **1.3** Прогнать Design → Architecture с гейтами
 - [ ] **1.4** Прогнать Implementation → Code Review → QA
 - [ ] **1.5** Ретро: что работает, что нет, что улучшить в скиллах
+
+### Phase 1B: Post-pilot simplification and rigor
+> Цель: упростить contract layer, убрать file drift, усилить operator experience
+
+- [x] **1B.1** Слить `PRD + test_plan` в единый `Behavior Contract`
+- [x] **1B.2** Перевести implementation / QA / routing на новый контракт
+- [ ] **1B.3** Прогнать adjacent Claude smoke на новом процессе
+- [x] **1B.4** Добавить gate elicitation patterns для high-risk gates
+- [ ] **1B.5** Добавить compact investigation / audit mode
+- [ ] **1B.6** Ужесточить review protocol, proof-first checks и execution-loop discipline
+- [ ] **1B.7** Добавить navigator / help layer
+- [x] **1B.8** Зафиксировать transport model для `stage_agents` и позицию ACP/A2A vs current forge orchestration
+
+### Phase 1C: Mac Mini M4 Pro — remote agent node
+> Цель: always-on нода для персонального ассистента и remote stage_agents, путь к ACP
+
+- [ ] **1C.1** Поднять Mac Mini как always-on ноду (сеть, доступ, базовая настройка)
+- [ ] **1C.2** Поставить NoClaw — персональный ассистент (iMessage, calendar, reminders)
+- [ ] **1C.3** Поднять Ollama / local inference для локальных моделей
+- [ ] **1C.4** Перенести Codex review adapter как первый remote stage_agent
+- [ ] **1C.5** Внедрить ACP как transport layer для remote stage_agents
 
 ### Phase 2: Deploy + Analytics (замыкаем цикл)
 > Цель: полный loop работает end-to-end

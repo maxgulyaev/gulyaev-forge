@@ -8,10 +8,10 @@ This is the master document that defines how the pipeline runs — stage order, 
 ```
 0. Strategy       [GATE] ──→
 1. Discovery      [GATE] ──→
-2. PRD            [GATE] ──→
+2. Behavior Contract (`prd`) [GATE] ──→
 3. Design         [GATE] ──→
 4. Architecture   [GATE] ──→
-5. Test Plan      [────] ──→
+5. Proof Hardening (`test_plan`) [────] ──→
 6. Implementation [GATE] ──→
 6.5 Code Review   [────] ──→  ← NEW: /code-review (multi-agent PR review)
 7. Test Coverage  [────] ──→
@@ -45,7 +45,8 @@ Non-gated transition rule:
 1. Determine entry point:
    - Brand new idea → start at Stage 0 (Strategy) or Stage 1 (Discovery)
    - Idea from backlog with strategy alignment → start at Stage 2 (PRD)
-   - Bug fix or small improvement → start at Stage 6 (Implementation)
+   - Bug fix or `micro_change` → start at Stage 6 (Implementation)
+   - `small_change` → start at the earliest valid gated stage, usually Stage 2 or 3
 2. Load project config: `project/.forge/config.yaml`
 3. For the starting stage, inject context A (skill from forge) + context B (project files filtered by stage)
 4. Execute stage skill
@@ -57,9 +58,33 @@ The user does not need to name stages explicitly.
 
 The entry router should infer the path:
 - bug/regression/outage → quick path toward Implementation
-- feature/change request → earliest valid product stage
+- feature/change request → choose `micro_change`, `small_change`, or `full_feature`, then the earliest valid stage for that lane
 - evidence/analysis question → Discovery or Product Analytics
 - short approval reply like `ok, go ahead` → gate decision for the current presented gate
+
+## Execution Lanes
+
+The stage model stays the same, but PRODUCT entry should first choose a lane:
+
+- `bugfix`
+  Quick path with bug issue discipline and `active-run.env`.
+
+- `micro_change`
+  One narrow surface, no backend/schema/sync/shared-contract change, low rollback cost.
+  Path: durable `Change Brief` -> Stage 6 -> 7 -> 8.
+
+- `small_change`
+  Bounded but meaningful product behavior change that still needs a short contract.
+  Path: compact Behavior Contract / short `Change Brief` -> earliest valid gated stage, usually Stage 2 or 3.
+
+- `full_feature`
+  New flow, shared contract, backend/schema/sync work, or multi-story effort.
+  Path: earliest valid full pipeline stage.
+
+Lane rules:
+- do not force a full Strategy/Discovery loop for every local tweak
+- do not keep work in a short lane once the blast radius expands beyond its criteria
+- when in doubt, start short and promote the lane as soon as evidence shows it is insufficient
 
 ### For analytics loop:
 1. Start at Stage 11 (Product Analytics)
@@ -91,6 +116,56 @@ Use these rules:
 - `rejected` when required scope is still unverified, incomplete, contradicted by evidence, or when useful work happened but it is still not enough to unlock the next stage
 
 A prior gate summary, QA verdict, or subagent recommendation is input evidence, not the decision itself.
+
+## Stage-Agent Transport Boundary
+
+Forge may use secondary agents for explicit stage/role handoffs, but their transport/runtime is not part of the source-of-truth layer.
+
+Keep this boundary explicit:
+- **Source of truth**
+  - issue trail
+  - approved stage artifacts
+  - `.forge/pipeline-state.yaml`
+- **Transport/runtime**
+  - how a secondary agent is reached for a specific handoff
+  - examples over time: local CLI adapter, MCP-exposed agent runtime, ACP/A2A remote agent
+
+Rules:
+- a secondary agent may produce evidence, findings, drafts, or recommendations
+- a secondary agent must not unilaterally advance the pipeline or replace the approved artifact chain
+- the primary orchestrator remains responsible for:
+  - loading the correct stage context
+  - deciding when a gate is actually needed
+  - judging the gate from contract + evidence
+  - recording stage state changes
+
+This allows forge to evolve its `stage_agents` transport model later without rewriting the process contract.
+
+### Gate Elicitation Patterns
+
+For high-risk gated stages, run one explicit second-pass reasoning method before presenting the gate.
+
+Purpose:
+- stress the draft decision before the human sees it
+- surface blind spots that a straight-line summary may miss
+- make "go" mean "we tried to break this and still believe it should advance"
+
+Default methods:
+- `strategy` -> `inversion`
+  Ask what would make this strategy fail, not matter, or optimize the wrong thing.
+- Stage 2 `prd` / Behavior Contract -> `pre-mortem`
+  Assume the feature shipped badly; identify missing scenarios, edge cases, or false assumptions.
+- `architecture` -> `red-team`
+  Attack failure modes, data risk, security gaps, rollout hazards, and operational blind spots.
+- `canary_deploy` -> `pre-mortem`
+  Assume rollout goes wrong; identify rollback triggers, monitoring blind spots, and publication gaps.
+
+Rules:
+- record the elicitation method in the gate summary
+- say what it tried to falsify
+- say whether it changed the verdict
+- if no material concern was found, state that explicitly instead of silently omitting the pass
+- low-risk gates may mark this as `n/a`, but high-risk gates should not skip it by default
 
 At each gate, present:
 
@@ -170,6 +245,31 @@ pipeline-state: [current local stage]
 Sync status: aligned / mismatch fixed / blocked
 ```
 
+### Block 2A: Execution Proposal (for long runs)
+When the current stage will continue through multiple milestones before the next gate or handoff, the checkpoint should also include:
+
+```
+Current slice: [contract slice / story / question]
+Milestones:
+1. [next milestone]
+2. [next milestone]
+3. [optional milestone]
+Validation:
+- [milestone 1] -> [proof / verification]
+- [milestone 2] -> [proof / verification]
+- [milestone 3] -> [proof / verification]
+Stop-and-fix rule:
+- if a milestone fails validation, reveals source-of-truth drift, or expands scope beyond the approved slice, stop, repair or re-scope, and re-check before continuing
+Active milestone now: [exact next milestone]
+```
+
+Execution Proposal rules:
+- use it for long implementation, investigation, architecture, or release-preparation runs
+- keep it compact: this is not a new `plans.md`
+- milestone order should follow dependency order, not convenience order
+- each milestone must name the proof that will decide whether the agent continues
+- do not ask the human to approve the internal milestone list unless it changes product scope or reveals a real blocker
+
 If issue label and `.forge/pipeline-state.yaml` disagree, the agent must resolve or surface that mismatch before giving "what next" guidance.
 
 ### Durable Trail
@@ -186,6 +286,7 @@ This comment must make clear that:
 - exactly which story or shard was completed
 - exactly which story or shard is next
 - whether any unfinished implementation scope still blocks QA
+- if more than one milestone remains before the gate, the current execution proposal and stop-and-fix rule
 
 ### When To Ask For A Gate
 
@@ -202,6 +303,25 @@ The agent should present a `QA Gate` only after:
 If required flows remain `NOT TESTED`, if evidence contradicts the reported outcome, or if only build/route registration checks passed, stay in Stage 8.
 
 Automated checks, review completion, migration planning, or deploy preparation are not themselves a QA gate.
+
+For release/deploy work:
+- if the change is user-facing, Stage 9/10 must also produce a durable release communication packet in `docs/release-notes/`
+- the packet is the canonical source for website / store / community / social wording
+- a release gate should state which channels are already published, which are only prepared, and which are `n/a`
+- do not treat a user-facing ship as fully ready when deploy mechanics are complete but release communication does not exist
+
+## Behavior Contract Migration
+
+Forge now treats Stage 2 as a **Behavior Contract** stage:
+- one compact artifact for intent, scope, behavior, edge cases, and proof
+- fewer files
+- less drift between product spec and test plan
+
+Compatibility rules for now:
+- internal stage id remains `prd`
+- Stage 5 stage id remains `test_plan`
+- default doc path remains `docs/prd/`
+- Stage 5 should tighten the same contract in place instead of creating a second file-backed test plan
 
 ## Context Injection Rules
 
@@ -237,14 +357,14 @@ inline в промпт агента. Агент получает замкнут�
 На этапах Implementation (6) и позже агент должен читать и писать код —
 здесь inline injection не применяется. Вместо этого агент получает:
 - CLAUDE.md проекта (как обычно, через контекст)
-- Артефакты предыдущих этапов (PRD, Architecture) — inline в промпте
+- Артефакты предыдущих этапов (Behavior Contract, Architecture) — inline в промпте
 - Полный доступ к файловым тулам для реализации
 
 ### Разделение этапов по режиму
 
 | Этапы | Режим | Файловые тулы |
 |-------|-------|---------------|
-| 0–5 (Strategy → Test Plan) | Inline injection | Нет — контекст в промпте |
+| 0–5 (Strategy → Proof Hardening) | Inline injection | Нет — контекст в промпте |
 | 6–8 (Implementation → QA) | Полный доступ | Да — Read, Write, Edit, Bash |
 | 9–12 (Deploy → Monitoring) | Полный доступ | Да |
 
@@ -252,7 +372,7 @@ inline в промпт агента. Агент получает замкнут�
 
 Some stages can be skipped:
 - **Design** (Stage 3): Skip if feature is backend-only (no UI)
-- **Test Plan** (Stage 5): Skip for hotfixes (but add tests retroactively)
+- **Proof Hardening** (Stage 5): Skip when the contract already has enough proof detail; for hotfixes, add tests/proof retroactively
 - **Staging Deploy** (Stage 9): Skip if no staging environment (deploy directly with feature flag)
 - **Canary Deploy** (Stage 10): Skip for < 100 users (big bang is fine)
 
@@ -265,24 +385,9 @@ Some stages can run in parallel:
 - **Implementation across platforms** (Stage 6): Backend first, then web + mobile in parallel
 - **Product Analytics + Tech Monitoring** (Stages 11-12): Independent data collection
 
-## Quick Path (Small Changes)
+## Quick Path Local State
 
-For small changes (bug fixes, copy changes, minor tweaks):
-```
-Skip to Stage 6 (Implementation) directly
-  → Stage 7 (Test Coverage)
-  → Stage 8 (QA) — abbreviated
-  → Ship only after QA approval
-```
-
-Must still have:
-- Clear problem statement (even if one sentence)
-- Bug issue as execution contract for any non-trivial fix
-- Tests for the fix
-- QA verification
-- Stop at QA gate before `git push` / merge / deploy
-
-Quick-path local state:
+Bugfix quick path local state:
 
 ```
 project/.forge/
@@ -291,6 +396,8 @@ project/.forge/
 
 Use `active-run.env` for bugfix continuity across sessions when the main
 `pipeline-state.yaml` still points to a different feature.
+
+`micro_change` uses the normal issue + `pipeline-state.yaml` trail unless the project explicitly adds a separate short-run state later.
 
 ## State Tracking
 

@@ -9,7 +9,7 @@ You are a Test Engineer. You verify test completeness, fill coverage gaps, and e
 
 ## Context You Receive
 - **A (this skill)**: Coverage analysis, test reliability patterns
-- **B (project)**: Test plan, implemented code, coverage reports (filtered via config.yaml)
+- **B (project)**: Behavior Contract proof section, implemented code, coverage reports
 
 ## Process
 
@@ -26,7 +26,7 @@ Capture:
 
 ### Step 2: Gap Analysis
 
-Compare actual coverage vs test plan targets:
+Compare actual verification vs the contract's `Proof Required` section:
 
 | Layer | Target | Actual | Gap | Action |
 |-------|--------|--------|-----|--------|
@@ -79,7 +79,7 @@ The QA gate exists only after Stage 8 QA was actually run on a testable environm
 ```markdown
 # Coverage Report: [Feature Name]
 > Date: YYYY-MM-DD
-> Test plan: [link]
+> Behavior Contract: [link]
 
 ## Summary
 - Unit: [X]% (target: 80%)

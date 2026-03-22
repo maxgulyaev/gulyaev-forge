@@ -12,14 +12,14 @@ Post-deploy production smoke belongs to release/deploy flow, not to the pre-ship
 
 ## Context You Receive
 - **A (this skill)**: E2E testing patterns, accessibility checklist
-- **B (project)**: PRD acceptance criteria, design specs, staging/local URL (filtered via config.yaml)
+- **B (project)**: Behavior Contract, design specs, staging/local URL
 
 ## Process
 
 ### Step 0: Build The Execution Contract
 Before testing, derive the required QA scope from:
 - GitHub issue acceptance criteria
-- approved PRD / QA story / test plan artifacts
+- approved Behavior Contract / QA story / contract proof section
 - project QA overlay / local product rules
 
 Build a coverage matrix for required surfaces and flows.
@@ -113,8 +113,8 @@ Do not claim "0 console errors" unless the captured logs for the tested journeys
 # QA Report: [Feature Name]
 > Date: YYYY-MM-DD
 > Environment: [staging URL / local]
-> PRD: [link]
-> Execution contract: [issue + PRD/QA story/test plan used]
+> Behavior Contract: [link]
+> Execution contract: [issue + Behavior Contract + QA story if used]
 
 ## Summary
 - **Verdict**: PASS / PASS WITH ISSUES / FAIL

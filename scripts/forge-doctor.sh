@@ -224,6 +224,8 @@ collect_stage_agent_specs() {
 
 CLAUDE_MCP_LIST_LOADED=0
 CLAUDE_MCP_LIST_OUTPUT=""
+CODEX_MCP_LIST_LOADED=0
+CODEX_MCP_LIST_OUTPUT=""
 
 claude_user_config_file() {
   printf '%s' "${CLAUDE_USER_CONFIG_FILE:-$HOME/.claude.json}"
@@ -263,6 +265,36 @@ claude_mcp_status_line() {
 
   printf '%s\n' "$CLAUDE_MCP_LIST_OUTPUT" | awk -v name="$name" '
     $0 ~ ("^" name ":") {
+      print
+      exit
+    }
+  '
+}
+
+codex_config_file() {
+  printf '%s' "${CODEX_CONFIG_FILE:-$HOME/.codex/config.toml}"
+}
+
+load_codex_mcp_list() {
+  if [[ "$CODEX_MCP_LIST_LOADED" -eq 1 ]]; then
+    return
+  fi
+
+  CODEX_MCP_LIST_LOADED=1
+  if command -v codex >/dev/null 2>&1; then
+    CODEX_MCP_LIST_OUTPUT=$(codex mcp list 2>/dev/null || true)
+  fi
+}
+
+codex_mcp_status_line() {
+  local name=$1
+  load_codex_mcp_list
+  if [[ -z "$CODEX_MCP_LIST_OUTPUT" ]]; then
+    return
+  fi
+
+  printf '%s\n' "$CODEX_MCP_LIST_OUTPUT" | awk -v name="$name" '
+    NR > 1 && $1 == name {
       print
       exit
     }
@@ -330,6 +362,7 @@ check_self_mcp_setup() {
   check_self_mcp_server "$user_config" "$settings" "context7" '"context7"' '@upstash/context7-mcp'
   check_self_mcp_server "$user_config" "$settings" "playwright" '"playwright"' '@playwright/mcp'
   check_self_mcp_server "$user_config" "$settings" "github" '"github"' '@modelcontextprotocol/server-github'
+  check_self_mcp_server "$user_config" "$settings" "figma" '"figma"' 'https://mcp.figma.com/mcp'
 
   if config_contains "$user_config" 'GITHUB_PERSONAL_ACCESS_TOKEN' || config_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
     ok "Claude GitHub MCP env configured"
@@ -339,6 +372,49 @@ check_self_mcp_setup() {
 
   if config_contains "$settings" '@anthropic-ai/mcp-server-playwright'; then
     warn "Claude settings contain legacy playwright package; use bin/forge mcp install playwright"
+  fi
+}
+
+check_self_codex_mcp_setup() {
+  local config
+  local status_line
+  config=$(codex_config_file)
+
+  if command -v codex >/dev/null 2>&1; then
+    ok "Codex CLI present"
+  else
+    ok "Codex CLI optional and not present; skipping Codex MCP verification"
+    return
+  fi
+
+  if [[ -f "$config" ]]; then
+    ok "Codex config present: $config"
+  else
+    warn "Codex config missing: $config"
+  fi
+
+  if config_contains "$config" '[mcp_servers.figma]'; then
+    ok "Codex config defines figma MCP"
+  else
+    warn "Codex figma MCP block missing in $config"
+  fi
+
+  if config_contains "$config" 'https://mcp.figma.com/mcp'; then
+    ok "Codex figma MCP URL configured"
+  else
+    warn "Codex figma MCP URL missing or unexpected"
+  fi
+
+  status_line=$(codex_mcp_status_line "figma" || true)
+  if [[ -z "$status_line" ]]; then
+    warn "Codex figma MCP not visible in codex mcp list"
+    return
+  fi
+
+  if [[ "$status_line" == *" enabled "* ]]; then
+    ok "Codex MCP visible to Codex CLI: figma"
+  else
+    warn "Codex figma MCP visible but not enabled"
   fi
 }
 
@@ -636,6 +712,7 @@ doctor_self() {
   done
 
   check_self_mcp_setup
+  check_self_codex_mcp_setup
 }
 
 doctor_product() {

@@ -71,6 +71,21 @@ When reviewing after data:
 
 Always back decisions with data, not intuition. If data is insufficient, say so and propose how to get it.
 
+### Step 5: Gate Elicitation Pass
+
+Before presenting the strategy gate, run an explicit `inversion` pass.
+
+Ask:
+- what if this strategy optimizes the wrong metric?
+- what if the stated differentiator is not actually defensible?
+- what if the "now / next / later" ordering is backwards?
+- what would make this strategy fail within one cycle even if execution is good?
+
+Record:
+- the strongest failure hypothesis
+- whether the current strategy survives it
+- what changed in the strategy or verdict because of this pass
+
 ## Output Format
 
 ```markdown
@@ -126,3 +141,4 @@ Unlike [alternative], we [differentiator].
 - Roadmap without explicit "NOT DOING" section
 - Pivoting without data (at least 2-4 weeks of signal)
 - Copying competitor strategy instead of finding your angle
+- Presenting a strategy gate without an explicit inversion pass

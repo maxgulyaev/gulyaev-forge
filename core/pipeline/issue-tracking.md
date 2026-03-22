@@ -3,6 +3,11 @@
 ## Purpose
 Connect pipeline stages to issue tracking — features become epics, stories become issues, tasks break down by discipline, PRs link to issues, deploys close them.
 
+Migration note:
+- Stage 2 public artifact is now a **Behavior Contract**
+- internal stage id and compatibility label remain `prd`
+- story sharding is optional legacy behavior, not the default contract model
+
 ## Principle: Agnostic with Default
 
 Forge supports multiple trackers via adapters. Project chooses its tracker in `.forge/config.yaml`:
@@ -40,8 +45,8 @@ Epic (Feature)                               level/epic
 ```
 
 ### Level 1: Epic (Feature)
-- **What**: Large feature or initiative from Strategy/PRD
-- **Created at**: Stage 2 (PRD) — one Epic per PRD
+- **What**: Large feature or initiative from Strategy/Behavior Contract
+- **Created at**: Stage 2 (`prd`) — one Epic per approved Behavior Contract
 - **Contains**: Checklist of all User Stories (sub-issues)
 - **Closed when**: All child stories are closed + shipped to production
 - **Labels**: `level/epic`, `priority/*`
@@ -51,7 +56,7 @@ Epic (Feature)                               level/epic
 ```markdown
 # Epic: Supersets in Workouts
 
-> PRD: docs/prd/2026-03-10-supersets.md
+> Behavior Contract: docs/prd/2026-03-10-supersets.md
 > Strategy pillar: Core Workout Experience
 
 ## Stories
@@ -68,8 +73,8 @@ Epic (Feature)                               level/epic
 ```
 
 ### Level 2: User Story
-- **What**: One user-facing behavior from PRD story sharding
-- **Created at**: Stage 2 (PRD) — spec-to-issue bridge
+- **What**: One user-facing behavior from the approved Behavior Contract
+- **Created at**: Stage 2 (`prd`) — spec-to-issue bridge
 - **Contains**: Checklist of Tasks (sub-issues)
 - **Parent**: Epic (linked via sub-issue)
 - **Closed when**: All child tasks done + QA passed
@@ -81,7 +86,7 @@ Epic (Feature)                               level/epic
 # Story: Group exercises into supersets
 
 > Epic: #100 Supersets in Workouts
-> Story file: docs/prd/stories/superset-grouping.md
+> Source Contract: docs/prd/2026-03-10-supersets.md
 
 ## Context
 Users want to perform exercises back-to-back without rest (supersets).
@@ -168,22 +173,22 @@ Tasks are tagged by discipline to enable parallel work:
 Stage 0 (Strategy)
   │ Feature identified in roadmap
   │
-Stage 2 (PRD)
-  │ PRD approved at gate
+Stage 2 (Behavior Contract / `prd`)
+  │ Behavior Contract approved at gate
   │
   ▼ SPEC-TO-ISSUE BRIDGE
   │
   │ 1. Create Epic issue (level/epic)
   │    - Title: feature name
-  │    - Body: PRD summary + success metrics
+  │    - Body: contract summary + success metrics
   │    - Labels: level/epic, priority/[p0|p1|p2]
   │
-  │ 2. For each story file → create Story issue (level/story)
-  │    - Title: story title
-  │    - Body: context + acceptance criteria (checkboxes)
+  │ 2. For each scenario/story slice that deserves execution tracking → create Story issue (level/story)
+  │    - Title: behavior title
+  │    - Body: context + scenarios + acceptance criteria (checkboxes)
   │    - Parent: Epic (sub-issue)
   │    - Labels: level/story, priority/*, stage/prd, source/prd
-  │    - Write issue URL back to story file
+  │    - Write issue URL back to the contract if needed
   │
 Stage 3 (Design)
   │ Design approved
@@ -266,7 +271,7 @@ Stage 11-12 (Analytics + Monitoring)
 |-------|-------------|
 | `stage/strategy` | Стратегическая оценка начата (Stage 0) |
 | `stage/discovery` | Исследование начато (Stage 1) |
-| `stage/prd` | PRD написан / issue создан из story (Stage 2) |
+| `stage/prd` | Behavior Contract approved / issue created from Stage 2 contract |
 | `stage/design` | Дизайн-задача создана (Stage 3) |
 | `stage/architecture` | Техническая архитектура готова (Stage 4) |
 | `stage/implementation` | Разработка начата (Stage 6) |
@@ -284,7 +289,7 @@ Stage 11-12 (Analytics + Monitoring)
 ### Source labels (where the issue came from)
 | Label | Meaning |
 |-------|---------|
-| `source/prd` | From PRD story sharding |
+| `source/prd` | From Stage 2 Behavior Contract |
 | `source/bug` | Bug report (QA or user) |
 | `source/analytics` | From product analytics (Stage 11) |
 | `source/monitoring` | From tech monitoring (Stage 12) |
@@ -399,7 +404,7 @@ body:
     id: story_file
     attributes:
       label: Story File
-      placeholder: docs/prd/stories/slug.md
+      placeholder: docs/prd/YYYY-MM-DD-feature.md or optional legacy story shard
   - type: textarea
     id: context
     attributes:
@@ -482,7 +487,7 @@ body:
 - **MCP**: TBD
 
 ### None
-- Stories tracked only in `docs/prd/stories/` files
+- Contracts tracked only in `docs/prd/` files
 - No external issue tracker
 - Pipeline state tracked in `pipeline-state.yaml` only
 

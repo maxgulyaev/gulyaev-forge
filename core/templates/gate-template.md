@@ -54,6 +54,13 @@ Do not advance labels or `pipeline-state.yaml` until that decision is recorded.
 - Evidence contradictions: none / [list]
 - Why this status is justified: [why `go` / `go with concerns` / `stop` matches the evidence]
 
+**Elicitation pass:**
+- Method: [pre-mortem / inversion / red-team / first-principles / n/a]
+- Why this method fits this gate:
+- What it tried to break or falsify:
+- Findings:
+- Did it change the verdict: yes / no
+
 **Process evidence:**
 - Context7 used: yes / no
 - Why: [framework/library/API docs needed or not needed]

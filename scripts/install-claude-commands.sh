@@ -74,6 +74,7 @@ install_product_hook() {
 
 case "$MODE" in
   product)
+    render_command "$FORGE_DIR/adapters/claude-code/commands/product/work.md" "work.md"
     render_command "$FORGE_DIR/adapters/claude-code/commands/product/bugfix.md" "bugfix.md"
     render_command "$FORGE_DIR/adapters/claude-code/commands/product/feature.md" "feature.md"
     render_command "$FORGE_DIR/adapters/claude-code/commands/product/investigate.md" "investigate.md"
