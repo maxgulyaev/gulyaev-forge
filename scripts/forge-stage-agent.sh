@@ -160,14 +160,26 @@ run_codex_review() {
     codex_cmd+=(--uncommitted)
   fi
 
-  if [[ -z "$review_commit" && -z "$review_base" ]]; then
+  if [[ -n "$review_commit" ]]; then
     codex_cmd+=("$prompt")
+  elif [[ -n "$review_base" ]]; then
+    codex_cmd+=("$prompt")
+  else
+    # Pass prompt via stdin to avoid shell escaping issues with --uncommitted
+    codex_cmd+=(-)
   fi
 
-  (
-    cd "$repo_dir"
-    "${codex_cmd[@]}"
-  ) > >(tee "$log_file" >&2) 2>&1 &
+  if [[ -n "$review_commit" || -n "$review_base" ]]; then
+    (
+      cd "$repo_dir"
+      "${codex_cmd[@]}"
+    ) > >(tee "$log_file" >&2) 2>&1 &
+  else
+    (
+      cd "$repo_dir"
+      printf '%s\n' "$prompt" | "${codex_cmd[@]}"
+    ) > >(tee "$log_file" >&2) 2>&1 &
+  fi
   codex_pid=$!
 
   if [[ "$timeout_seconds" =~ ^[0-9]+$ ]] && (( timeout_seconds > 0 )); then
