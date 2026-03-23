@@ -133,6 +133,7 @@ Gate rule:
   - `micro_change` for low-blast-radius local tweaks
   - `small_change` for bounded behavior changes needing a short contract
   - `full_feature` for the normal full pipeline
+- `investigate` for evidence-first research, diagnosis, audit, or product uncertainty
 - `micro_change` should produce a durable `## Change Brief` and go straight to implementation instead of forcing a full contract/design loop
 - `small_change` should default to a compact Behavior Contract and the earliest valid gated stage, not automatically to Strategy/Discovery
 - the agent mirrors natural replies like `ок`, `поехали дальше`, or `да, но поправь X` into `/gate ...` comments in the issue trail
@@ -174,6 +175,17 @@ Track progress in:
 - `project/.forge/pipeline-state.yaml`
 - `project/.forge/active-run.env` for active bugfix/hotfix runs
 - stage artifacts in `docs/strategy`, `docs/prd`, `docs/architecture`, and so on
+
+Investigation mode:
+- the `investigate` lane uses `core/skills/investigate/SKILL.md`
+- structure: `sources → facts → analysis → recommendations`
+- facts section contains only observable evidence with source citations
+- analysis section contains inference with confidence levels and fact references
+- recommendations are actionable with confidence and effort estimates
+- report template: `core/templates/investigation-report-template.md`
+- output goes to `docs/investigations/` in product repos or inline in chat for lightweight investigations
+- investigation is not a gated stage — it produces evidence that feeds into gated stages
+- if the investigation concludes that a change is needed, it becomes input to the appropriate pipeline stage
 
 Behavior Contract rule:
 - Stage 2 public artifact is now a compact **Behavior Contract**

@@ -11,11 +11,13 @@ Required behavior:
 3. Run product preflight:
    - `bash __FORGE_DIR__/scripts/forge-doctor.sh product .`
    - `bash __FORGE_DIR__/scripts/forge-status.sh product .`
-4. Treat this as question / uncertainty / evidence-gathering intent.
-5. Prefer `discovery`, `product_analytics`, or `strategy` before implementation.
-6. Find or create an issue if the investigation is non-trivial.
-7. Start with a short preload summary:
+4. Load `__FORGE_DIR__/core/skills/investigate/SKILL.md`.
+5. Treat this as question / uncertainty / evidence-gathering intent.
+6. Follow the `sources → facts → analysis → recommendations` structure from the investigate skill.
+7. Use `__FORGE_DIR__/core/templates/investigation-report-template.md` for non-trivial investigations.
+8. Find or create an issue if the investigation is non-trivial.
+9. Start with a short preload summary:
    - chosen issue
+   - investigation question and scope
    - why this is an investigation flow
-   - which stage is being used
-8. End with evidence, inference, recommendation, and the correct next gate or decision.
+10. End with structured evidence, analysis with confidence levels, actionable recommendations, and the correct next gate or pipeline stage if a change is warranted.

@@ -131,7 +131,9 @@ Promotion rule:
 - if new evidence shows the chosen lane was too small, promote it immediately
 - do not keep a `micro_change` or `small_change` in the short lane once backend/shared-contract complexity appears
 
-### 3. Product question / uncertainty / investigation intent
+### E. `investigate`
+
+Use when the request is about uncertainty, diagnosis, audit, or product research — any situation where the agent should collect evidence before proposing changes.
 
 Signals:
 - `почему`
@@ -139,10 +141,15 @@ Signals:
 - `исследуй`
 - `стоит ли`
 - `что происходит`
+- `аудит`
+- `проверь`
 
 Default behavior:
-- route to `discovery`, `product_analytics`, or `strategy`
+- load `<forge-root>/core/skills/investigate/SKILL.md`
+- follow the `sources → facts → analysis → recommendations` structure
+- use `<forge-root>/core/templates/investigation-report-template.md` for the output
 - prefer evidence collection before committing to implementation
+- if the investigation concludes that a change is needed, feed findings into the appropriate pipeline stage (`discovery`, `strategy`, `architecture`, or `implementation`)
 
 ### 4. Metrics / funnel / retention intent
 

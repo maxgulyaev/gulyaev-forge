@@ -846,7 +846,7 @@ stages:
 - [x] **1B.2** Перевести implementation / QA / routing на новый контракт
 - [ ] **1B.3** Прогнать adjacent Claude smoke на новом процессе
 - [x] **1B.4** Добавить gate elicitation patterns для high-risk gates
-- [ ] **1B.5** Добавить compact investigation / audit mode
+- [x] **1B.5** Добавить compact investigation / audit mode
 - [ ] **1B.6** Ужесточить review protocol, proof-first checks и execution-loop discipline
 - [ ] **1B.7** Добавить navigator / help layer
 - [x] **1B.8** Зафиксировать transport model для `stage_agents` и позицию ACP/A2A vs current forge orchestration

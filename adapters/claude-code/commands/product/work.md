@@ -43,20 +43,25 @@ Required behavior:
 9. If the chosen lane is `full_feature`:
    - use the normal feature pipeline
    - start from the earliest valid full stage
-10. If the chosen lane is `investigate` or `release`, route accordingly instead of treating it as implementation.
-11. Never skip unresolved gated stages.
-12. If a gate is pending approval, re-present that gate instead of moving forward.
-13. If the work reaches `implementation` and touches framework/library/API behavior, use Context7 MCP before coding.
-14. If the work reaches `implementation` or later and `.forge/config.yaml` configures `code_review/reviewer`, run it before QA or a ship gate:
+10. If the chosen lane is `investigate`:
+    - Load `__FORGE_DIR__/core/skills/investigate/SKILL.md`
+    - Follow the `sources → facts → analysis → recommendations` structure
+    - Use `__FORGE_DIR__/core/templates/investigation-report-template.md` for non-trivial investigations
+    - If the investigation concludes that a change is needed, feed findings into the appropriate pipeline stage
+11. If the chosen lane is `release`, route accordingly instead of treating it as implementation.
+12. Never skip unresolved gated stages.
+13. If a gate is pending approval, re-present that gate instead of moving forward.
+14. If the work reaches `implementation` and touches framework/library/API behavior, use Context7 MCP before coding.
+15. If the work reaches `implementation` or later and `.forge/config.yaml` configures `code_review/reviewer`, run it before QA or a ship gate:
     - `bash __FORGE_DIR__/scripts/forge-stage-agent.sh run . code_review reviewer`
     - if it finds blocking issues, fix them and rerun once
     - if any `critical` or `high` finding remains open, stay in `implementation`
-15. If the work reaches `qa` and touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, attempt Playwright MCP verification before presenting the QA gate.
-16. If the current stage remains in progress and no gate is needed yet, stop at an explicit checkpoint:
+16. If the work reaches `qa` and touches a web UI surface, and `.forge/config.yaml` enables `qa_tools.playwright_mcp`, attempt Playwright MCP verification before presenting the QA gate.
+17. If the current stage remains in progress and no gate is needed yet, stop at an explicit checkpoint:
     - current stage
     - chosen lane
     - gate needed now: yes/no
     - what just finished
     - exact next recommended action
     - what condition will trigger the next gate
-17. Stop at the next gate when a gate is actually required. Do not auto-approve it.
+18. Stop at the next gate when a gate is actually required. Do not auto-approve it.

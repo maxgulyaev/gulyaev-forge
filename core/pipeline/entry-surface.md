@@ -41,7 +41,7 @@ If the user says `доведи до Behavior Contract gate` or legacy phrasing l
 
 - `/forge:investigate <question>`
   Use for uncertainty, diagnosis, product research, analytics questions, or "why is this happening?" requests.
-  Default path: `discovery`, `product_analytics`, or `strategy`.
+  Default path: load `core/skills/investigate/SKILL.md`, then route evidence into `discovery`, `product_analytics`, or `strategy` as appropriate.
 
 - `/forge:continue [reply]`
   Use to continue the current workflow or answer the current gate in natural language.
@@ -104,6 +104,9 @@ After resolving intent, the router should classify the work into one execution l
 
 - `investigate`
   Evidence-first research, diagnosis, analytics, or product uncertainty.
+  Uses `core/skills/investigate/SKILL.md` for structured evidence collection.
+  Structure: `sources → facts → analysis → recommendations`.
+  Report template: `core/templates/investigation-report-template.md`.
 
 - `release`
   Deploy, upload, distribution, or store-facing work.
