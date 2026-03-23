@@ -185,3 +185,11 @@
   stages: [implementation, test-coverage, qa]
   verdict: trial
   notes: "Useful donor for implementation loops, repair loops, worktree lanes, and report-first long-running tasks. Do not adopt as a second source of truth; trial only as a Codex-specific implementation pack or selective pattern import."
+
+- name: paperclip
+  type: framework
+  description: Multi-agent company orchestration with org charts, budgets, heartbeats, governance, and ticket traces
+  url: https://github.com/paperclipai/paperclip
+  stages: [qa, product-analytics, tech-monitoring]
+  verdict: assess
+  notes: "Strong benchmark for async agent orchestration, budget controls, and operator UX. Do not adopt as forge core or a second source of truth over issue trail + approved artifacts + .forge/pipeline-state.yaml."

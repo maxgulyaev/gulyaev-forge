@@ -12,6 +12,7 @@
 | `pm-skills` | `TRIAL` | Ближайший цикл refinement для `strategy` / `discovery` / `prd` | Выборочно забирать stage-patterns и role intelligence |
 | `BMAD Method` | `TRIAL` | Когда улучшаем onboarding, helper-layer, docs IA и ранние stage-skills | Держать как donor/benchmark, не как новый core dependency |
 | `big-project-orchestrator` | `TRIAL` | Когда будем усиливать большие `implementation` loops и Codex-specific orchestration | Брать milestone/repair/worktree patterns, не второй source of truth |
+| `Paperclip` | `ASSESS` | Когда появятся 2-3 always-on stage_agents beyond reviewer или ручная orchestration станет bottleneck | Брать budget/heartbeat/audit patterns; не делать вторым source of truth |
 | `audit workflow pattern` | `ADOPT` | Сейчас | Взять как donor для investigation/audit mode: `sources -> facts -> analysis -> recommendations` |
 | `Ruflo` | `TRIAL` | После стабилизации Behavior Contract migration | Брать natural-entry, navigator/help и operator UX patterns; не брать swarm/self-learning core |
 | `TDD / proof-first loop` | `ADOPT` | Сейчас | Дожать proof-first implementation, stronger review/test barrier и behavior-first execution |
@@ -24,6 +25,45 @@
 | `tmux` | `HOLD` | Вернуться только если multi-service local QA и long-running operator sessions станут регулярным bottleneck | Не делать частью forge core; максимум optional operator helper за thin script |
 
 ## Активная очередь
+
+### 2026-03-23 — Paperclip
+
+- Ссылки:
+  - https://paperclip.ing/
+  - https://github.com/paperclipai/paperclip
+  - https://habr.com/ru/articles/1012490/
+- Тип: framework + tool
+- Вердикт: ASSESS
+- Тип вклада в forge:
+  - donor for loops
+  - donor for tooling
+  - donor for adapters
+- Почему:
+  - точно попадает в реальную боль multi-agent работы: persistence, budget caps, audit trail, scheduled wakeups
+  - даёт более зрелый control-plane benchmark, чем абстрактные swarm-демо: org chart, governance, traceability, explicit budgets
+  - полезен как ориентир для будущих async/background loops в `Scout`, `Tech Monitoring`, `Product Analytics` и remote `stage_agents`
+- Что из него потенциально брать:
+  - budget ceilings и auto-pause semantics для long-running / remote agents
+  - heartbeat модель для периодических async-задач
+  - append-only trace / ticket observability
+  - board-vs-worker boundary как operator UX паттерн
+- Почему не брать как core сейчас:
+  - вводит второй state-plane (`mission/org chart/tickets/budgets`) поверх нашего issue trail + approved artifacts + `.forge/pipeline-state.yaml`
+  - заточен под `run a company`, а не под stage-gated product delivery с role-filtered context
+  - integration cost большой: Node.js server, React UI, Postgres, adapters, skills, новый control plane
+  - текущие bottleneck'и forge другие: stage rigor, adapter maturity, `/init`, pilot completion, docs/operator clarity
+- Где может пригодиться в forge:
+  - SELF loops с always-on фоном
+  - future remote `stage_agents` beyond reviewer
+  - operator dashboard / control plane benchmark
+- С чем сравнивать:
+  - с нашим `stage_agents` boundary и transport-моделью (`local_cli` сейчас, `mcp` / `acp_a2a` позже)
+  - с `big-project-orchestrator` как donor для implementation loops, а не для company control plane
+  - с позицией forge про visual/orchestration tools как UI, а не source of truth
+- Решение для плана на сегодня:
+  - не добавлять в forge core и не ставить как dependency
+  - держать как benchmark/donor
+  - вернуться, когда появятся минимум 2-3 always-on stage_agents beyond reviewer или ручная orchestration реально станет узким местом
 
 ### 2026-03-23 — Chrome DevTools MCP
 
