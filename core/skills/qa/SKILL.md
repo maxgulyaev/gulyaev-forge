@@ -119,6 +119,7 @@ Do not claim "0 console errors" unless the captured logs for the tested journeys
 ## Summary
 - **Verdict**: PASS / PASS WITH ISSUES / FAIL
 - Required contract items: [passed]/[total] passed, [failed] failed, [not tested] not tested
+- Business rules: [tested]/[total] ([X]%) — run `forge-rules-check.sh <project> --summary`
 - Bugs found: [count] (critical: [N], minor: [N])
 - Accessibility: [pass/fail]
 - Playwright MCP used: yes / no

@@ -13,6 +13,27 @@ You are a Test Engineer. You verify test completeness, fill coverage gaps, and e
 
 ## Process
 
+### Step 0: Business Rules Check
+
+If the project has `docs/BUSINESS_RULES.md`, run the rules check first:
+
+```bash
+bash <forge-root>/scripts/forge-rules-check.sh <project-dir> --verify
+```
+
+This checks:
+- Every `[x]` rule has a referenced test file that exists
+- Flags `[x]` rules with missing or broken test references
+- Counts untested `[ ]` rules
+
+If any `[x]` rule has a missing test file, treat it as a coverage gap to fix in this stage.
+
+If the current change introduced new behavior without adding a corresponding rule to `BUSINESS_RULES.md`, flag it:
+- bugfix → must add a regression-prevention rule with test reference
+- feature → must add rules for new behavior before marking coverage complete
+
+Do not block on untested `[ ]` rules that existed before the current change — those are existing tech debt, not a new gap.
+
 ### Step 1: Run Full Test Suite
 ```bash
 # Run all tests with coverage
@@ -62,7 +83,17 @@ Run test suite 3 times. If any test fails intermittently:
 - Investigate: timing issue? shared state? network dependency?
 - Fix or quarantine (mark as skip with TODO)
 
-### Step 6: Transition Discipline
+### Step 6: Fail Conditions
+
+This stage FAILS and blocks progression if any of:
+- A `[x]` rule in `BUSINESS_RULES.md` references a test file that does not exist
+- A Behavior Contract `Proof Required` item has no corresponding test
+- The current change introduced new behavior but no rule was added to `BUSINESS_RULES.md` (for bugfix/feature lanes)
+- A bugfix has no regression-prevention test
+
+Existing `[ ]` rules that were untested before the current change are tech debt, not a blocker. Flag them in the report but do not block on them.
+
+### Step 7: Transition Discipline
 
 This stage is automated verification, not a human gate.
 
@@ -85,6 +116,7 @@ The QA gate exists only after Stage 8 QA was actually run on a testable environm
 - Unit: [X]% (target: 80%)
 - Integration: [X]% (target: 70%)
 - E2E: [N]/[M] journeys
+- Business rules: [tested]/[total] ([X]%)
 
 ## Gaps Filled
 - [file:line] — added test for [description]

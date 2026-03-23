@@ -646,6 +646,7 @@ doctor_self() {
     architecture
     test-plan
     implementation
+    code-review
     test-coverage
     qa
     staging-deploy
@@ -685,6 +686,7 @@ doctor_self() {
   [[ -f "$dir/scripts/forge-release-target.sh" ]] && ok "forge-release-target.sh present" || err "forge-release-target.sh missing"
   [[ -f "$dir/scripts/forge-release-scope.sh" ]] && ok "forge-release-scope.sh present" || err "forge-release-scope.sh missing"
   [[ -f "$dir/scripts/forge-issue-trail.sh" ]] && ok "forge-issue-trail.sh present" || err "forge-issue-trail.sh missing"
+  [[ -f "$dir/scripts/forge-rules-check.sh" ]] && ok "forge-rules-check.sh present" || err "forge-rules-check.sh missing"
   [[ -f "$dir/bin/forge" ]] && ok "bin/forge present" || err "bin/forge missing"
 
   for skill in "${stage_skills[@]}"; do
@@ -839,6 +841,21 @@ doctor_product() {
   check_qa_tools "$config"
   check_release_targets "$dir" "$config"
   check_product_hooks "$dir"
+
+  if [[ -f "$dir/docs/BUSINESS_RULES.md" ]]; then
+    ok "BUSINESS_RULES.md present"
+    local forge_root
+    forge_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+    if [[ -f "$forge_root/scripts/forge-rules-check.sh" ]]; then
+      local rules_summary
+      rules_summary=$(bash "$forge_root/scripts/forge-rules-check.sh" "$dir" --summary 2>/dev/null || true)
+      if [[ -n "$rules_summary" ]]; then
+        printf '     %s\n' "$rules_summary"
+      fi
+    fi
+  else
+    warn "docs/BUSINESS_RULES.md missing — no business rules tracking"
+  fi
 }
 
 MODE=${1:-}

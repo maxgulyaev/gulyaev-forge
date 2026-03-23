@@ -47,6 +47,27 @@ Legacy compatibility:
 - if the project already maintains `docs/prd/stories/*.md`, you may use one story file
 - do not force new story shards when the contract file is already sufficient
 
+### Step 1b: Business Rules Check
+
+If the project has `docs/BUSINESS_RULES.md`:
+
+**For bugfix:**
+- After fixing the bug, add a rule to `BUSINESS_RULES.md` that prevents the regression
+- Format: `- [ ] \`platform\` Description of correct behavior`
+- The `[ ]` becomes `[x]` after the test is written and passes
+- Include a test reference: `→ TestFile:TestName`
+
+**For feature / small_change / full_feature:**
+- Before writing code, add rules for new behavior to `BUSINESS_RULES.md`
+- Rules describe observable behavior, not implementation details
+- Add them under the appropriate section or create a new section
+
+**For micro_change:**
+- Only add a rule if the change alters user-visible behavior
+- Pure cosmetic/ordering changes do not require a rule
+
+This ensures every behavior change is documented and testable.
+
 ### Step 2: Decide the proof shape first
 
 Before changing code, identify what will prove the slice:
@@ -97,6 +118,7 @@ If the work is multi-platform:
 - [ ] project conventions are followed
 - [ ] Context7 was used when docs-sensitive
 - [ ] error and boundary behavior are handled where the contract requires it
+- [ ] `BUSINESS_RULES.md` updated if behavior changed (bugfix: regression rule, feature: new behavior rules)
 
 ### Step 6: Checkpoint discipline
 

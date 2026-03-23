@@ -25,6 +25,7 @@ This is the master document that defines how the pipeline runs — stage order, 
 **Stage 6.5: Code Review** — automated multi-agent PR review via Claude Code `/code-review`.
 Runs after implementation, before test coverage. Auto-proceed only if no blocking findings remain.
 Uses `REVIEW.md` in project root for project-specific review rules.
+Skill: `core/skills/code-review/SKILL.md` — includes TDD compliance validation.
 
 [GATE] = requires human approval before proceeding
 [────] = auto-proceed if criteria met (human can still intervene)

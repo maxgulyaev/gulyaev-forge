@@ -149,6 +149,26 @@ Gate rule:
 - if `stage_agents.code_review.reviewer` is configured, run it before QA and include its findings in the gate summary
 - for QA gates, route registration, build success, or unauthenticated `401` checks do not replace required user-facing journey evidence
 
+TDD enforcement rule:
+- implementation must follow proof-first discipline: define proof shape before writing code
+- for projects with `docs/BUSINESS_RULES.md`:
+  - bugfix → add regression-prevention rule with test reference
+  - feature → add behavior rules before code
+  - test_coverage → verify all `[x]` rules have passing tests
+  - qa gate → include business rules coverage summary
+- enforcement levels by lane:
+
+| Lane | Proof Required | BUSINESS_RULES update | Test-First |
+|------|---------------|----------------------|------------|
+| `bugfix` | yes | yes (regression rule) | yes |
+| `micro_change` | yes | if behavior changes | yes |
+| `small_change` | yes | if behavior changes | yes |
+| `full_feature` | yes | yes (new rules) | yes |
+
+- code review (Stage 6.5) must validate TDD compliance before approving
+- run `bash <forge-root>/scripts/forge-rules-check.sh <project> --verify` as part of test_coverage
+- if `forge-rules-check.sh --verify` fails (missing test files for `[x]` rules), block QA progression
+
 Track progress in:
 - GitHub issue labels and comments
 - `project/.forge/pipeline-state.yaml`
