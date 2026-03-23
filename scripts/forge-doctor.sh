@@ -363,6 +363,7 @@ check_self_mcp_setup() {
   check_self_mcp_server "$user_config" "$settings" "playwright" '"playwright"' '@playwright/mcp'
   check_self_mcp_server "$user_config" "$settings" "github" '"github"' '@modelcontextprotocol/server-github'
   check_self_mcp_server "$user_config" "$settings" "figma" '"figma"' 'https://mcp.figma.com/mcp'
+  check_self_mcp_server "$user_config" "$settings" "chrome-devtools" '"chrome-devtools"' 'chrome-devtools-mcp'
 
   if config_contains "$user_config" 'GITHUB_PERSONAL_ACCESS_TOKEN' || config_contains "$settings" 'GITHUB_PERSONAL_ACCESS_TOKEN'; then
     ok "Claude GitHub MCP env configured"

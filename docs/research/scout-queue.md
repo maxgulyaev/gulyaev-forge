@@ -19,10 +19,39 @@
 | `NoClaw / UnixClaw` | `ADOPT` | Сейчас | Always-on Mac Mini M4 Pro: персональный ассистент + первая remote agent нода для forge |
 | `ACP / A2A` | `TRIAL → ADOPT` | После поднятия Mac Mini как remote ноды | Transport layer для remote stage_agents; Mac Mini M4 Pro = первый реальный use case |
 | `Agent Client Protocol` | `HOLD` | Только если сами начнём строить editor-native adapter/runtime вместо repo-level forge contract | Не путать с Agent Communication Protocol; для forge core сейчас вторично |
+| `Chrome DevTools MCP` | `ADOPT` | Сейчас | QA + debugging: Lighthouse, network, console, memory, a11y — дополняет Playwright MCP |
 | `CLI-Anything` | `ASSESS` | Только если упрёмся в реальный tooling pain point без MCP/API | Рассматривать как capability layer для внешних tools |
 | `tmux` | `HOLD` | Вернуться только если multi-service local QA и long-running operator sessions станут регулярным bottleneck | Не делать частью forge core; максимум optional operator helper за thin script |
 
 ## Активная очередь
+
+### 2026-03-23 — Chrome DevTools MCP
+
+- Ссылка: https://developer.chrome.com/blog/new-in-devtools-146#mcp-server
+- Репо: https://github.com/nicolo-ribaudo/chome-devtools-mcp
+- Тип: MCP server
+- Вердикт: ADOPT
+- Тип вклада в forge:
+  - donor for QA stage
+  - donor for debugging
+  - donor for tech monitoring
+- Почему:
+  - даёт агенту доступ к Chrome DevTools изнутри: Network, Console, Performance, Memory, Lighthouse, Accessibility
+  - дополняет Playwright MCP: Playwright для journeys/clicks, DevTools для diagnostics/audit
+  - Lighthouse аудиты автоматически в QA report
+  - console errors и network failures видны агенту без ручного описания
+  - видеозапись экрана, memory analysis, LCP diagnostics
+- Как маппится на forge stages:
+  - Stage 8 (QA): performance + a11y audit + console/network error check
+  - Stage 7 (Test Coverage): memory leak detection, performance regression
+  - Stage 12 (Tech Monitoring): Lighthouse scores как baseline
+  - Bugfix: агент сам видит console errors и network failures
+- Что делать:
+  - Шаг 1: подключить MCP server в Claude settings
+  - Шаг 2: обновить QA skill — использовать DevTools для diagnostics
+  - Шаг 3: обновить forge-doctor — проверять наличие DevTools MCP
+  - Шаг 4: обновить forge MCP bootstrap docs
+- Решение: внедрять сейчас, дополняет существующий Playwright MCP
 
 ### 2026-03-20 — TDD / proof-first behavior loop
 

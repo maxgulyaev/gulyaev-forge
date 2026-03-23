@@ -69,6 +69,21 @@ If the project explicitly enables `qa_tools.playwright_mcp` in `.forge/config.ya
 
 Build success, route registration, or unauthenticated `401` checks can support QA, but they do not replace user-facing journey evidence.
 
+### Step 2b: Chrome DevTools Diagnostics
+
+If Chrome DevTools MCP is available (`chrome-devtools` in MCP list), run diagnostics on the web surface:
+
+1. **Lighthouse audit** — performance, accessibility, best practices, SEO scores
+2. **Console errors** — check for JS errors, warnings, unhandled rejections
+3. **Network requests** — failed requests, slow responses (>2s), CORS errors
+4. **Performance trace** — if the change touches rendering or data loading
+
+Use these alongside Playwright journeys:
+- Playwright = user journey verification (clicks, navigation, assertions)
+- DevTools = diagnostic layer (performance, errors, network, a11y)
+
+Include results in QA report under `## Diagnostics`.
+
 ### Step 3: Visual Validation
 
 Compare against design specs:
@@ -123,6 +138,7 @@ Do not claim "0 console errors" unless the captured logs for the tested journeys
 - Bugs found: [count] (critical: [N], minor: [N])
 - Accessibility: [pass/fail]
 - Playwright MCP used: yes / no
+- Chrome DevTools MCP used: yes / no
 
 ## Coverage vs Contract
 | Required item | Surface / flow | Status | Evidence / blocker |

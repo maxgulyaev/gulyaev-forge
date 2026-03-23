@@ -67,6 +67,7 @@ For CLI-managed MCPs, prefer explicit user-scoped registration:
 
 ```bash
 claude mcp add -s user context7 -- npx -y @upstash/context7-mcp@latest
+claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest
 export GITHUB_PERSONAL_ACCESS_TOKEN=<token>
 bash "$FORGE_DIR/bin/forge" mcp install github
 claude mcp add -s user --transport http figma https://mcp.figma.com/mcp
