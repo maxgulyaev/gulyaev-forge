@@ -12,7 +12,7 @@
 | `pm-skills` | `TRIAL` | Ближайший цикл refinement для `strategy` / `discovery` / `prd` | Выборочно забирать stage-patterns и role intelligence |
 | `BMAD Method` | `TRIAL` | Когда улучшаем onboarding, helper-layer, docs IA и ранние stage-skills | Держать как donor/benchmark, не как новый core dependency |
 | `big-project-orchestrator` | `TRIAL` | Когда будем усиливать большие `implementation` loops и Codex-specific orchestration | Брать milestone/repair/worktree patterns, не второй source of truth |
-| `Paperclip` | `ASSESS` | Когда появятся 2-3 always-on stage_agents beyond reviewer или ручная orchestration станет bottleneck | Брать budget/heartbeat/audit patterns; не делать вторым source of truth |
+| `Paperclip` | `ASSESS` | Когда появятся 2-3 always-on stage_agents beyond reviewer или ручная orchestration станет bottleneck | Брать budget/heartbeat/audit patterns, PWA operator dashboard, multi-tenancy isolation; не мигрировать продукты; не делать вторым source of truth |
 | `audit workflow pattern` | `ADOPT` | Сейчас | Взять как donor для investigation/audit mode: `sources -> facts -> analysis -> recommendations` |
 | `Ruflo` | `TRIAL` | После стабилизации Behavior Contract migration | Брать natural-entry, navigator/help и operator UX patterns; не брать swarm/self-learning core |
 | `TDD / proof-first loop` | `ADOPT` | Сейчас | Дожать proof-first implementation, stronger review/test barrier и behavior-first execution |
@@ -26,44 +26,51 @@
 
 ## Активная очередь
 
-### 2026-03-23 — Paperclip
+### 2026-03-23 — Paperclip (deep investigation)
 
 - Ссылки:
   - https://paperclip.ing/
   - https://github.com/paperclipai/paperclip
   - https://habr.com/ru/articles/1012490/
 - Тип: framework + tool
-- Вердикт: ASSESS
+- Вердикт: ASSESS (подтверждён после deep investigation)
 - Тип вклада в forge:
   - donor for loops
   - donor for tooling
   - donor for adapters
-- Почему:
-  - точно попадает в реальную боль multi-agent работы: persistence, budget caps, audit trail, scheduled wakeups
-  - даёт более зрелый control-plane benchmark, чем абстрактные swarm-демо: org chart, governance, traceability, explicit budgets
-  - полезен как ориентир для будущих async/background loops в `Scout`, `Tech Monitoring`, `Product Analytics` и remote `stage_agents`
-- Что из него потенциально брать:
-  - budget ceilings и auto-pause semantics для long-running / remote agents
-  - heartbeat модель для периодических async-задач
-  - append-only trace / ticket observability
-  - board-vs-worker boundary как operator UX паттерн
-- Почему не брать как core сейчас:
-  - вводит второй state-plane (`mission/org chart/tickets/budgets`) поверх нашего issue trail + approved artifacts + `.forge/pipeline-state.yaml`
-  - заточен под `run a company`, а не под stage-gated product delivery с role-filtered context
-  - integration cost большой: Node.js server, React UI, Postgres, adapters, skills, новый control plane
-  - текущие bottleneck'и forge другие: stage rigor, adapter maturity, `/init`, pilot completion, docs/operator clarity
-- Где может пригодиться в forge:
-  - SELF loops с always-on фоном
-  - future remote `stage_agents` beyond reviewer
-  - operator dashboard / control plane benchmark
-- С чем сравнивать:
-  - с нашим `stage_agents` boundary и transport-моделью (`local_cli` сейчас, `mcp` / `acp_a2a` позже)
-  - с `big-project-orchestrator` как donor для implementation loops, а не для company control plane
-  - с позицией forge про visual/orchestration tools как UI, а не source of truth
-- Решение для плана на сегодня:
-  - не добавлять в forge core и не ставить как dependency
+- Ключевой вывод (deep investigation 2026-03-23):
+  - **Forge и Paperclip — ортогональные системы.** Paperclip = "виртуальная компания" (org chart + тикеты + бюджеты). Forge = "конвейер качества" (стадии + гейты + role expertise). Не конкуренты.
+  - **Миграция spodi или будущих продуктов на Paperclip нецелесообразна** — потеря 18 stage skills, gate discipline, proof-first TDD, execution lanes, role-filtered context. Всё это пришлось бы реимплементировать как agent instructions.
+  - **Paperclip незрел:** 21 день, 1022 open issues, V1 не released. Habr-тестеры фиксируют каскадные ошибки и hallucination blindness.
+- Что реально работает в Paperclip (верифицировано по коду):
+  - **Multi-Company** — настоящая multi-tenancy: 44/57 таблиц с company_id, assertCompanyAccess() 130+ раз, CompanySwitcher UI, full export/import с secret scrubbing (2857 строк)
+  - **Mobile Ready** — responsive PWA (не native app): Tailwind + mobile breakpoint 768px, MobileBottomNav, swipe-жесты, service worker, offline fallback, apple-mobile-web-app meta tags. Добавлено в v0.3.0.
+  - **Budget/Cost** — per-agent/project/company лимиты, soft/hard thresholds, auto-pause, raise-and-resume workflow, rolling window analysis (5h/24h/7d)
+  - **Heartbeat** — cron-scheduled agent wakeups, session compaction с handoff markdown, orphan detection, concurrency limits
+  - **10 adapter types** — claude, codex, cursor, gemini, opencode, pi, openclaw, hermes, process, http
+  - **Ticket system** — встроенный (issues, projects, goals, hierarchical breakdown, full-text search, sequential IDs)
+- Чего в Paperclip нет и что критично для нас:
+  - NO SDLC pipeline, stages, or gates (SPEC.md: explicit non-goal)
+  - NO role-filtered context injection
+  - NO stage expertise skills (только 2 agent шаблона: Default + CEO)
+  - NO proof-first TDD enforcement
+  - NO execution lanes (bugfix/micro/small/full/investigate/release)
+  - NO gate elicitation patterns
+- Donor-паттерны для forge:
+  - budget/cost tracking → forge Phase 2+ (сейчас у forge нет cost tracking)
+  - heartbeat/scheduling → reference для Phase 1C Mac Mini always-on
+  - PWA operator dashboard → reference для будущего forge UI (Phase 3+)
+  - multi-company isolation → reference для multi-project control plane (Phase 3+)
+  - session compaction с handoff markdown → reference для длинных автономных прогонов
+- Почему не брать как core:
+  - вводит второй state-plane поверх issue trail + approved artifacts + `.forge/pipeline-state.yaml`
+  - заточен под `run a company`, а не под stage-gated product delivery
+  - integration cost: Node.js server + React UI + Postgres + adapters + skills = новый control plane
+  - текущие bottleneck'и forge другие: pilot completion, adapter maturity, stage rigor
+- Решение:
+  - **не мигрировать** spodi или будущие продукты
   - держать как benchmark/donor
-  - вернуться, когда появятся минимум 2-3 always-on stage_agents beyond reviewer или ручная orchestration реально станет узким местом
+  - пересмотреть через 3-6 месяцев (после V1 Paperclip + наш Phase 2-3)
 
 ### 2026-03-23 — Chrome DevTools MCP
 

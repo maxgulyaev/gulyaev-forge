@@ -188,8 +188,8 @@
 
 - name: paperclip
   type: framework
-  description: Multi-agent company orchestration with org charts, budgets, heartbeats, governance, and ticket traces
+  description: Multi-agent company orchestration with org charts, budgets, heartbeats, governance, and ticket traces. Real multi-tenancy, PWA mobile UI, 10 adapter types. No SDLC pipeline/gates (explicit non-goal).
   url: https://github.com/paperclipai/paperclip
   stages: [qa, product-analytics, tech-monitoring]
   verdict: assess
-  notes: "Strong benchmark for async agent orchestration, budget controls, and operator UX. Do not adopt as forge core or a second source of truth over issue trail + approved artifacts + .forge/pipeline-state.yaml."
+  notes: "Orthogonal to forge: company simulation vs SDLC pipeline. Donor patterns: budget/cost tracking, heartbeat scheduling, PWA operator dashboard, multi-tenancy isolation, session compaction. Do not migrate products. Do not adopt as forge core or second source of truth. Reassess after V1 + forge Phase 2-3."
