@@ -139,6 +139,24 @@ Source of truth для этих entrypoints:
 - `What just finished`
 - `Next recommended action`
 
+Если работа идёт через модерацию вторым агентом или человеком, проси compact moderator checkpoint:
+- `Current issue`
+- `Current stage`
+- `Gate needed now`
+- `Recommended action`
+- `Exact next step`
+- `Remaining blockers`
+- `Needs from moderator`
+
+И отвечай одним из коротких решений:
+- `continue`
+- `run_review`
+- `run_test_coverage`
+- `run_qa`
+- `present_gate`
+- `hold`
+- `input: ...`
+
 На code stage правило простое:
 - если задача трогает библиотеку, фреймворк, SDK или внешний API, агент должен сначала тянуть актуальные доки через Context7
 - если это багfix quick path, агент обязан завести bug issue до кода для нетривиального фикса и держать локальный quick-run state в `.forge/active-run.env`

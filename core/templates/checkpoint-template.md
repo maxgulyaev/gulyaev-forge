@@ -33,6 +33,7 @@ Do not list multiple internal options here when the next step is already clear.
 
 Only ask for input here if a real human decision or blocker exists.
 Do not ask the human to choose between internal implementation steps, commit timing, or premature QA.
+If the next step is already clear and no real input is needed, do not end the checkpoint with an open question.
 
 ## Execution Proposal
 
@@ -78,3 +79,26 @@ If issue state and local pipeline-state disagree, resolve or report that mismatc
 
 **External review run:** yes / no / not yet
 **Why:** [stage not ready or adapter not configured]
+
+---
+
+## Compact Moderator Checkpoint
+
+Use this block when another agent or a human moderator is steering the run asynchronously and needs a short relay packet.
+
+- Current issue: [#N]
+- Current stage: [stage]
+- Gate needed now: yes / no
+- Recommended action: [continue_implementation / run_review / run_test_coverage / run_qa / present_gate / stop_for_input]
+- Exact next step: [one sentence]
+- Remaining blockers: [none / short list]
+- Needs from moderator: [none / one exact input or approval]
+
+Allowed compact moderator replies:
+- `continue`
+- `run_review`
+- `run_test_coverage`
+- `run_qa`
+- `present_gate`
+- `hold`
+- `input: [exact item]`

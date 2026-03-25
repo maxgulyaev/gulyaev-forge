@@ -266,6 +266,11 @@ The agent must translate natural approval into the durable issue comment format 
      - milestone order
      - proof for each milestone
      - stop-and-fix rule
+   - If the work is being moderated by a second agent or by a human relaying between sessions, use the compact moderator checkpoint contract:
+     - keep it to the required fields only
+     - ask at most one concrete question
+     - do not end with open-ended prompts like `что дальше?` when the next step is already clear
+     - if `Gate needed now: no` and no missing input/secret/approval is required, say `Needs from moderator: none` and continue
 8. Before claiming a stage slice or issue is complete:
    - map every required issue acceptance item or rollout note to one of:
      - proven with concrete evidence
@@ -319,3 +324,4 @@ If the task is implementation or later, follow the stage skill and project rules
 - Closing an issue from summary vibes without mapping acceptance criteria to evidence
 - Treating docs updates as proof that missing automation, smoke coverage, or safety guards now exist
 - Printing or copying credentials into chat logs, shell transcripts, or issue comments
+- Ending every checkpoint with `что дальше?` instead of one exact recommended action

@@ -244,6 +244,36 @@ Checkpoint rules:
 - do not label something a `QA gate` before Stage 8 QA was actually executed
 - do not require production deploy just to begin QA if a local, staging, or other testable environment exists
 
+### Compact Moderator Checkpoint
+
+When one agent is building and another agent or human is moderating asynchronously, use this compact packet instead of free-form recap:
+
+```markdown
+## Moderator Checkpoint
+- Current issue: [#N]
+- Current stage: [stage]
+- Gate needed now: yes / no
+- Recommended action: [continue_implementation / run_review / run_test_coverage / run_qa / present_gate / stop_for_input]
+- Exact next step: [one sentence]
+- Remaining blockers: [none / short list]
+- Needs from moderator: [none / one exact input or approval]
+```
+
+Rules:
+- ask at most one concrete question
+- do not end with `what next?` when `Recommended action` is already clear
+- if `Needs from moderator: none`, continue the workflow instead of waiting for a stylistic approval
+- if a secret or credential is needed, ask the moderator to set it locally via env or the target system; do not ask for the raw value in chat
+
+Compact moderator replies may be one line:
+- `continue`
+- `run_review`
+- `run_test_coverage`
+- `run_qa`
+- `present_gate`
+- `hold`
+- `input: [exact item]`
+
 ### Block 2: State Sync
 ```
 Issue label: [current stage label]

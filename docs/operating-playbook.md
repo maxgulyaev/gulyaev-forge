@@ -144,6 +144,11 @@ Gate rule:
   - proof for each milestone
   - stop-and-fix rule if validation fails or scope drifts
 - this `Execution Proposal` replaces ad-hoc prompt dumps for long runs; it does not create a new `plans.md` or `status.md`
+- if the work is being moderated through a second agent or a human relay, use the compact moderator checkpoint contract from `core/templates/checkpoint-template.md`
+  - ask at most one concrete question
+  - do not end with `what next?` when the recommended action is already clear
+  - if no real input is needed, continue instead of waiting for stylistic confirmation
+  - if a secret is needed, ask the moderator to set it locally via env / target system, not to paste it into chat
 - when the work reaches `implementation`, use Context7 for framework/library/API docs instead of guessing from memory
 - for bugfix quick path, create/select the bug issue before code if the fix is non-trivial
 - for bugfix quick path, keep `.forge/active-run.env` in sync and do not push before the QA gate is approved
