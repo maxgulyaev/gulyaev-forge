@@ -266,6 +266,16 @@ The agent must translate natural approval into the durable issue comment format 
      - milestone order
      - proof for each milestone
      - stop-and-fix rule
+8. Before claiming a stage slice or issue is complete:
+   - map every required issue acceptance item or rollout note to one of:
+     - proven with concrete evidence
+     - explicitly deferred with approval
+     - still missing / blocked
+   - do not weaken the execution contract by editing docs, issue comments, or summaries to sound more complete than the implementation really is
+   - if a guard only warns and the issue asked for blocking prevention, treat the work as partial, not complete
+   - if deploy, rollback, or operator-facing behavior changed, make sure code, docs, issue trail, and `.forge/pipeline-state.yaml` tell the same story
+   - never print secrets or credentials from env files, URLs, cloud consoles, or helper commands into chat, terminal transcripts, or issue comments
+   - if a secret may already have been exposed, stop, record that fact explicitly, and add or execute the required rotation / cleanup follow-up before calling the work done
 
 ## Expected Outputs
 
@@ -306,3 +316,6 @@ If the task is implementation or later, follow the stage skill and project rules
 - Skipping `.forge/pipeline-state.yaml` and then guessing the current stage
 - Updating issue labels or `.forge/pipeline-state.yaml` to the next gated stage before approval is recorded
 - Approving a gate just because a stage report says `PASS` without checking the underlying contract coverage and evidence
+- Closing an issue from summary vibes without mapping acceptance criteria to evidence
+- Treating docs updates as proof that missing automation, smoke coverage, or safety guards now exist
+- Printing or copying credentials into chat logs, shell transcripts, or issue comments

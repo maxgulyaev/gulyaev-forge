@@ -9,10 +9,15 @@
 - Database migrations are backward-compatible (expand-contract pattern)
 - Error messages don't leak internal details to users
 - No hardcoded secrets, tokens, or credentials
+- No secrets or credentials are echoed in example commands, scripts, issue comments, or runbooks
 - Authentication/authorization checks on protected endpoints
 - SQL queries are parameterized (no string interpolation)
 - If the change touches framework/library/API behavior, implementation notes must state `Context7 used: yes/no` and why
 - Flag docs-sensitive code that appears guessed from memory instead of checked against current docs
+- Current issue acceptance criteria are covered by concrete evidence, not only by summary text
+- Rollout changes do not confuse liveness checks with required authenticated smoke
+- Warning-only checks are not treated as blocking safeguards
+- Docs and runbooks describe the real behavior and remaining manual steps truthfully
 
 ## Style
 

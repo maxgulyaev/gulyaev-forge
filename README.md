@@ -158,6 +158,9 @@ For bugfix quick-path work, local state is not enough.
 
 - QA must be written durably to the issue trail before it is presented as a final gate
 - if Stage 6.5 external review is configured, its summary must also be written to the issue trail
+- Stage 6.5 still applies to deploy scripts, shell automation, rollback flow, and runbooks when they change operational behavior
+- close/ship claims must map required acceptance items to evidence; docs updates do not substitute for missing automation or smoke
+- never paste secrets from env files, URLs, or consoles into terminal transcripts or issue comments; treat exposure as rotation work
 - push is allowed only after the issue trail contains:
   - `## QA Gate`
   - `## Stage 6.5 — External Code Review` when configured

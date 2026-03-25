@@ -118,6 +118,11 @@ Use these rules:
 
 A prior gate summary, QA verdict, or subagent recommendation is input evidence, not the decision itself.
 
+Before presenting a "ready" verdict or closing an issue, map each required acceptance item to concrete evidence.
+Do not downgrade the contract by editing docs, comments, or summaries to sound more complete than the implementation really is.
+If the diff changes deploy, rollback, smoke, or operator behavior, code, docs, issue trail, and `.forge/pipeline-state.yaml` must remain aligned.
+Never print secrets or credentials into the durable trail; if exposure already happened, record rotation / cleanup before calling the work complete.
+
 ## Stage-Agent Transport Boundary
 
 Forge may use secondary agents for explicit stage/role handoffs, but their transport/runtime is not part of the source-of-truth layer.

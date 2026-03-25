@@ -148,7 +148,15 @@ Gate rule:
 - for bugfix quick path, create/select the bug issue before code if the fix is non-trivial
 - for bugfix quick path, keep `.forge/active-run.env` in sync and do not push before the QA gate is approved
 - if `stage_agents.code_review.reviewer` is configured, run it before QA and include its findings in the gate summary
+- this still applies when the diff is deploy scripts, shell automation, rollback flow, or runbooks that change behavior
 - for QA gates, route registration, build success, or unauthenticated `401` checks do not replace required user-facing journey evidence
+
+Closure discipline:
+- before presenting a stage as complete or closing an issue, map each acceptance item to concrete evidence or an explicit blocker
+- docs updates do not weaken the issue contract or substitute for missing automation / missing smoke
+- if a guard only warns and the issue called for blocking prevention, the work is still partial
+- if code, docs, issue trail, and `.forge/pipeline-state.yaml` disagree about what is done, resolve that mismatch before saying "what next"
+- never print secrets or credentials into chat logs or durable issue comments; if exposure happened, record rotation / cleanup before completion
 
 TDD enforcement rule:
 - implementation must follow proof-first discipline: define proof shape before writing code

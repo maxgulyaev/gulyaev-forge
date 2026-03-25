@@ -144,6 +144,9 @@ Source of truth для этих entrypoints:
 - если это багfix quick path, агент обязан завести bug issue до кода для нетривиального фикса и держать локальный quick-run state в `.forge/active-run.env`
 - push в таком quick path должен блокироваться pre-push hook'ом, пока не показан QA gate и не записан approval
 - если для `code_review/reviewer` настроен внешний reviewer, агент должен вызвать его до QA gate
+- это не отменяется для `deploy/*.sh`, shell automation, rollback flow или runbooks, если они меняют поведение
+- перед закрытием issue агент обязан показать, чем доказан каждый acceptance item; docs-апдейт не заменяет недостающий guard или smoke
+- секреты из `.env`, `DATABASE_URL`, cloud console и похожих мест нельзя печатать в чат/issue; при утечке нужен rotation follow-up
 
 ### Почему так
 

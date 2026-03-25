@@ -37,17 +37,33 @@ If the project has `docs/BUSINESS_RULES.md`:
 - [ ] Rules marked `[x]` have valid test references
 - [ ] Bugfix added a regression rule with test reference
 
+### Step 2b: Execution contract and rollout integrity
+
+Verify closure readiness against the actual issue contract:
+
+- [ ] Every required acceptance item is mapped to evidence or an explicit blocker
+- [ ] For deploy/rollout changes, public liveness checks are not being misrepresented as authenticated or user-journey smoke
+- [ ] Warning-only preflights are not being presented as blocking safeguards
+- [ ] Docs, runbooks, issue comments, and stage summaries describe the implementation truthfully and do not weaken the contract
+- [ ] Issue trail and `.forge/pipeline-state.yaml` are aligned with the claimed current stage when the diff depends on stage progression
+- [ ] No secrets or credentials were echoed, pasted, or summarized into code, commands, chat transcripts, or issue comments
+- [ ] Shell/deploy/runbook/process changes that alter behavior were still treated as reviewable implementation, not exempted as "just bash/docs"
+
 ### Step 3: Findings-First Review
 
 Review the diff for:
 
 **Critical (blocks merge):**
 - Data loss, corruption, or security vulnerability
+- Secret exposure in code, scripts, commands, logs, or durable issue/chat artifacts
 - Broken contract: implementation contradicts Behavior Contract
 - Missing proof: contract item has no test
 - Regression: existing behavior broken without justification
 
 **High (should fix before merge):**
+- Required acceptance criterion or rollout verification still lacks evidence
+- A warning or note is presented as if it were a blocking guard
+- Authenticated smoke is required by contract, but only liveness/public checks were shown
 - Error handling gaps in user-facing paths
 - Missing edge case coverage from contract
 - Untested business logic
@@ -90,6 +106,11 @@ Do not produce zero-findings reviews by default. If truly no issues:
 - [ ] BUSINESS_RULES.md updated (if applicable)
 - TDD verdict: PASS / PARTIAL / FAIL
 
+### Acceptance Coverage
+| Required item | Status | Evidence / blocker |
+|---------------|--------|--------------------|
+| [acceptance criterion] | PASS / FAIL / NOT PROVEN | [test, log, screenshot, issue note] |
+
 ### Findings
 
 #### Critical
@@ -124,3 +145,6 @@ Do not advance past code review with open critical or high findings.
 - Producing zero-findings reviews without explaining what was checked
 - Reviewing the entire codebase instead of the current diff
 - Blocking on low-severity items that don't affect the contract
+- Skipping review because the diff is "only bash", "only deploy", or "only runbooks"
+- Accepting docs updates as a substitute for missing automation or missing proof
+- Ignoring secret exposure because it happened in commands, chat, or issue comments instead of in source code

@@ -78,6 +78,17 @@ Before changing code, identify what will prove the slice:
 
 Implementation should follow the proof required by the contract, not invent its own finish line.
 
+### Step 2b: Operational and closure proof for rollout-sensitive changes
+
+If the slice changes deploy scripts, shell automation, infrastructure config, rollback flow, runbooks, or operator-facing documentation:
+- treat it as implementation that changes behavior, not as "docs-only"
+- define what proves the issue contract, not just that the script ran once
+- distinguish informational warnings from blocking safeguards
+- distinguish public or liveness checks from required authenticated or user-journey smoke
+- do not use docs updates to imply automation that the code does not actually perform yet
+- never extract, echo, or paste secrets from env files, URLs, cloud consoles, or helper commands into terminal output, chat, or issue comments
+- if secret handling was already violated, stop and record the required rotation / cleanup work before presenting completion
+
 ### Step 3: TDD / test-first loop
 
 For each contract item or scenario slice:
@@ -119,6 +130,9 @@ If the work is multi-platform:
 - [ ] Context7 was used when docs-sensitive
 - [ ] error and boundary behavior are handled where the contract requires it
 - [ ] `BUSINESS_RULES.md` updated if behavior changed (bugfix: regression rule, feature: new behavior rules)
+- [ ] issue acceptance criteria for this slice are mapped to concrete evidence
+- [ ] docs/runbooks touched by the slice describe the actual behavior and remaining manual steps truthfully
+- [ ] no secrets or credentials were printed or copied into chat / issue trail while implementing
 
 ### Step 6: Checkpoint discipline
 
@@ -150,6 +164,14 @@ Do not keep accumulating code changes across multiple milestones after a failed 
 
 Only present an `Implementation Gate` when Stage 6 is actually ready to unlock Stage 7.
 
+If `.forge/config.yaml` configures `stage_agents.code_review.reviewer`, Stage 6.5 still applies to:
+- deploy scripts
+- shell automation
+- infra/runbook changes that alter operator behavior
+- rollback or smoke-test flow changes
+
+Do not skip review just because the diff is "only bash" or "only ops docs" when the behavior changes.
+
 ## Commit Convention
 
 ```
@@ -167,3 +189,7 @@ Contract: [issue or contract file]
 - Guessing framework behavior instead of using Context7
 - Implementing beyond the approved contract
 - Presenting QA while known implementation scope is still unfinished
+- Treating warning-only output as if it were a blocking guard required by the issue
+- Updating docs to claim automation exists when the code only warns or partially checks
+- Skipping external review because the diff is "just bash" or "just runbooks"
+- Printing secrets into terminal output, chat, or issue comments

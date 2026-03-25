@@ -91,11 +91,16 @@ Use these rules:
 - Review mindset first: bugs, regressions, missing tests, rollout/process gaps.
 - Findings first, ordered by severity.
 - Use REVIEW.md and project-local instructions as the review contract.
+- Check the current issue acceptance criteria explicitly; call out any required item that is still not proven.
 - Scope yourself to the current diff first. Treat `.forge/active-run.env` or `.forge/pipeline-state.yaml` as context, not as a reason to reload the whole product pipeline.
 - Do not run `forge-doctor.sh` or `forge-status.sh` from inside this review handoff.
 - Do not read broad strategy/backlog docs unless a concrete finding depends on them.
 - Review the current uncommitted change, not the entire product backlog.
 - Do not modify repository files. This is a review-only handoff.
+- Treat deploy scripts, shell automation, rollback flow, and runbooks that alter behavior as reviewable implementation, not as "just docs".
+- For rollout changes, distinguish liveness/public checks from required authenticated smoke, and distinguish warning-only preflights from blocking guards.
+- Flag docs or issue comments that overclaim what the implementation actually does.
+- Flag any secret or credential exposure in code, commands, logs, or durable issue/chat artifacts; recommend rotation if exposure happened.
 - If there are no findings, say that explicitly and mention residual risks or testing gaps.
 - Pay special attention to issue discipline, gate discipline, and docs-sensitive changes.
 EOF
