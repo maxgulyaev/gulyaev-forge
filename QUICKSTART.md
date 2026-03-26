@@ -140,6 +140,8 @@ Source of truth для этих entrypoints:
 - `Next recommended action`
 
 Если работа идёт через модерацию вторым агентом или человеком, проси compact moderator checkpoint:
+- пиши его на языке модератора
+- если модерация идёт на русском, начни с `Что от тебя сейчас нужно: ...`
 - `Current issue`
 - `Current stage`
 - `Gate needed now`
@@ -156,6 +158,15 @@ Source of truth для этих entrypoints:
 - `present_gate`
 - `hold`
 - `input: ...`
+
+Для русской модерации можно отвечать так:
+- `продолжай`
+- `запусти review`
+- `запусти test_coverage`
+- `прогони qa`
+- `покажи gate`
+- `пауза`
+- `ввод: ...`
 
 На code stage правило простое:
 - если задача трогает библиотеку, фреймворк, SDK или внешний API, агент должен сначала тянуть актуальные доки через Context7

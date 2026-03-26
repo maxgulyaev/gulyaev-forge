@@ -259,10 +259,26 @@ When one agent is building and another agent or human is moderating asynchronous
 - Needs from moderator: [none / one exact input or approval]
 ```
 
+Use the moderator's language for this packet.
+If the moderation thread is in Russian, prefer this shape instead:
+
+```markdown
+Что от тебя сейчас нужно: [ничего / один точный шаг]
+
+## Чекпоинт для модератора
+- Текущий issue: [#N]
+- Текущий этап: [stage]
+- Нужен ли gate сейчас: да / нет
+- Рекомендуемое действие: [продолжай / запусти review / запусти test_coverage / прогони qa / покажи gate / нужен ввод]
+- Точный следующий шаг: [one sentence]
+- Оставшиеся блокеры: [нет / short list]
+- Что нужно от модератора: [ничего / один точный input или approval]
+```
+
 Rules:
 - ask at most one concrete question
 - do not end with `what next?` when `Recommended action` is already clear
-- if `Needs from moderator: none`, continue the workflow instead of waiting for a stylistic approval
+- if the localized equivalent of `Needs from moderator: none` applies, continue the workflow instead of waiting for a stylistic approval
 - if a secret or credential is needed, ask the moderator to set it locally via env or the target system; do not ask for the raw value in chat
 
 Compact moderator replies may be one line:
@@ -273,6 +289,15 @@ Compact moderator replies may be one line:
 - `present_gate`
 - `hold`
 - `input: [exact item]`
+
+Russian compact replies are also allowed:
+- `продолжай`
+- `запусти review`
+- `запусти test_coverage`
+- `прогони qa`
+- `покажи gate`
+- `пауза`
+- `ввод: [точный пункт]`
 
 ### Block 2: State Sync
 ```

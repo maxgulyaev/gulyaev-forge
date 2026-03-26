@@ -268,9 +268,12 @@ The agent must translate natural approval into the durable issue comment format 
      - stop-and-fix rule
    - If the work is being moderated by a second agent or by a human relaying between sessions, use the compact moderator checkpoint contract:
      - keep it to the required fields only
+     - write it in the moderator's language
+     - for Russian moderation, use Russian field labels and start with `Что от тебя сейчас нужно: ...`
      - ask at most one concrete question
      - do not end with open-ended prompts like `что дальше?` when the next step is already clear
-     - if `Gate needed now: no` and no missing input/secret/approval is required, say `Needs from moderator: none` and continue
+     - if `Gate needed now: no` and no missing input/secret/approval is required, say the localized equivalent of `Needs from moderator: none` and continue
+     - Russian short replies such as `продолжай`, `запусти review`, `прогони qa`, and `покажи gate` are valid equivalents
 8. Before claiming a stage slice or issue is complete:
    - map every required issue acceptance item or rollout note to one of:
      - proven with concrete evidence

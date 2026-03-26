@@ -145,6 +145,8 @@ Gate rule:
   - stop-and-fix rule if validation fails or scope drifts
 - this `Execution Proposal` replaces ad-hoc prompt dumps for long runs; it does not create a new `plans.md` or `status.md`
 - if the work is being moderated through a second agent or a human relay, use the compact moderator checkpoint contract from `core/templates/checkpoint-template.md`
+  - write the packet in the moderator's language
+  - for Russian moderation, start with `Что от тебя сейчас нужно: ...` and use Russian field labels
   - ask at most one concrete question
   - do not end with `what next?` when the recommended action is already clear
   - if no real input is needed, continue instead of waiting for stylistic confirmation

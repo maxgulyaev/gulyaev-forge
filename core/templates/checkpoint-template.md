@@ -86,6 +86,10 @@ If issue state and local pipeline-state disagree, resolve or report that mismatc
 
 Use this block when another agent or a human moderator is steering the run asynchronously and needs a short relay packet.
 
+Use the moderator's language for the entire block.
+If the moderation thread is in Russian, do not mix English field labels with Russian prose.
+Start with one plain-language line that makes the required moderator action obvious.
+
 - Current issue: [#N]
 - Current stage: [stage]
 - Gate needed now: yes / no
@@ -93,6 +97,21 @@ Use this block when another agent or a human moderator is steering the run async
 - Exact next step: [one sentence]
 - Remaining blockers: [none / short list]
 - Needs from moderator: [none / one exact input or approval]
+
+Preferred Russian shape:
+
+```markdown
+Что от тебя сейчас нужно: [ничего / один точный шаг]
+
+## Чекпоинт для модератора
+- Текущий issue: [#N]
+- Текущий этап: [stage]
+- Нужен ли gate сейчас: да / нет
+- Рекомендуемое действие: [продолжай / запусти review / запусти test_coverage / прогони qa / покажи gate / нужен ввод]
+- Точный следующий шаг: [one sentence]
+- Оставшиеся блокеры: [нет / short list]
+- Что нужно от модератора: [ничего / один точный input или approval]
+```
 
 Allowed compact moderator replies:
 - `continue`
@@ -102,3 +121,12 @@ Allowed compact moderator replies:
 - `present_gate`
 - `hold`
 - `input: [exact item]`
+
+Russian compact replies are also allowed:
+- `продолжай`
+- `запусти review`
+- `запусти test_coverage`
+- `прогони qa`
+- `покажи gate`
+- `пауза`
+- `ввод: [точный пункт]`
