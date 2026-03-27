@@ -36,6 +36,17 @@ If the project has `docs/BUSINESS_RULES.md`:
 - [ ] New behavior has corresponding rules added
 - [ ] Rules marked `[x]` have valid test references
 - [ ] Bugfix added a regression rule with test reference
+- [ ] For `test_coverage` / `BUSINESS_RULES` work, a Rule Audit exists for the current slice
+
+### Step 2c: Proof Boundary Integrity
+
+Verify that each checked rule is supported by proof at the same level as the rule wording:
+
+- [ ] Rule wording matches the actual proof level (helper / service / sql-contract / integration / e2e)
+- [ ] Tests hit production code, not a duplicated predicate or copied branch condition
+- [ ] Structural/source-read proofs are used only for explicit wiring / existence contracts
+- [ ] If the current slice only proves a weaker contract, the stronger inherited rule stays `[ ]` or was split into a supplemental rule
+- [ ] If the Rule Audit found a correctness gap, production behavior was fixed before rules were marked `[x]`
 
 ### Step 2b: Execution contract and rollout integrity
 
@@ -58,6 +69,7 @@ Review the diff for:
 - Secret exposure in code, scripts, commands, logs, or durable issue/chat artifacts
 - Broken contract: implementation contradicts Behavior Contract
 - Missing proof: contract item has no test
+- Rule marked `[x]` despite proof being materially weaker than the claim
 - Regression: existing behavior broken without justification
 
 **High (should fix before merge):**
@@ -68,6 +80,8 @@ Review the diff for:
 - Missing edge case coverage from contract
 - Untested business logic
 - API contract violations
+- Test proves a duplicated predicate / source read instead of the production behavior
+- Audit missed an exact-case / raw SQL / tx path that materially weakens a cross-flow claim
 
 **Medium (fix or justify):**
 - Code duplication that increases maintenance risk
@@ -105,6 +119,11 @@ Do not produce zero-findings reviews by default. If truly no issues:
 - [ ] Tests cover contract items
 - [ ] BUSINESS_RULES.md updated (if applicable)
 - TDD verdict: PASS / PARTIAL / FAIL
+
+### Proof Boundary Check
+| Rule / claim | Claimed proof | Actual proof | Honest status | Action |
+|--------------|---------------|--------------|---------------|--------|
+| [rule] | [integration / e2e / ...] | [helper / service / ...] | aligned / overclaim / underclaim | [keep `[x]` / split / leave `[ ]`] |
 
 ### Acceptance Coverage
 | Required item | Status | Evidence / blocker |
@@ -148,3 +167,5 @@ Do not advance past code review with open critical or high findings.
 - Skipping review because the diff is "only bash", "only deploy", or "only runbooks"
 - Accepting docs updates as a substitute for missing automation or missing proof
 - Ignoring secret exposure because it happened in commands, chat, or issue comments instead of in source code
+- Accepting helper/unit proof as closure for integration/e2e wording without splitting or leaving the stronger rule `[ ]`
+- Accepting structural/source-read proof for behavioral contracts that should hit production execution

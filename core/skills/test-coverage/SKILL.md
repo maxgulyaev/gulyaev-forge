@@ -13,7 +13,24 @@ You are a Test Engineer. You verify test completeness, fill coverage gaps, and e
 
 ## Process
 
-### Step 0: Business Rules Check
+### Step 0: Rule Audit And Proof Boundary
+
+Before writing tests for a coverage slice, audit each rule in scope.
+
+Capture a compact table like this in the stage notes / checkpoint:
+
+| Rule | Current code path | Current state | Gap type | Minimum honest proof | Can mark `[x]` now? | Must stay `[ ]`? |
+|------|-------------------|---------------|----------|----------------------|---------------------|------------------|
+| [rule text] | [files / functions / routes] | already correct / partial gap / incorrect | proof-only / correctness+proof | helper / service / sql-contract / integration / e2e | yes / no | [what remains unproven] |
+
+Required discipline:
+- do not start from "write a test and see" without first auditing the real code path
+- if the rule wording is stronger than the proof you can honestly produce, split the rule, add a supplemental rule, or keep the stronger rule `[ ]`
+- if the audit finds a correctness gap, classify the slice as `correctness+proof`, fix production code first, then prove it
+- default assumption: structural or source-read proofs are **not** sufficient for behavioral rules
+- structural/source-read proof is allowed only for explicit wiring / existence / adapter contracts
+
+### Step 0b: Business Rules Check
 
 If the project has `docs/BUSINESS_RULES.md`, run the rules check first:
 
@@ -47,7 +64,9 @@ Capture:
 
 ### Step 2: Gap Analysis
 
-Compare actual verification vs the contract's `Proof Required` section:
+Compare actual verification vs both:
+- the Rule Audit from Step 0
+- the contract's `Proof Required` section
 
 | Layer | Target | Actual | Gap | Action |
 |-------|--------|--------|-----|--------|
@@ -57,11 +76,14 @@ Compare actual verification vs the contract's `Proof Required` section:
 
 ### Step 3: Fill Gaps
 
+If the Rule Audit classified the slice as `correctness+proof`, repair correctness first.
+
 Priority order for gap filling:
-1. **Untested error paths** — most common source of production bugs
-2. **Untested edge cases** — boundary values, empty states, concurrent access
-3. **Untested integrations** — API contracts, DB queries
-4. **Low-coverage business logic** — core domain functions
+1. **Correctness gaps found by Rule Audit** — wrong behavior beats missing proof
+2. **Untested error paths** — most common source of production bugs
+3. **Untested edge cases** — boundary values, empty states, concurrent access
+4. **Untested integrations** — API contracts, DB queries
+5. **Low-coverage business logic** — core domain functions
 
 For each gap: write test using same TDD discipline (test fails → verify it tests the right thing → it should pass with existing code).
 
@@ -75,6 +97,9 @@ Check for test anti-patterns:
 - [ ] No tests hitting real external services (mock them)
 - [ ] Assertions are specific (not just "no error")
 - [ ] Test names describe behavior, not implementation
+- [ ] Tests hit production code, not a duplicated predicate copied into the test
+- [ ] Structural/source-read tests are used only for explicit wiring / existence contracts
+- [ ] Rules marked `[x]` do not overclaim beyond the proof level actually exercised
 
 ### Step 5: Flaky Test Detection
 
@@ -86,10 +111,13 @@ Run test suite 3 times. If any test fails intermittently:
 ### Step 6: Fail Conditions
 
 This stage FAILS and blocks progression if any of:
+- The current coverage slice has no Rule Audit / proof-boundary statement
 - A `[x]` rule in `BUSINESS_RULES.md` references a test file that does not exist
 - A Behavior Contract `Proof Required` item has no corresponding test
 - The current change introduced new behavior but no rule was added to `BUSINESS_RULES.md` (for bugfix/feature lanes)
 - A bugfix has no regression-prevention test
+- A rule is being marked `[x]` with weaker proof than its wording claims, without splitting / supplementing / leaving the stronger rule `[ ]`
+- A behavioral rule is being "proven" only by structural/source-read inspection without an explicit wiring/existence contract
 
 Existing `[ ]` rules that were untested before the current change are tech debt, not a blocker. Flag them in the report but do not block on them.
 
@@ -118,9 +146,20 @@ The QA gate exists only after Stage 8 QA was actually run on a testable environm
 - E2E: [N]/[M] journeys
 - Business rules: [tested]/[total] ([X]%)
 
+## Rule Audit
+| Rule | Current state | Gap type | Minimum honest proof | `[x]` now? | Must stay `[ ]`? |
+|------|---------------|----------|----------------------|------------|------------------|
+| | | | | | |
+
 ## Gaps Filled
 - [file:line] — added test for [description]
 - ...
+
+## Proof Boundary
+- Newly checked `[x]` rules:
+  - [rule] — [proof level actually exercised]
+- Rules intentionally left `[ ]`:
+  - [rule] — [why the current slice does not honestly prove it]
 
 ## Remaining Gaps (accepted)
 - [description] — reason for accepting gap
@@ -152,3 +191,6 @@ When this stage completes:
 - Ignoring flaky tests (they erode trust in the entire suite)
 - Coverage without assertions (code is executed but not verified)
 - Testing implementation details (refactoring breaks tests that should still pass)
+- Starting a coverage slice without first auditing whether the gap is proof-only or correctness+proof
+- Marking inherited integration/e2e rules `[x]` with helper/service proof only
+- Treating source inspection as proof for behavioral contracts

@@ -80,6 +80,17 @@ If issue state and local pipeline-state disagree, resolve or report that mismatc
 **External review run:** yes / no / not yet
 **Why:** [stage not ready or adapter not configured]
 
+## Rule Audit
+
+Required for `test_coverage` work and for any slice that marks `BUSINESS_RULES.md` entries `[x]`.
+
+- Rules in scope:
+- Current state: already correct / partial gap / incorrect
+- Gap type: proof-only / correctness+proof
+- Minimum honest proof: helper / service / sql-contract / integration / e2e
+- Can mark `[x]` now:
+- Must stay `[ ]`:
+
 ---
 
 ## Compact Moderator Checkpoint
@@ -98,6 +109,12 @@ Start with one plain-language line that makes the required moderator action obvi
 - Remaining blockers: [none / short list]
 - Needs from moderator: [none / one exact input or approval]
 
+For `test_coverage` / `BUSINESS_RULES` slices, also include:
+- Gap type: [proof-only / correctness+proof]
+- Minimum honest proof: [helper / service / sql-contract / integration / e2e]
+- Can mark `[x]`: [short list]
+- Must stay `[ ]`: [short list]
+
 Preferred Russian shape:
 
 ```markdown
@@ -111,6 +128,12 @@ Preferred Russian shape:
 - Точный следующий шаг: [one sentence]
 - Оставшиеся блокеры: [нет / short list]
 - Что нужно от модератора: [ничего / один точный input или approval]
+
+Для `test_coverage` / `BUSINESS_RULES` slice дополнительно:
+- Тип гэпа: [proof-only / correctness+proof]
+- Минимальный честный proof: [helper / service / sql-contract / integration / e2e]
+- Можно отметить `[x]`: [short list]
+- Должно остаться `[ ]`: [short list]
 ```
 
 Allowed compact moderator replies:

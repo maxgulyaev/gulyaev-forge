@@ -75,6 +75,7 @@ Do not mark this gate `go` while any required item above is still `FAIL` or `NOT
 - Why: [web UI scenario automated or why it was skipped]
 - External review required / run: yes / no
 - Docs / issue / pipeline-state sync: aligned / mismatch fixed / blocked
+- Rule audit / proof boundary: aligned / mismatch fixed / blocked / N/A
 - Secret handling issues: none / [list]
 
 **Trade-offs considered:**

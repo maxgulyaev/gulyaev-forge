@@ -172,6 +172,18 @@ TDD enforcement rule:
   - feature → add behavior rules before code
   - test_coverage → verify all `[x]` rules have passing tests
   - qa gate → include business rules coverage summary
+- for `test_coverage` or any `BUSINESS_RULES.md` slice that wants to mark rules `[x]`, start with a compact Rule Audit:
+  - rule
+  - current code path
+  - current state: `already correct` / `partial gap` / `incorrect`
+  - gap type: `proof-only` / `correctness+proof`
+  - minimum honest proof: `helper` / `service` / `sql-contract` / `integration` / `e2e`
+  - what can honestly become `[x]` now
+  - what must remain `[ ]`
+- weaker proof must not close stronger wording:
+  - if only helper/service proof exists, do not mark an inherited integration/e2e rule `[x]`
+  - split the rule, add a supplemental rule, or leave the stronger rule `[ ]`
+- structural/source-read proof is allowed only for explicit wiring / existence / adapter contracts, not for user-facing behavioral claims
 - enforcement levels by lane:
 
 | Lane | Proof Required | BUSINESS_RULES update | Test-First |

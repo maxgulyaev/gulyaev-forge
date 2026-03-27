@@ -15,6 +15,9 @@ Suggested contents:
 - manual smoke paths that automation does not replace
 - secret-handling rules (for example, never echo credentials from env or URLs)
 - places where docs or runbooks must stay strictly aligned with actual implementation
+- proof-boundary rules for `BUSINESS_RULES.md` work (for example, when helper proof is insufficient for an integration/e2e claim)
+- structural/source-read tests that are acceptable only for wiring/existence contracts
+- hidden exact-case / raw SQL / transaction paths that can weaken "cross-flow" claims
 
 Keep it thin.
 Do not duplicate the whole of `REVIEW.md`.

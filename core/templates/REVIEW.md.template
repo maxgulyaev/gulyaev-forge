@@ -18,6 +18,10 @@
 - Rollout changes do not confuse liveness checks with required authenticated smoke
 - Warning-only checks are not treated as blocking safeguards
 - Docs and runbooks describe the real behavior and remaining manual steps truthfully
+- For `BUSINESS_RULES.md` work, newly checked `[x]` items are supported by proof at the same level as the wording claims
+- Structural/source-read tests are used only for explicit wiring / existence contracts
+- If the slice only proves a weaker contract, the stronger inherited rule stays `[ ]` or is split into a supplemental rule
+- Cross-flow claims audit hidden exact-case, raw SQL, and transaction-sensitive paths before marking coverage complete
 
 ## Style
 
