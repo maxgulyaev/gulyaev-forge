@@ -458,6 +458,31 @@ body:
 
 ---
 
+## Manual Evidence Sync Rule
+
+For infra, reliability, deploy, release, and other manual-console work:
+
+- the issue body defines the contract and acceptance criteria
+- the issue trail comments hold durable evidence of what actually happened
+- after any manual action, leave an evidence comment immediately:
+  - what was done
+  - when
+  - what was verified
+  - what still remains manual / unverified
+- then sync the issue body checkboxes and linked docs/runbooks to match that evidence
+
+Do not treat stale unchecked boxes as proof that the work never happened if durable evidence already exists in comments.
+
+When the claim is operational, classify capability state explicitly:
+- `exists by design`
+- `currently live`
+- `redeployable now`
+
+If `currently live` is true but `redeployable now` is false, that is runtime drift / broken rollout path.
+Open a follow-up issue for the drift instead of erasing the fact that the capability had previously been delivered.
+
+---
+
 ## Provider Adapters
 
 ### GitHub Issues (default)

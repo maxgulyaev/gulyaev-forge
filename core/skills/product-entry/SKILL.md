@@ -270,6 +270,7 @@ The agent must translate natural approval into the durable issue comment format 
      - keep it to the required fields only
      - write it in the moderator's language
      - for Russian moderation, use Russian field labels and start with `Что от тебя сейчас нужно: ...`
+     - for Russian moderation, keep the whole packet in Russian, including headings, status words, and table labels; do not emit mixed English/Russian checkpoints
      - ask at most one concrete question
      - do not end with open-ended prompts like `что дальше?` when the next step is already clear
      - if `Gate needed now: no` and no missing input/secret/approval is required, say the localized equivalent of `Needs from moderator: none` and continue
@@ -279,6 +280,16 @@ The agent must translate natural approval into the durable issue comment format 
      - proven with concrete evidence
      - explicitly deferred with approval
      - still missing / blocked
+   - keep contract and evidence separate:
+     - issue body / acceptance criteria say what must be true
+     - issue trail comments prove what actually happened
+     - docs / runbooks must be synced to that evidence, not used as a substitute for it
+   - for infra / reliability / deploy / release / manual-console work, inspect the issue trail before concluding from unchecked boxes, stale docs, or memory gaps
+   - if a capability claim is operational, classify it as:
+     - `exists by design`
+     - `currently live`
+     - `redeployable now`
+   - if `currently live` is true but `redeployable now` is false, report runtime drift / broken rollout path, not total absence of the capability
    - do not weaken the execution contract by editing docs, issue comments, or summaries to sound more complete than the implementation really is
    - if a guard only warns and the issue asked for blocking prevention, treat the work as partial, not complete
    - if deploy, rollback, or operator-facing behavior changed, make sure code, docs, issue trail, and `.forge/pipeline-state.yaml` tell the same story
@@ -325,6 +336,8 @@ If the task is implementation or later, follow the stage skill and project rules
 - Updating issue labels or `.forge/pipeline-state.yaml` to the next gated stage before approval is recorded
 - Approving a gate just because a stage report says `PASS` without checking the underlying contract coverage and evidence
 - Closing an issue from summary vibes without mapping acceptance criteria to evidence
+- Declaring `not verified` for infra / reliability work from stale checkboxes without checking issue trail evidence comments
+- Treating `live right now` and `redeployable now` as the same thing when diagnosing staging / prod / release capabilities
 - Treating docs updates as proof that missing automation, smoke coverage, or safety guards now exist
 - Printing or copying credentials into chat logs, shell transcripts, or issue comments
 - Ending every checkpoint with `что дальше?` instead of one exact recommended action

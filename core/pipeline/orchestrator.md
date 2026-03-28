@@ -120,6 +120,15 @@ A prior gate summary, QA verdict, or subagent recommendation is input evidence, 
 
 Before presenting a "ready" verdict or closing an issue, map each required acceptance item to concrete evidence.
 Do not downgrade the contract by editing docs, comments, or summaries to sound more complete than the implementation really is.
+For infra / reliability / deploy / release / manual-console work, treat the issue body as the contract and the issue trail as the durable evidence log:
+- do not conclude `not verified` from unchecked body boxes alone
+- inspect the issue trail comments for manual evidence before reopening or downgrading a claim
+- if evidence exists in comments but body/docs are stale, sync the body/docs instead of erasing the verified state
+If an operational capability is under discussion, classify it explicitly as:
+- `exists by design`
+- `currently live`
+- `redeployable now`
+If runtime proves the capability is live but the rollout path is broken, classify that as drift / broken redeployability, not absence of the capability.
 If the diff changes deploy, rollback, smoke, or operator behavior, code, docs, issue trail, and `.forge/pipeline-state.yaml` must remain aligned.
 Never print secrets or credentials into the durable trail; if exposure already happened, record rotation / cleanup before calling the work complete.
 

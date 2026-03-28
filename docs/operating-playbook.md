@@ -39,6 +39,12 @@ When these layers disagree, use this order:
 3. Forge base skill
 4. Adapter shim text
 
+Issue contract vs. evidence:
+- the issue body / acceptance criteria define what must be true
+- the issue trail comments hold durable execution evidence, gate decisions, rollout notes, and manual-console proof
+- for infra / reliability / deploy / release work, do not infer `not verified` from unchecked boxes or stale docs alone; inspect the issue trail evidence first, then sync the body/docs to match
+- if a closed issue has valid evidence in comments but stale checkboxes/docs, treat that as documentation drift, not proof that the work never happened
+
 Some forge rules should remain non-overridable:
 - gate discipline
 - rollout safety
@@ -163,6 +169,17 @@ Closure discipline:
 - docs updates do not weaken the issue contract or substitute for missing automation / missing smoke
 - if a guard only warns and the issue called for blocking prevention, the work is still partial
 - if code, docs, issue trail, and `.forge/pipeline-state.yaml` disagree about what is done, resolve that mismatch before saying "what next"
+- for infra / reliability / deploy / release / manual-console work, reconcile all four before declaring `verified` or `not verified`:
+  - issue body / acceptance criteria
+  - issue trail evidence comments
+  - docs / runbooks / README / operator notes
+  - runtime capability state, if the claim is operational
+- when a capability claim is operational, classify it explicitly:
+  - `exists by design`
+  - `currently live`
+  - `redeployable now`
+- if `currently live` is true but `redeployable now` is false, record runtime drift / broken rollout path; do not claim the capability is absent
+- if issue trail evidence proves the work happened but body checkboxes or docs are stale, sync them instead of reopening the issue blindly
 - never print secrets or credentials into chat logs or durable issue comments; if exposure happened, record rotation / cleanup before completion
 
 TDD enforcement rule:

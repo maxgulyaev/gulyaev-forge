@@ -99,7 +99,13 @@ Use this block when another agent or a human moderator is steering the run async
 
 Use the moderator's language for the entire block.
 If the moderation thread is in Russian, do not mix English field labels with Russian prose.
+If the moderation thread is in Russian, do not use English headers like `Checkpoint`, `Done`, `Status`, `Blocked`, `Need approval`, or English table labels at all.
+For Russian relay, the whole checkpoint, including headings, field labels, inline status words, and the one-line ask, must be fully in Russian.
 Start with one plain-language line that makes the required moderator action obvious.
+For infra / reliability / deploy / release packets:
+- if a capability is being discussed, classify it as `exists by design`, `currently live`, and `redeployable now`
+- if those states differ, report the drift explicitly instead of collapsing them into a single yes/no claim
+- do not call something `not verified` until issue trail evidence comments were checked
 
 - Current issue: [#N]
 - Current stage: [stage]
