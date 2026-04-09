@@ -174,8 +174,10 @@ run_codex_review() {
     fi
   fi
 
-  # --uncommitted is incompatible with [PROMPT]; pass prompt only when using --base or --commit
-  if [[ "${codex_cmd[*]}" != *"--uncommitted"* ]]; then
+  # codex exec review: [PROMPT] is incompatible with --base, --commit, and --uncommitted.
+  # When a scope flag is used, codex reads REVIEW.md from the repo automatically.
+  # Custom prompt is only passed when no scope flag is set (standalone review).
+  if [[ -z "$review_commit" && -z "$review_base" && "${codex_cmd[*]}" != *"--base"* && "${codex_cmd[*]}" != *"--uncommitted"* ]]; then
     codex_cmd+=("$prompt")
   fi
 
