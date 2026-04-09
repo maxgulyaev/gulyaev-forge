@@ -162,29 +162,27 @@ run_codex_review() {
   elif [[ -n "$review_base" ]]; then
     codex_cmd+=(--base "$review_base")
   else
-    codex_cmd+=(--uncommitted)
+    # Auto-detect base: merge-base of HEAD against origin/<branch>.
+    # --uncommitted cannot accept a prompt, so prefer --base when possible.
+    local auto_base current_branch
+    current_branch=$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+    auto_base=$(git -C "$repo_dir" merge-base HEAD "origin/$current_branch" 2>/dev/null || echo "")
+    if [[ -n "$auto_base" ]]; then
+      codex_cmd+=(--base "$auto_base")
+    else
+      codex_cmd+=(--uncommitted)
+    fi
   fi
 
-  if [[ -n "$review_commit" ]]; then
+  # --uncommitted is incompatible with [PROMPT]; pass prompt only when using --base or --commit
+  if [[ "${codex_cmd[*]}" != *"--uncommitted"* ]]; then
     codex_cmd+=("$prompt")
-  elif [[ -n "$review_base" ]]; then
-    codex_cmd+=("$prompt")
-  else
-    # Pass prompt via stdin to avoid shell escaping issues with --uncommitted
-    codex_cmd+=(-)
   fi
 
-  if [[ -n "$review_commit" || -n "$review_base" ]]; then
-    (
-      cd "$repo_dir"
-      "${codex_cmd[@]}"
-    ) > >(tee "$log_file" >&2) 2>&1 &
-  else
-    (
-      cd "$repo_dir"
-      printf '%s\n' "$prompt" | "${codex_cmd[@]}"
-    ) > >(tee "$log_file" >&2) 2>&1 &
-  fi
+  (
+    cd "$repo_dir"
+    "${codex_cmd[@]}"
+  ) > >(tee "$log_file" >&2) 2>&1 &
   codex_pid=$!
 
   if [[ "$timeout_seconds" =~ ^[0-9]+$ ]] && (( timeout_seconds > 0 )); then
