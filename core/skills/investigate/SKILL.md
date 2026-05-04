@@ -22,6 +22,26 @@ Works in both PRODUCT and SELF modes.
 - Deep discovery: scope is too fuzzy for a Behavior Contract yet
 - Audit: "check compliance with X", "review security posture"
 
+## Mandatory Triggers — Cascading Bug Class
+
+Investigate mode is **mandatory**, not optional, in either of these situations:
+
+- **3+ P0/P1 incidents in the same code surface within ~7 days** (auth, sync, billing, payments, etc.).
+- **Any close→reopen cycle on a P0** within the same surface, especially if the reopen has a new root cause from a related class.
+
+When triggered, the orchestrator MUST refuse to enter `implementation` until an investigate-mode audit document exists, has been reviewed by the moderator, and has produced a **single unified fix plan** (not another point fix).
+
+Why this rule exists: cascading symptoms in one surface are almost always a single underlying class of bug ("ambiguous/transient/concurrent state treated as definitive failure", "empty local DB treated as reinstall proof", "transient API failure treated as auth invalidation", etc.). Point fixes in this state pass each Stage 6.5/QA gate paperwork-deep, ship, and the next reopen surfaces a new path of the same class. The audit is the only mechanism that surfaces the class itself before the team patches another symptom.
+
+The audit MUST:
+- Map every code path that triggers the failure mode across all relevant surfaces (iOS, web, API, etc.).
+- Classify each path as `expected` vs `false-positive-risk` with a concrete reproduction scenario for each false-positive.
+- List cross-cutting invariants that the unified fix must hold (numbered, testable).
+- List unfixed risks with their issue scope (which goes under the current issue, which spawns a follow-up).
+- Propose **one** unified fix plan with explicit acceptance and a combined integration test that exercises ≥2 of the cascading conditions simultaneously. The integration test is the real "class closed" proof; if it passes without production-code changes after the unified fix, the class is genuinely closed.
+
+After the audit lands, implementation proceeds normally through Stage 5 → 6 → 6.5 → 7 → 8.
+
 ## Core Structure
 
 Every investigation follows four phases in strict order:

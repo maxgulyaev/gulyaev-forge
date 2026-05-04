@@ -92,6 +92,25 @@ Lane rules:
 2. Analytics produces recommendation: continue/amplify/pivot/kill
 3. This feeds into Stage 0 (Strategy) for the next cycle
 
+## Cascading Bug Escalation
+
+The orchestrator MUST refuse to enter `implementation` and instead route to `investigate` when either of these triggers fires:
+
+- **3+ P0/P1 issues opened against the same code surface within ~7 days** (auth, sync, billing, payments, notifications, deploy, etc.).
+- **Any close→reopen cycle on a P0** in the same surface, especially when the reopen has a new root cause from the same class.
+
+In these cases the bug is almost never the latest reported symptom — it is a class of bugs in that surface, and another point fix will pass Stage 6.5 / QA paperwork-deep and ship before the next reopen surfaces yet another path of the same class.
+
+Required handling:
+1. Block the `bugfix` quick path. Do not enter `implementation` even if the new issue is labeled `bugfix`.
+2. Run the `investigate` skill (see `core/skills/investigate/SKILL.md`, "Mandatory Triggers — Cascading Bug Class") to produce a read-only audit document that maps every code path triggering the failure mode across all surfaces.
+3. Present the audit + a single unified fix plan as a moderator gate before any code changes.
+4. Only after moderator approval: enter Stage 5 (proof hardening / business rules) → Stage 6 (implementation) for the unified fix.
+5. The unified fix must include an integration test that exercises ≥2 of the cascading conditions simultaneously. If that test passes without production-code changes after the fix, the class is genuinely closed; if it fails, the class is not closed and additional unified work is required before QA.
+6. Stage 6.5 cascading findings (one P1 → multiple P2/P3 in a single review loop) are a signal the slice opened a larger surface than expected. Pause after 2–3 to ask whether to fold the tail into the slice or split into follow-up issues — do not silently expand scope to "feature size".
+
+The goal of this escalation is to surface the underlying class before the team patches another symptom.
+
 ## Gate Protocol
 
 **Hard rule:** a gated stage remains unresolved until a human records one of these decisions:
