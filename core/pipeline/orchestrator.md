@@ -111,6 +111,27 @@ Required handling:
 
 The goal of this escalation is to surface the underlying class before the team patches another symptom.
 
+## Stage 6.5 Iteration Cap
+
+A single slice has at most **3 Stage 6.5 reviewer iterations**. After the third iteration:
+
+- If remaining findings are **same-class mechanical fixes** (continuation of an already-approved fix pattern, narrow scope, no architectural change): fold them in one final commit without a separate moderator gate. This is not "scope drift" — it's completing the same fix pattern across symmetric call sites the reviewer has already validated. **No 4th iteration is run** after this final fold; instead, the agent posts the final Stage 6.5 disposition comment with the full iteration history.
+- If remaining findings are **a new class** (different surface, different invariant, or architectural choice required): the agent must stop and present a moderator gate with three options: (a) fold as a one-off if the agent honestly judges it narrow and same-class on second look, (b) ship with known gap and file a follow-up issue, (c) revisit Stage 5 contract because the original scope was insufficient. The moderator decides; the agent does not pick (a) by default.
+
+The cap rule exists to prevent runaway cascades into new classes, not to refuse fold of in-class findings on the third iteration. Mechanical completion of an approved pattern is not drift.
+
+## Stage 6.5 Follow-up Filing Rule
+
+Not every Stage 6.5 finding deserves its own GitHub issue. Filing follow-up issues by reflex inflates the backlog with low-value process artifacts. A finding becomes a follow-up issue **only if at least one of these holds**:
+
+- **User-impacting risk**: production failure mode that real users can hit (P0/P1).
+- **Blocking shipping decision**: blocks the current slice from being marked complete OR blocks a downstream slice that's already queued.
+- **Affects current slice's contract**: the finding contradicts an L# invariant explicitly declared in Stage 5; cannot be folded into the current slice; needs its own contract.
+
+Findings that do not meet any of these criteria are recorded as **known limitations in `docs/BUSINESS_RULES.md`** with a one-line justification and proceed without an issue. The Stage 6.5 disposition comment lists them as `documented limitations`, not as deferred work. This keeps the backlog signal-to-noise ratio high.
+
+The reviewer may flag legitimate code-quality concerns that don't qualify as follow-ups (e.g., "consider extracting helper", "rename for clarity"). These are noted in the Stage 6.5 disposition as `out of scope, not filed` and forgotten. They are not work; they are observations.
+
 ## Gate Protocol
 
 **Hard rule:** a gated stage remains unresolved until a human records one of these decisions:
