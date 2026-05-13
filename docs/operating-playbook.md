@@ -15,6 +15,8 @@ Short prompts should first route through an entry skill:
 - `core/skills/product-entry/SKILL.md` for PRODUCT work
 - `core/skills/self-entry/SKILL.md` for SELF work
 
+Both entry skills load `core/skills/INDEX.yaml` — a slim catalog of every skill under `core/skills/` — and use it to pick which stage or utility skill body to read. Direct reads of `core/skills/<name>/SKILL.md` remain a supported fallback when the catalog is unavailable. See `core/skills/INDEX.md` for the catalog contract.
+
 After that, every stage should be assembled from four layers:
 
 1. **Forge base skill**

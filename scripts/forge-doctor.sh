@@ -333,6 +333,79 @@ check_self_mcp_server() {
   fi
 }
 
+check_self_skill_index() {
+  local dir=$1
+  local index="$dir/core/skills/INDEX.yaml"
+  local index_names_file
+  local skill_dirs_file
+  local skill_dir
+  local idx_name
+  local missing_count=0
+  local extra_count=0
+  local total_dirs=0
+
+  if [[ ! -f "$index" ]]; then
+    err "core/skills/INDEX.yaml missing"
+    return
+  fi
+  ok "core/skills/INDEX.yaml present"
+
+  index_names_file=$(mktemp)
+  skill_dirs_file=$(mktemp)
+
+  awk '
+    /^skills:[[:space:]]*$/ { in_skills=1; next }
+    in_skills && /^[^[:space:]]/ { in_skills=0 }
+    in_skills && /^[[:space:]]*-[[:space:]]*name:/ {
+      sub(/^[[:space:]]*-[[:space:]]*name:[[:space:]]*/, "", $0)
+      sub(/[[:space:]]+#.*$/, "", $0)
+      gsub(/^"|"$/, "", $0)
+      print
+    }
+  ' "$index" | sort -u > "$index_names_file"
+
+  for f in "$dir"/core/skills/*/SKILL.md; do
+    [[ -f "$f" ]] || continue
+    basename "$(dirname "$f")"
+  done | sort -u > "$skill_dirs_file"
+
+  total_dirs=$(wc -l < "$skill_dirs_file" | tr -d ' ')
+
+  while IFS= read -r skill_dir; do
+    [[ -z "$skill_dir" ]] && continue
+    if ! grep -Fxq "$skill_dir" "$index_names_file"; then
+      err "INDEX.yaml missing entry for skill directory: $skill_dir"
+      missing_count=$((missing_count + 1))
+    fi
+  done < "$skill_dirs_file"
+
+  while IFS= read -r idx_name; do
+    [[ -z "$idx_name" ]] && continue
+    if ! grep -Fxq "$idx_name" "$skill_dirs_file"; then
+      err "INDEX.yaml references nonexistent skill: $idx_name"
+      extra_count=$((extra_count + 1))
+    fi
+  done < "$index_names_file"
+
+  if [[ "$missing_count" -eq 0 && "$extra_count" -eq 0 ]]; then
+    ok "INDEX.yaml covers all $total_dirs skill directories"
+  fi
+
+  rm -f "$index_names_file" "$skill_dirs_file"
+
+  if grep -q $'\t' "$index" 2>/dev/null; then
+    warn "INDEX.yaml contains tab characters (YAML requires spaces)"
+  fi
+
+  if command -v python3 >/dev/null 2>&1 && python3 -c "import yaml" 2>/dev/null; then
+    if python3 -c "import yaml,sys; yaml.safe_load(open('$index'))" 2>/dev/null; then
+      ok "INDEX.yaml parses as valid YAML"
+    else
+      err "INDEX.yaml fails YAML parse"
+    fi
+  fi
+}
+
 check_self_mcp_setup() {
   local user_config
   local settings
@@ -714,6 +787,7 @@ doctor_self() {
     fi
   done
 
+  check_self_skill_index "$dir"
   check_self_mcp_setup
   check_self_codex_mcp_setup
 }

@@ -513,6 +513,8 @@ forge init --project ./spodi
 gulyaev-forge/
   core/                          # Универсальные знания (чистый markdown)
     skills/                      # A-контексты по ролям
+      INDEX.yaml                 # Slim каталог всех skills (имя, kind, stage_id, triggers, inputs, path)
+      INDEX.md                   # Контракт каталога и правила обновления
       strategy/SKILL.md
       discovery/SKILL.md
       prd/SKILL.md
@@ -602,6 +604,14 @@ project/.forge/skills/
 4. adapter shim (`.claude/skills`, `AGENTS.md`, `.cursor/rules/...`)
 
 Adapter-файлы должны считаться доставочным слоем, а не первичным source of truth.
+
+### Skill catalog (`core/skills/INDEX.yaml`)
+
+`core/skills/INDEX.yaml` — slim каталог всех skills под `core/skills/`. Entry skills читают его на входе, чтобы выбрать только тот stage skill, который нужен текущей задаче, вместо того чтобы сканировать директорию или грузить тела всех skills.
+
+Контракт каталога описан в `core/skills/INDEX.md`. Coverage и базовая валидность YAML проверяются `bash scripts/forge-doctor.sh self .`.
+
+Изменение **additive**: прямое чтение `core/skills/<name>/SKILL.md` остаётся поддерживаемым fallback.
 
 ---
 

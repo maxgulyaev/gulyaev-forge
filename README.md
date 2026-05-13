@@ -62,7 +62,7 @@ The user-facing contract should stay simple:
 Every agent should use the same forge contract underneath:
 
 - **State**: GitHub issue + `.forge/pipeline-state.yaml`
-- **Knowledge**: forge base skills + project overlays
+- **Knowledge**: forge base skills + project overlays. Entry skills load `core/skills/INDEX.yaml` first — a slim catalog — and read only the chosen stage skill body. Direct reads of `core/skills/<name>/SKILL.md` remain a supported fallback. See `core/skills/INDEX.md`.
 - **Artifacts**: `docs/strategy`, `docs/research`, `docs/prd` (Behavior Contracts), `docs/architecture`, and later-stage outputs
 - **Canonical intents**:
   - `bugfix`

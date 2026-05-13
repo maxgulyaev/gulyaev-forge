@@ -11,6 +11,7 @@ Two operating modes: PRODUCT (work on products) and SELF (work on the forge itse
 ### Core (universal, agent-agnostic)
 `core/` — pure markdown knowledge that any agent can read:
 - `core/skills/` — A-context: expertise per pipeline stage (how to write PRD, how to architect, etc.)
+- `core/skills/INDEX.yaml` — slim catalog of every skill under `core/skills/`; entry skills load it first to pick only the needed stage skill instead of scanning the directory (see `core/skills/INDEX.md` for the contract)
 - `core/pipeline/` — stage definitions, gate format, orchestration rules
 - `core/templates/` — artifact templates (PRD, arch doc, gate report, config.yaml...)
 - `core/registry/` — catalog of known skills and MCP servers

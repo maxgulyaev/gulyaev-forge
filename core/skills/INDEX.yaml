@@ -1,0 +1,290 @@
+# Forge Skill Catalog
+#
+# Slim metadata for every skill under core/skills/.
+# Agents load this catalog at session entry, decide which skill body to read,
+# and read only that file. Direct reads of core/skills/<name>/SKILL.md remain a
+# supported fallback when an agent is invoked outside the catalog flow.
+#
+# Schema (every entry):
+#   name          string  — directory name under core/skills/
+#   kind          enum    — entry | stage | utility
+#   path          string  — repo-relative path to SKILL.md
+#   size_lines    int     — current line count of SKILL.md (informational)
+#   description   string  — one-line purpose, used by the agent to choose
+#   triggers      list    — short intent signals that should route here
+#   inputs        list    — files/artifacts to read alongside this skill
+#
+# Additional for kind=stage:
+#   stage_id      string  — internal stage id used by .forge/pipeline-state.yaml
+#   stage_number  number  — order in the pipeline (matches orchestrator.md)
+#
+# Coverage rule: every directory under core/skills/ that contains SKILL.md MUST
+# appear here exactly once. forge-doctor self enforces this.
+
+skills:
+
+  # ─── Entry skills ────────────────────────────────────────────────────────
+
+  - name: product-entry
+    kind: entry
+    path: core/skills/product-entry/SKILL.md
+    size_lines: 343
+    description: Route a short PRODUCT prompt into the right pipeline stage, lane, and gate behavior.
+    triggers:
+      - "сломалось / не работает / почини"
+      - "хочу / нужно сделать / добавь"
+      - "почему / разберись / аудит"
+      - "залей на тестфлайт / выложи в app store / задеплой веб"
+      - "ок / поехали дальше / approved"
+    inputs:
+      - .forge/active-run.env
+      - .forge/config.yaml
+      - .forge/pipeline-state.yaml
+      - core/pipeline/entry-surface.md
+      - core/pipeline/orchestrator.md
+      - core/pipeline/issue-tracking.md
+
+  - name: self-entry
+    kind: entry
+    path: core/skills/self-entry/SKILL.md
+    size_lines: 54
+    description: Route a short SELF prompt into Scout, Meta, Upgrade, or Retrospective submode inside gulyaev-forge.
+    triggers:
+      - "улучши pipeline"
+      - "сделай forge более рабочим"
+      - "добавь новый MCP"
+      - "измени процесс гейтов"
+      - "упрости запуск PRODUCT/SELF"
+    inputs:
+      - docs/operating-playbook.md
+      - docs/design.md
+      - core/registry/mcp-servers.yaml
+
+  # ─── Pipeline stages (0 → 12, plus 6.5) ──────────────────────────────────
+
+  - name: strategy
+    kind: stage
+    stage_id: strategy
+    stage_number: 0
+    path: core/skills/strategy/SKILL.md
+    size_lines: 144
+    description: Define or update strategic direction — vision, positioning, target metrics, roadmap priorities.
+    triggers:
+      - "стратегия / направление / куда идём"
+      - "pivot / roadmap update"
+    inputs:
+      - docs/strategy/
+      - docs/BACKLOG.md
+
+  - name: discovery
+    kind: stage
+    stage_id: discovery
+    stage_number: 1
+    path: core/skills/discovery/SKILL.md
+    size_lines: 123
+    description: Find user pains, market gaps, competitor insights, and tech trends that inform product decisions.
+    triggers:
+      - "research / исследование"
+      - "конкуренты / market"
+      - "почему отваливаются"
+    inputs:
+      - docs/strategy/
+      - docs/research/
+
+  - name: prd
+    kind: stage
+    stage_id: prd
+    stage_number: 2
+    path: core/skills/prd/SKILL.md
+    size_lines: 172
+    description: Author the Behavior Contract — one compact execution contract for the slice.
+    triggers:
+      - "behavior contract gate"
+      - "PRD"
+      - "контракт поведения"
+    inputs:
+      - approved strategy / discovery artifacts
+      - linked GitHub issue body
+
+  - name: design
+    kind: stage
+    stage_id: design
+    stage_number: 3
+    path: core/skills/design/SKILL.md
+    size_lines: 129
+    description: Translate the Behavior Contract into visual and interaction design specifications.
+    triggers:
+      - "design / UX"
+      - "Figma / макеты"
+    inputs:
+      - approved Behavior Contract
+      - design system docs / tokens
+
+  - name: architecture
+    kind: stage
+    stage_id: architecture
+    stage_number: 4
+    path: core/skills/architecture/SKILL.md
+    size_lines: 217
+    description: Translate the Behavior Contract and design into technical architecture — system design, data, contracts, tech choices.
+    triggers:
+      - "architecture / схема системы"
+      - "API contract / schema / migration"
+    inputs:
+      - approved Behavior Contract
+      - approved design artifacts
+      - current data model / migrations
+
+  - name: test-plan
+    kind: stage
+    stage_id: test_plan
+    stage_number: 5
+    path: core/skills/test-plan/SKILL.md
+    size_lines: 73
+    description: Proof Hardening — tighten the Proof Required section of the approved Behavior Contract before implementation.
+    triggers:
+      - "test plan / proof required"
+      - "proof hardening"
+    inputs:
+      - approved Behavior Contract
+
+  - name: implementation
+    kind: stage
+    stage_id: implementation
+    stage_number: 6
+    path: core/skills/implementation/SKILL.md
+    size_lines: 195
+    description: Implement the approved contract with the smallest safe change set.
+    triggers:
+      - "implement / реализуй"
+      - "bugfix quick path"
+      - "micro_change implementation"
+    inputs:
+      - approved Behavior Contract + design + architecture (when applicable)
+      - project CLAUDE.md / AGENTS.md
+      - linked GitHub issue
+
+  - name: code-review
+    kind: stage
+    stage_id: code_review
+    stage_number: 6.5
+    path: core/skills/code-review/SKILL.md
+    size_lines: 171
+    description: Verify implementation follows the approved contract, uses TDD discipline, and introduces no regressions.
+    triggers:
+      - "code review / ревью кода"
+      - "PR review"
+    inputs:
+      - implementation diff
+      - approved Behavior Contract
+      - project REVIEW.md when present
+
+  - name: test-coverage
+    kind: stage
+    stage_id: test_coverage
+    stage_number: 7
+    path: core/skills/test-coverage/SKILL.md
+    size_lines: 196
+    description: Verify test completeness, fill coverage gaps, ensure the test suite is reliable.
+    triggers:
+      - "coverage / покрытие"
+      - "missing tests"
+    inputs:
+      - implementation diff
+      - existing test suite results
+
+  - name: qa
+    kind: stage
+    stage_id: qa
+    stage_number: 8
+    path: core/skills/qa/SKILL.md
+    size_lines: 205
+    description: Run end-to-end tests against a live environment, verify UI/UX against design, produce a quality report.
+    triggers:
+      - "qa / прогон / smoke"
+      - "release QA"
+    inputs:
+      - approved Behavior Contract acceptance
+      - staging or local URL
+      - design artifacts
+
+  - name: staging-deploy
+    kind: stage
+    stage_id: staging_deploy
+    stage_number: 9
+    path: core/skills/staging-deploy/SKILL.md
+    size_lines: 93
+    description: Deploy the feature to a staging environment for final validation before production.
+    triggers:
+      - "staging deploy / прекат на стейдж"
+    inputs:
+      - approved QA report
+      - deploy/ runbooks
+
+  - name: canary-deploy
+    kind: stage
+    stage_id: canary_deploy
+    stage_number: 10
+    path: core/skills/canary-deploy/SKILL.md
+    size_lines: 133
+    description: Gradually roll out to production, monitoring for issues at each step.
+    triggers:
+      - "canary / постепенный rollout"
+      - "production rollout"
+    inputs:
+      - staging deploy evidence
+      - rollback runbook
+
+  - name: product-analytics
+    kind: stage
+    stage_id: product_analytics
+    stage_number: 11
+    path: core/skills/product-analytics/SKILL.md
+    size_lines: 137
+    description: Measure feature impact against Behavior Contract success metrics; recommend next actions.
+    triggers:
+      - "метрики / retention / конверсия / воронка / аналитика"
+    inputs:
+      - Behavior Contract success metrics
+      - analytics dashboards / queries
+
+  - name: tech-monitoring
+    kind: stage
+    stage_id: tech_monitoring
+    stage_number: 12
+    path: core/skills/tech-monitoring/SKILL.md
+    size_lines: 136
+    description: Monitor technical health of a deployed feature — errors, performance, infra, user-impacting issues.
+    triggers:
+      - "alerts / тех-мониторинг"
+      - "post-release health"
+    inputs:
+      - error tracking dashboards
+      - infra metrics
+
+  # ─── Utility skills (no fixed stage) ─────────────────────────────────────
+
+  - name: investigate
+    kind: utility
+    path: core/skills/investigate/SKILL.md
+    size_lines: 135
+    description: Evidence-first investigation and audit mode — collect evidence before proposing changes.
+    triggers:
+      - "почему / разберись / аудит / проверь"
+      - "incident analysis"
+      - "architecture review"
+    inputs:
+      - relevant project artifacts under investigation
+      - core/templates/investigation-report-template.md
+
+  - name: scout
+    kind: utility
+    path: core/skills/scout/SKILL.md
+    size_lines: 151
+    description: Evaluate a new tool, framework, MCP server, adapter, or workflow candidate for forge.
+    triggers:
+      - "посмотри вот это / оценим инструмент"
+      - "new MCP / new skill / new framework"
+    inputs:
+      - core/registry/mcp-servers.yaml
+      - docs/research/scout-queue.md
