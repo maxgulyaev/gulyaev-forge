@@ -1,3 +1,8 @@
+---
+name: implementation
+description: Use during the code-writing stage after architecture + test plan are approved. Writes the production code + tests per the Behavior Contract. Stage 6.
+---
+
 # Pipeline Stage 6: Implementation
 
 ## Role

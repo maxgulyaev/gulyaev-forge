@@ -1,3 +1,8 @@
+---
+name: qa
+description: Use during Stage 8 QA — runs manual + automated checks on a testable environment (local, staging, prod canary). Produces a QA Gate verdict.
+---
+
 # Pipeline Stage 8: Automated QA
 
 ## Role

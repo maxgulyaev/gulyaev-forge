@@ -25,7 +25,7 @@ The official `claude-plugins-official` directory is **curated by Anthropic**. Th
 - [x] `CHANGELOG.md` with at least one entry
 - [x] `README.md` explains what the plugin does, how to install, and example usage
 - [x] `skills/` exists at repo root (symlink to `core/skills/` for back-compat with existing forge scripts)
-- [ ] `claude plugin validate` runs clean — **BLOCKED:** command not in Claude Code 2.1.150 CLI yet. The submission form will run it server-side. Local pre-check deferred until CLI exposes the command.
+- [x] `claude plugin validate .` passes (Claude Code 2.1.150 DOES expose the command — earlier note was wrong). Currently 1 advisory warning about plugin-root `CLAUDE.md` not being loaded as plugin context (intentional — that CLAUDE.md is for forge contributors, not plugin consumers; documented below). `claude plugin validate --strict .` fails on warnings; for now we ship with warnings.
 - [ ] `git grep -E "ghp_|ghs_|gho_|github_pat_|sk-ant-"` returns no matches (no secrets)
 - [ ] No machine-specific absolute paths in tracked files
 - [ ] All shell scripts run with `bash` (zsh-only constructs flagged in PR review)
@@ -63,6 +63,14 @@ Used in production by maxgulyaev/spodi (a Russian-language fitness app) where it
 /plugin marketplace add anthropics/claude-plugins-community
 /plugin install gulyaev-forge@claude-community
 ```
+
+### Why the remaining CLAUDE.md warning is intentional
+
+`claude plugin validate` emits 1 warning:
+
+> CLAUDE.md at the plugin root is not loaded as project context. To ship context with your plugin, use a skill (skills/<name>/SKILL.md) instead.
+
+Forge's root `CLAUDE.md` is the **contributor router** — it guides agents that are working ON forge itself (writing new skills, debugging the pipeline). Plugin **consumers** never see this file; they install the plugin and invoke `/gulyaev-forge:<skill-name>` directly. The warning is informational, not an error. We accept it for v0.1.x; v0.2.0 will rename to `CONTRIBUTING.md` once internal refs are updated.
 
 ## After submission
 

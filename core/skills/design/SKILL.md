@@ -1,3 +1,8 @@
+---
+name: design
+description: Use when designing UX/UI for an approved PRD. Wireframes, flows, copy, design tokens. Stage 3.
+---
+
 # Pipeline Stage 3: Design
 
 ## Role

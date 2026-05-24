@@ -1,3 +1,8 @@
+---
+name: code-review
+description: Use during Stage 6.5 external code review — verify implementation follows the approved contract, uses TDD discipline, no regressions. Runs after implementation, before test_coverage.
+---
+
 # Pipeline Stage 6.5: Code Review
 
 ## Role

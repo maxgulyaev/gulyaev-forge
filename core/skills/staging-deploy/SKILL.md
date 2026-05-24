@@ -1,3 +1,8 @@
+---
+name: staging-deploy
+description: Use when deploying an approved candidate to staging. Stage 9.
+---
+
 # Pipeline Stage 9: Staging Deploy
 
 ## Role

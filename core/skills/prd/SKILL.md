@@ -1,3 +1,8 @@
+---
+name: prd
+description: Use when writing a Product Requirements Document for an approved discovery output. Defines what to build, acceptance criteria, and out-of-scope items. Stage 2.
+---
+
 # Pipeline Stage 2: Behavior Contract
 
 ## Role

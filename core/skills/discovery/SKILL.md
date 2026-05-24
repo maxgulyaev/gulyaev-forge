@@ -1,3 +1,8 @@
+---
+name: discovery
+description: Use when investigating an unsolved problem before committing to a solution — user research, competitive scan, technology evaluation, prior-art search. Produces a Discovery Report.
+---
+
 # Pipeline Stage 1: Discovery
 
 ## Role

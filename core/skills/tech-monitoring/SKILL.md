@@ -1,3 +1,8 @@
+---
+name: tech-monitoring
+description: Use when reviewing technical-health metrics post-launch — error rates, latency, infra cost, incident trends. Stage 12.
+---
+
 # Pipeline Stage 12: Tech Monitoring
 
 ## Role
