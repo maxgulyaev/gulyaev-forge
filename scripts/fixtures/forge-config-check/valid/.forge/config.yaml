@@ -1,0 +1,36 @@
+project:
+  name: valid-fixture
+  description: "minimal valid config — every referenced path resolves"
+  stage: mvp
+
+agents:
+  - claude-code
+
+metrics:
+  baseline: docs/baseline.md
+  analytics_provider: custom
+
+release_targets:
+  prod:
+    platform: web
+    channel: production
+    deploy_stage: canary_deploy
+    runbook: docs/runbook.md
+
+stage_agents:
+  code_review:
+    reviewer:
+      adapter: codex-review
+      prompt_file: .forge/reviewer.md
+
+stages:
+  strategy:
+    inject:
+      required:
+        - docs/strategy.md
+      if_exists:
+        - docs/baseline.md
+  implementation:
+    inject:
+      required:
+        - CLAUDE.md

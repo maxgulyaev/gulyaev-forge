@@ -24,17 +24,22 @@ Use it before making forge changes when the user gives a short prompt and expect
 1. Run self preflight:
    - `bash scripts/forge-doctor.sh self .`
    - `bash scripts/forge-status.sh self .`
-2. Read:
+2. Load the slim skill catalog before reading other skill bodies:
+   - `core/skills/INDEX.yaml`
+   - use it to find utility skills (`scout`, `investigate`) or stage skills relevant to the requested forge change
+   - read each chosen skill body from its `path` field
+   - direct reads of `core/skills/<name>/SKILL.md` remain a supported fallback when the catalog is unavailable or out of date
+3. Read:
    - `docs/operating-playbook.md`
    - `docs/design.md`
    - the most relevant files under `core/`, `docs/`, `scripts/`
-3. Resolve the submode:
+4. Resolve the submode:
    - tool evaluation -> `Scout`
    - process / skill / template / adapter change -> `Meta`
    - version / runtime / MCP upgrade -> `Upgrade`
    - analyze pain points -> `Retrospective`
-4. Execute the task in that submode.
-5. If the forge change affects a connected product, validate it in that product repo after editing forge.
+5. Execute the task in that submode.
+6. If the forge change affects a connected product, validate it in that product repo after editing forge.
 
 For `Scout` work specifically:
 - use `core/skills/scout/SKILL.md`

@@ -1,0 +1,46 @@
+project:
+  name: edge-cases-fixture
+  description: "config with comments mid-block, quoted paths, anchors, empty if_exists, nested-name-collision"
+  stage: mvp
+
+# Top-level comment
+
+metrics:
+  # commented-out baseline (should not be picked up)
+  # baseline: docs/old-baseline.md
+  analytics_provider: custom   # inline comment
+
+release_targets:
+  ios_testflight:
+    platform: ios
+    channel: testflight
+    runbook: "docs/runbook.md#testflight"   # anchored, quoted
+  web_production:
+    platform: web
+    channel: production
+    runbook: docs/runbook.md#web-production   # anchored, unquoted
+
+stage_agents:
+  code_review:
+    reviewer:
+      adapter: codex-review
+      prompt_file: .forge/reviewer.md
+    # legal-reviewer disabled — no prompt_file (should be silently skipped)
+
+stages:
+  strategy:
+    inject:
+      required:
+        - "docs/strategy.md"      # quoted path
+      if_exists: []               # explicit empty list
+  design:
+    inject:
+      required: []
+      if_exists: []
+  implementation:
+    inject:
+      required:
+        - CLAUDE.md
+      # commented-out optional bucket
+      # if_exists:
+      #   - docs/notes.md

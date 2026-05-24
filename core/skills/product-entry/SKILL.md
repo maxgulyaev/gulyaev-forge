@@ -216,19 +216,24 @@ The agent must translate natural approval into the durable issue comment format 
 1. Run product preflight from the current product repo using the same forge checkout that provided this skill:
    - `bash <forge-root>/scripts/forge-doctor.sh product .`
    - `bash <forge-root>/scripts/forge-status.sh product .`
-2. Read:
+2. Load the slim skill catalog before reading any other stage skill body:
+   - `<forge-root>/core/skills/INDEX.yaml`
+   - use it to pick the correct stage / utility skill from triggers, `kind`, and `stage_id`
+   - read the chosen skill body from its `path` field
+   - direct reads of `<forge-root>/core/skills/<name>/SKILL.md` remain a supported fallback when the catalog is unavailable or out of date
+3. Read:
    - `.forge/active-run.env` first, if present
    - `.forge/config.yaml`
    - `.forge/pipeline-state.yaml`
    - the linked GitHub issue
    - the latest approved artifact for the current stage, if any
    - governance/strategy/backlog docs required by the stage
-3. If `.forge/active-run.env` describes an active bugfix quick run:
+4. If `.forge/active-run.env` describes an active bugfix quick run:
    - treat it as the current workflow instead of the unrelated feature pipeline
    - use its issue as the execution contract
    - respect its current quick-path stage and gate status
    - do not lose or overwrite it just because `.forge/pipeline-state.yaml` points to a different feature
-4. Check gate lock before advancing:
+5. Check gate lock before advancing:
    - if the current stage is gated and `current_gate_status` is `pending_approval`, stop at that gate
    - if the current stage is gated and there is no explicit approval recorded yet, treat it as `pending_approval`
    - when a gate is pending or the user asks for an approval decision, assess it independently from:
@@ -242,15 +247,16 @@ The agent must translate natural approval into the durable issue comment format 
      - `/gate rejected`
    - if the user approves in the current chat, mirror that decision into the GitHub issue before updating stage labels or `.forge/pipeline-state.yaml`
    - for an active bugfix quick run, mirror the same decision into `.forge/active-run.env`
-5. Resolve the target stage from intent:
+6. Resolve the target stage from intent:
    - if the user names a target stage or gate, treat it as the desired destination, not permission to skip unresolved gates
    - otherwise infer the path from bug / feature / question / metrics intent
    - for feature/change requests, choose `micro_change`, `small_change`, or `full_feature` before choosing the starting stage
    - stop at the first unresolved gated stage on the path
-6. Load the correct stage context:
-   - forge base skill: `<forge-root>/core/skills/[stage]/SKILL.md`
+7. Load the correct stage context:
+   - resolve the stage skill via `<forge-root>/core/skills/INDEX.yaml` (look up by `stage_id`); the `path` field points at the canonical SKILL.md
+   - fallback if the catalog is unavailable: `<forge-root>/core/skills/[stage]/SKILL.md`
    - project overlay: `.forge/skills/[stage].md` if present
-7. Work as that stage role.
+8. Work as that stage role.
    - Do not default to implementation unless the target stage really is implementation or later.
    - If the current stage remains in progress and no gate is required yet, present a checkpoint, not a vague progress note.
    - For non-gated stages such as `code_review` and `test_coverage`, auto-proceed to the next allowed stage when criteria are satisfied instead of stopping for internal execution choices.
@@ -275,7 +281,7 @@ The agent must translate natural approval into the durable issue comment format 
      - do not end with open-ended prompts like `что дальше?` when the next step is already clear
      - if `Gate needed now: no` and no missing input/secret/approval is required, say the localized equivalent of `Needs from moderator: none` and continue
      - Russian short replies such as `продолжай`, `запусти review`, `прогони qa`, and `покажи gate` are valid equivalents
-8. Before claiming a stage slice or issue is complete:
+9. Before claiming a stage slice or issue is complete:
    - map every required issue acceptance item or rollout note to one of:
      - proven with concrete evidence
      - explicitly deferred with approval
