@@ -1,6 +1,6 @@
 ---
 name: test-plan
-description: Use when authoring a test plan for an approved architecture — coverage matrix, fixtures, environments, exit criteria. Stage 5.
+description: Use when the Behavior Contract still has gaps in Scenario Matrix / Edge Cases / Technical Constraints / Proof Required. Strengthens those sections IN PLACE — NOT a separate file. Skip when contract is already strong. (Internal stage id `test_plan` for back-compat; the real activity is Proof Hardening.) Stage 5.
 ---
 
 # Pipeline Stage 5: Proof Hardening

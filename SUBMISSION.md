@@ -2,7 +2,7 @@
 
 W3.4 of Agent-Ready 2026 program (maxgulyaev/spodi#336), corrected per official Anthropic plugin docs (W3.1b).
 
-**Status as of 2026-05-24:** v0.1.1 manifest live (`.claude-plugin/plugin.json`), `skills/` symlinked to `core/skills/` for spec compliance, LICENSE + CHANGELOG present.
+**Status as of 2026-05-24:** v0.1.2 manifest live (`.claude-plugin/plugin.json`), `skills/` symlinked to `core/skills/` for spec compliance, LICENSE + CHANGELOG present.
 
 ## How the submission process works (2026-05, per official docs)
 
@@ -70,7 +70,7 @@ Used in production by maxgulyaev/spodi (a Russian-language fitness app) where it
 
 > CLAUDE.md at the plugin root is not loaded as project context. To ship context with your plugin, use a skill (skills/<name>/SKILL.md) instead.
 
-Forge's root `CLAUDE.md` is the **contributor router** — it guides agents that are working ON forge itself (writing new skills, debugging the pipeline). Plugin **consumers** never see this file; they install the plugin and invoke `/gulyaev-forge:<skill-name>` directly. The warning is informational, not an error. We accept it for v0.1.x; v0.2.0 will rename to `CONTRIBUTING.md` once internal refs are updated.
+Forge's root `CLAUDE.md` is the **contributor router** — it guides agents that are working ON forge itself (writing new skills, debugging the pipeline). Plugin **consumers** never see this file; they install the plugin and invoke `/gulyaev-forge:<skill-name>` directly. The warning is informational, not an error. We accept it for v0.1.x. v0.2.0 will move CLAUDE.md content somewhere Claude Code DOES load (likely a `skills/contributor-router/SKILL.md` with the same content), keeping the contributor routing live; a blind file rename would lose the routing logic embedded in the current CLAUDE.md.
 
 ## After submission
 
@@ -81,7 +81,7 @@ Forge's root `CLAUDE.md` is the **contributor router** — it guides agents that
 
 ## Known v0.2.0 work (post-submission polish)
 
-These are NOT blockers for v0.1.1 submission but should land before pursuing the "Anthropic Verified" badge:
+These are NOT blockers for v0.1.2 submission but should land before any potential push toward an "Anthropic Verified" review (no public application process visible today; verification appears to be at Anthropic's discretion):
 
 - **Skills layout normalisation** — currently `skills/` is a symlink to `core/skills/`. Move to a real directory and update `forge-doctor.sh` / `forge-stage-agent.sh` to use the new path; remove the symlink. Spodi consumer side (`.forge/config.yaml`) doesn't reference forge skills directly so no consumer migration needed.
 - **`agents/` subdir** — official spec wants agent definitions there. Forge has `adapters/` instead (per-CLI-tool translators, not Claude subagents). Either rename or add a separate `agents/` with actual subagent definitions.
