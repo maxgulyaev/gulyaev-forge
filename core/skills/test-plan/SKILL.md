@@ -1,3 +1,8 @@
+---
+name: test-plan
+description: Use when authoring a test plan for an approved architecture — coverage matrix, fixtures, environments, exit criteria. Stage 5.
+---
+
 # Pipeline Stage 5: Proof Hardening
 
 ## Role

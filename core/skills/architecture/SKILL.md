@@ -1,3 +1,8 @@
+---
+name: architecture
+description: Use when designing the technical architecture for an approved PRD/design — system topology, data model, API contracts, infra changes. Stage 4.
+---
+
 # Pipeline Stage 4: Architecture
 
 ## Role

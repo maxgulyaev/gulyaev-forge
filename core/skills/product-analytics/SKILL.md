@@ -1,3 +1,8 @@
+---
+name: product-analytics
+description: Use when analysing product metrics post-launch — funnel health, cohort retention, A/B results, decision memos. Stage 11.
+---
+
 # Pipeline Stage 11: Product Analytics
 
 ## Role

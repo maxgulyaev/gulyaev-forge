@@ -1,3 +1,8 @@
+---
+name: strategy
+description: Use when defining or refreshing product strategy — vision, positioning, target metrics, roadmap. Greenfield products, quarterly reviews, post-analytics decisions (continue/amplify/pivot/kill).
+---
+
 # Pipeline Stage 0: Strategy
 
 ## Role

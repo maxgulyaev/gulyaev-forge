@@ -1,3 +1,8 @@
+---
+name: test-coverage
+description: Use when measuring and improving test coverage post-implementation — find uncovered branches, add tests, mark BUSINESS_RULES rules [x] only with proof at matching strength level. Stage 7.
+---
+
 # Pipeline Stage 7: Test Coverage
 
 ## Role

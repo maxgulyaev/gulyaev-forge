@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-05-24
+
+Post-W3.1b codex review (PASS_WITH_CHANGES) — caught that `claude plugin validate` IS in Claude Code 2.1.150 (earlier note saying it was unavailable was wrong) and that 15 validation warnings were live.
+
+### Fixed
+- All 14 forge stage skills (`core/skills/architecture/SKILL.md`, `code-review`, `design`, `discovery`, `implementation`, `prd`, `product-analytics`, `qa`, `staging-deploy`, `canary-deploy`, `strategy`, `tech-monitoring`, `test-coverage`, `test-plan`) now have YAML frontmatter with `name:` + `description:`. Description text is the consumer-facing trigger (e.g., strategy: "Use when defining or refreshing product strategy …"). Per official docs, `description:` is what Claude uses to auto-invoke the skill.
+- SUBMISSION.md updated: removed the false "validate not available in 2.1.150" claim. Added a "Why the remaining CLAUDE.md warning is intentional" section explaining the contributor-router rationale.
+
+### Validation status
+- `claude plugin validate .` → 1 warning, 0 errors (was 15 warnings).
+- `claude plugin validate --strict .` → still fails on the 1 remaining `CLAUDE.md` warning. v0.2.0 will rename CLAUDE.md → CONTRIBUTING.md to clear strict mode.
+
+### Already in v0.1.1 (carry-over reminder)
+- spec-compliant manifest (only `name`, `description`, `version`, `author`, `homepage`, `repository`, `license`)
+- `skills` symlink → `core/skills` for spec-required location with back-compat to existing forge scripts
+
 ## [0.1.1] — 2026-05-24
 
 Post-W3.1 fact-check after reading official Anthropic plugin docs (https://code.claude.com/docs/en/plugins). v0.1.0 manifest had several non-compliant fields and wrong submission URL in SUBMISSION.md.

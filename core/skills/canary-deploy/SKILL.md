@@ -1,3 +1,8 @@
+---
+name: canary-deploy
+description: Use when deploying an approved candidate to production canary (a subset of users) before full rollout. Stage 10.
+---
+
 # Pipeline Stage 10: Canary Deploy
 
 ## Role
