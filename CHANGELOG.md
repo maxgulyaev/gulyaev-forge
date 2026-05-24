@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-05-24
+
+Post-W3.1 fact-check after reading official Anthropic plugin docs (https://code.claude.com/docs/en/plugins). v0.1.0 manifest had several non-compliant fields and wrong submission URL in SUBMISSION.md.
+
+### Fixed
+- `.claude-plugin/plugin.json` — stripped invented fields (`skills_directory`, `scripts_directory`, `templates_directory`, `adapters_directory`, `commands_directory`, `_compat_notes`, `_install_hint`, `keywords`). Manifest now matches the official schema: `name`, `description`, `version`, `author`, `homepage`, `repository`, `license` only.
+- `skills/` added as a symlink to `core/skills/` so Claude Code can find the skill catalogue at the spec-required location while existing forge scripts (`forge-doctor.sh`, `forge-stage-agent.sh`, `INDEX.yaml`) continue to reference `core/skills/`.
+- `SUBMISSION.md` — corrected submission URLs from the wrong `clau.de/plugin-directory-submission` to the official `https://claude.ai/settings/plugins/submit` and `https://platform.claude.com/plugins/submit`. Added `claude plugin validate` note (command not in CLI 2.1.150 yet; submission form runs it server-side).
+- `SUBMISSION.md` — noted plugin skills will be namespaced as `/gulyaev-forge:<skill>` (per official docs, plugin skills are ALWAYS namespaced).
+
+### Deferred to 0.2.0
+- Skills layout normalisation: remove the symlink, move `core/skills/` to top-level `skills/` for real, update internal script refs.
+- `agents/` subdir with actual Claude subagent definitions (current `adapters/` is per-CLI translators, not subagents).
+- Per-skill SKILL.md frontmatter audit (need `description:` on every SKILL.md for Claude auto-invocation).
+- `bin/` for scripts that should be on `$PATH` while plugin is enabled.
+
 ## [0.1.0] — 2026-05-24
 
 Initial plugin manifest extraction (W3.1 of Agent-Ready 2026 program — maxgulyaev/spodi#336).
