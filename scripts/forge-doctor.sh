@@ -917,6 +917,21 @@ doctor_product() {
   check_release_targets "$dir" "$config"
   check_product_hooks "$dir"
 
+  # forge-config-check (Agent-Ready 2026 W1.7) — validate every path ref in config.yaml
+  local forge_root_for_check cc_output cc_rc cc_errors cc_warnings
+  forge_root_for_check=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+  if [[ -x "$forge_root_for_check/scripts/forge-config-check.sh" ]]; then
+    cc_rc=0
+    cc_output=$(bash "$forge_root_for_check/scripts/forge-config-check.sh" "$dir" 2>&1) || cc_rc=$?
+    cc_errors=$(printf '%s\n' "$cc_output" | awk '/^errors:/ {print $2; exit}')
+    cc_warnings=$(printf '%s\n' "$cc_output" | awk '/^warnings:/ {print $2; exit}')
+    if [[ "$cc_rc" -eq 0 && "${cc_errors:-0}" -eq 0 ]]; then
+      ok "forge-config-check: all path refs resolve (warnings: ${cc_warnings:-0})"
+    else
+      err "forge-config-check: ${cc_errors:-?} broken path ref(s); run: bash scripts/forge-config-check.sh $dir"
+    fi
+  fi
+
   if [[ -f "$dir/docs/BUSINESS_RULES.md" ]]; then
     ok "BUSINESS_RULES.md present"
     local forge_root

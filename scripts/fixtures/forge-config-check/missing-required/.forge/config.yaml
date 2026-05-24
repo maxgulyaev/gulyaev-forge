@@ -1,0 +1,13 @@
+project:
+  name: missing-required-fixture
+  description: "config with a missing required: path — script must exit 1"
+  stage: mvp
+
+stages:
+  strategy:
+    inject:
+      required:
+        - docs/strategy.md           # exists
+        - docs/does-not-exist.md     # MISSING — should error
+      if_exists:
+        - docs/optional-missing.md   # MISSING — should warn only
