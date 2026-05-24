@@ -1,40 +1,12 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
   "name": "gulyaev-forge",
-  "displayName": "Gulyaev Forge — pipeline-driven product engineering",
-  "description": "Universal pipeline orchestrator for AI-agent-driven product engineering. 18 stage skills (strategy → discovery → PRD → design → architecture → implementation → code review → test coverage → QA → staging/canary deploy → product analytics → tech monitoring), 8 agent adapters (claude-code, codex, cursor, aider, cline, copilot, jules, windsurf), and 11 operator scripts. Stateless, agent-agnostic, designed to be lazy-loaded.",
-  "version": "0.1.0",
+  "description": "Pipeline orchestrator for AI-agent-driven product engineering — 18 stage skills (strategy → discovery → PRD → design → architecture → implementation → code review → test coverage → QA → staging/canary deploy → product analytics → tech monitoring), 8 agent adapters, 11 operator scripts. Used in production by maxgulyaev/spodi.",
+  "version": "0.1.1",
   "author": {
     "name": "Max Gulyaev",
     "url": "https://github.com/maxgulyaev"
   },
   "homepage": "https://github.com/maxgulyaev/gulyaev-forge",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/maxgulyaev/gulyaev-forge.git"
-  },
-  "license": "MIT",
-  "keywords": [
-    "pipeline",
-    "orchestration",
-    "agent-ready",
-    "code-review",
-    "stage-gates",
-    "forge"
-  ],
-  "skills_directory": "core/skills",
-  "scripts_directory": "scripts",
-  "templates_directory": "core/templates",
-  "adapters_directory": "adapters",
-  "commands_directory": "core/commands",
-  "_compat_notes": [
-    "Non-standard layout (core/skills/ not skills/) kept for backward compatibility with existing forge-stage-agent.sh + forge-doctor.sh which expect core/skills/<name>/SKILL.md. Future v0.2 may normalise to standard top-level skills/.",
-    "INDEX.yaml at core/skills/INDEX.yaml is the lazy-loaded skill catalogue per anatomy doc.",
-    "forge-config-check.sh enforces .forge/config.yaml integrity in consuming projects (e.g., maxgulyaev/spodi)."
-  ],
-  "_install_hint": {
-    "user_scope": "Add to ~/.claude/settings.json -> enabledPlugins after the marketplace lookup, OR clone the repo and reference via Personal scope.",
-    "marketplace_status": "Submitted to claude-community pending review (W3.4 of Agent-Ready 2026).",
-    "consumer_repos": ["maxgulyaev/spodi"]
-  }
+  "repository": "https://github.com/maxgulyaev/gulyaev-forge",
+  "license": "MIT"
 }
