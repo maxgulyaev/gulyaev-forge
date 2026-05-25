@@ -1,15 +1,17 @@
 # W3.4 — Community marketplace submission (USER ACTIONS)
 
-> This is a step-by-step checklist for **Max** to submit `gulyaev-forge` to the community plugin marketplace. Claude cannot do these steps — they require your Anthropic account.
+> Step-by-step checklist for **Max** to submit `gulyaev-forge` to Anthropic's community plugin marketplace. Claude cannot do these — they require your Anthropic account.
 >
-> All claims here verified against the official docs on 2026-05-25:
-> https://code.claude.com/docs/en/discover-plugins
+> Verified against official Anthropic docs on 2026-05-25:
+> - https://code.claude.com/docs/en/discover-plugins
+> - https://code.claude.com/docs/en/plugins
+> - https://code.claude.com/docs/en/plugin-marketplaces
 
 ## TL;DR — what & why
 
-`gulyaev-forge` v0.1.3 is on main, `claude plugin validate .` returns 0 errors. To make it installable via `/plugin install gulyaev-forge@claude-community` for anyone (including spodi sessions), it needs to be added to the **community marketplace** at https://github.com/anthropics/claude-plugins-community.
+`gulyaev-forge` v0.1.3 is on main, `claude plugin validate .` returns 0 errors. To make it installable as `/plugin install gulyaev-forge@claude-community` for anyone (including spodi sessions), it needs to be added to the **community marketplace** (`anthropics/claude-plugins-community`).
 
-There is no public application form for the **official** marketplace — that one is curated by Anthropic at their discretion.
+There is no public application for the **official** marketplace — that one is curated by Anthropic at their discretion.
 
 ---
 
@@ -23,102 +25,118 @@ git checkout main && git pull && git status
 
 # 2. Validator clean
 claude plugin validate .
-# Expect: 0 errors, 1 warning (CLAUDE.md root) — accept warning, deferred to v0.2.0
+# Expect: 0 errors, 1 warning (CLAUDE.md root) — deferred to v0.2.0, OK to submit with it
 
 # 3. Tag the release
 git tag -a v0.1.3 -m "v0.1.3 — codex W3.1c findings folded; ready for community marketplace"
 git push origin v0.1.3
 
-# 4. Confirm CHANGELOG and SUBMISSION.md reflect v0.1.3
-grep -n "0.1.3" CHANGELOG.md SUBMISSION.md plugin.json
+# 4. Confirm version is consistent
+grep -n "0.1.3" CHANGELOG.md SUBMISSION.md .claude-plugin/plugin.json
 ```
 
 If any of those fail, fix before continuing.
 
 ---
 
-## Submission (4 paths — pick one)
+## How to submit — only ONE supported path
 
-### Path A — in-app `/plugin` form (RECOMMENDED, easiest)
+Anthropic exposes a single submission flow: a **web form** behind your Anthropic account login. Both URLs below resolve to the same form (one for personal accounts, one for Console / workspace accounts):
 
-1. Open Claude Code in any project
-2. Type `/plugin` to open the plugin manager
-3. Find the "Submit a plugin" or "Submit to community" option (tab varies by CLI version 2.1.150+)
-4. Paste the repo URL: `https://github.com/maxgulyaev/gulyaev-forge`
-5. Confirm version: `v0.1.3`
-6. Submit
+- **Personal account**: https://claude.ai/settings/plugins/submit
+- **Workspace / Console**: https://platform.claude.com/plugins/submit
 
-You should get a confirmation message. The submission triggers Anthropic's automated validation + safety screen.
+> The community repo `anthropics/claude-plugins-community` is a **read-only mirror** — direct PRs there are auto-closed. Do not fork-and-PR. Do not paste the repo URL anywhere except the form above.
 
-### Path B — `https://claude.com/plugins`
+### Steps
 
-1. Open https://claude.com/plugins in browser (logged in as Max)
-2. Look for "Submit a plugin" CTA
-3. Paste repo URL + version
-4. Submit
+1. Open one of the two URLs above (logged in as Max).
+2. The form asks for:
+   - Plugin repository URL: `https://github.com/maxgulyaev/gulyaev-forge`
+   - Specific commit SHA or tag: `v0.1.3` (or paste the SHA of the tag)
+   - Short description (≤140 chars): grab from `.claude-plugin/plugin.json` `description` field
+   - Categories / tags (optional)
+3. Submit.
 
-### Path C — PR to `anthropics/claude-plugins-community`
-
-If Paths A and B aren't visible in your CLI version yet:
-
-1. Fork https://github.com/anthropics/claude-plugins-community
-2. Add an entry pointing to your repo + commit SHA for v0.1.3 (look at existing entries for format)
-3. Open a PR — Anthropic's bot runs automated validation
-4. If validation passes, an Anthropic team member reviews + merges
-
-Reference: official docs say "third-party plugins that have passed Anthropic's automated validation and safety screening. Each plugin is pinned to a specific commit SHA in the catalog."
-
-### Path D — manual ping
-
-If none of the above work, file an issue at `anthropics/claude-plugins-community` describing what you want to submit.
+You'll get a confirmation email or in-app notification. The submission triggers Anthropic's automated validation pipeline + a human review.
 
 ---
 
 ## What to expect
 
-Once submitted (any path):
-
-- **Automated validation**: schema check on plugin.json, skill frontmatter, SKILL.md format. We've already run `claude plugin validate .` so this should pass.
-- **Safety screen**: Anthropic scans for obvious red flags (eval / network exfil / suspicious permissions). Forge is read-only on the local repo + scripted; should pass.
-- **Manual review**: a human looks at the README/SUBMISSION.md and decides whether the plugin is generally useful or too niche.
+- **Automated validation**: schema check on plugin.json, skill frontmatter, SKILL.md format. We've already run `claude plugin validate .` — should pass.
+- **Safety screen**: Anthropic scans for obvious red flags (eval / network exfil / suspicious shell-out). Forge is read-only on the local repo + scripted shell helpers; should pass.
+- **Manual review**: a human looks at the README + SUBMISSION.md and decides whether the plugin is generally useful or too niche.
 - **Outcome**:
-  - **Accepted** → merged into `anthropics/claude-plugins-community`, pinned to your v0.1.3 commit SHA. Then `/plugin install gulyaev-forge@claude-community` works for everyone.
-  - **Changes requested** → Anthropic comments with what to fix. Make changes, bump to v0.1.4, push, ask Anthropic to re-pin.
-  - **Rejected** → rare. Usually for security or scope reasons. Keep using as a local plugin.
+  - **Accepted** → merged into the community marketplace, pinned to your v0.1.3 commit SHA. Then `/plugin install gulyaev-forge@claude-community` works for everyone.
+  - **Changes requested** → you'll get a comment with the required fixes. Make changes, bump version, re-submit (or ask Anthropic to re-pin if it's pre-merge).
+  - **Rejected** → rare. Usually for security / scope reasons. Plugin still works as a local install (see below).
 
-Expected turnaround: **5–14 days** based on the volume of submissions visible in the community-marketplace PR queue (May 2026).
+Expected turnaround: **5–14 days** based on the community-marketplace queue volume visible in May 2026.
 
 ---
 
 ## After acceptance
 
-1. **Update `governance.md`** — bump "W3.4 pending" → "W3.4 shipped <date>", remove the local-install snippet
-2. **Update spodi `.claude/settings.json`** — add `extraKnownMarketplaces` + `enabledPlugins` per `docs/agent-ready/governance.md`
-3. **Test from a fresh project** — `/plugin install gulyaev-forge@claude-community` then `/gulyaev-forge:strategy` should work
-4. **Close `#336`** (Agent-Ready 2026 umbrella) — W3 complete
+1. **Update `spodi/docs/agent-ready/governance.md`** — bump "W3.4 pending" → "W3.4 shipped <date>", remove the local-install snippet
+2. **Update spodi `.claude/settings.json`** — paste the `extraKnownMarketplaces` + `enabledPlugins` JSON from governance.md
+3. **Smoke test from a fresh project** — `/plugin install gulyaev-forge@claude-community` then `/gulyaev-forge:strategy` should work
+4. **Close `spodi#336`** — W3 complete, Agent-Ready 2026 program shipped
 
 ---
 
-## If you want to keep iterating WITHOUT public submission
+## Local install (until acceptance, or as fallback)
 
-You can use the plugin locally indefinitely:
+Per Anthropic plugin docs, **local install via `/plugin marketplace add <path>` requires a `.claude-plugin/marketplace.json`** file in the target directory — NOT just `plugin.json`. Forge currently has only `plugin.json`.
+
+Two options to use the plugin locally before/without submission:
+
+### Option 1 — set up forge as its own one-plugin marketplace
+
+Add a minimal `.claude-plugin/marketplace.json` to the repo that lists itself:
+
+```json
+{
+  "name": "gulyaev-forge-local",
+  "plugins": [
+    { "name": "gulyaev-forge", "source": "." }
+  ]
+}
+```
+
+Then:
 
 ```bash
-# Inside Claude Code in any project:
 /plugin marketplace add ~/Documents/Dev/gulyaev-forge
-/plugin install gulyaev-forge@gulyaev-forge
+/plugin install gulyaev-forge@gulyaev-forge-local
 /reload-plugins
 ```
 
-The local marketplace name is the repo basename. No submission required. Auto-updates won't happen — you `git pull` in the repo + `/plugin marketplace update gulyaev-forge` manually.
+(This is a 5-minute change — open as a follow-up PR if needed.)
+
+### Option 2 — symlink-based dev install (current spodi setup)
+
+Add `~/.claude/settings.json` (or per-project `.claude/settings.json`):
+
+```jsonc
+{
+  "developmentPlugins": [
+    "~/Documents/Dev/gulyaev-forge"
+  ]
+}
+```
+
+This is the path-based reference spodi uses today, captured in `docs/agent-ready/governance.md`. No marketplace JSON needed, but no auto-update either.
 
 ---
 
 ## Refs
 
-- Anthropic plugin docs (May 2026): https://code.claude.com/docs/en/discover-plugins
-- Community marketplace: https://github.com/anthropics/claude-plugins-community
-- Official marketplace: https://github.com/anthropics/claude-plugins-official (no public application)
-- Plugin landing: https://claude.com/plugins
+- Anthropic plugin install docs: https://code.claude.com/docs/en/discover-plugins
+- Plugin authoring docs: https://code.claude.com/docs/en/plugins
+- Marketplace authoring docs: https://code.claude.com/docs/en/plugin-marketplaces
+- Community marketplace mirror (read-only): https://github.com/anthropics/claude-plugins-community
+- Official marketplace (curated by Anthropic, no public submission): https://github.com/anthropics/claude-plugins-official
+- Plugin landing page: https://claude.com/plugins
 - Forge SUBMISSION.md (internal acceptance checklist): SUBMISSION.md
 - Spodi governance cross-link: spodi/docs/agent-ready/governance.md (PR #340)
