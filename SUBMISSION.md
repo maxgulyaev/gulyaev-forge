@@ -1,5 +1,7 @@
 # Claude Code marketplace submission checklist
 
+**SUBMITTED:** 2026-05-25 via https://claude.ai/settings/plugins/submit. Awaiting Anthropic review (5–14d typical).
+
 W3.4 of Agent-Ready 2026 program (maxgulyaev/spodi#336), corrected per official Anthropic plugin docs (W3.1b).
 
 **Status as of 2026-05-24:** v0.1.3 manifest live (`.claude-plugin/plugin.json`), `skills/` symlinked to `core/skills/` for spec compliance, LICENSE + CHANGELOG present.
