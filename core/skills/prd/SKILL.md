@@ -1,6 +1,6 @@
 ---
 name: prd
-description: Use when writing a Product Requirements Document for an approved discovery output. Defines what to build, acceptance criteria, and out-of-scope items. Stage 2.
+description: Use when authoring a Behavior Contract for an approved discovery output — one compact file with scope, behaviour, scenarios, edge cases, and required proof. (Internal stage id `prd` for back-compat; artifact is a Behavior Contract, not a long-form PRD.) Stage 2.
 ---
 
 # Pipeline Stage 2: Behavior Contract

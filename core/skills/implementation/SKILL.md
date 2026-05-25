@@ -1,6 +1,6 @@
 ---
 name: implementation
-description: Use during the code-writing stage after architecture + test plan are approved. Writes the production code + tests per the Behavior Contract. Stage 6.
+description: Use during the code-writing stage. Writes production code + tests per the approved Behavior Contract. Covers all sizes — bugfix, micro_change, small_change, full_feature. Reads architecture if present and Proof Hardening output if Stage 5 ran. Stage 6.
 ---
 
 # Pipeline Stage 6: Implementation

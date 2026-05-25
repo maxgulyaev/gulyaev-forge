@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] — 2026-05-24
+
+Codex W3.1c review (PASS_WITH_CHANGES) — folded 5 findings.
+
+### Fixed
+- SUBMISSION.md version refs bumped (3 places still said v0.1.1 after the v0.1.2 manifest bump).
+- `prd` skill description: was "Product Requirements Document" — actually authors a **Behavior Contract** (internal stage id `prd` kept for back-compat, but artifact is one compact contract not a separate PRD + test plan pair).
+- `test-plan` skill description: was "test plan / coverage matrix / fixtures" — actually **Proof Hardening** (strengthens the Behavior Contract IN PLACE, no separate file by default).
+- `implementation` skill description: was "after architecture + test plan approved" (too narrow). Now covers bugfix / micro_change / small_change / full_feature explicitly, and notes Proof Hardening is optional.
+- `investigate` skill description: was overlapping with discovery/scout. Now explicit "INVESTIGATION (not discovery, not scouting)" with sister-skill cross-references.
+- SUBMISSION.md "Anthropic Verified" mention softened — there is no public application process visible; verification is at Anthropic's discretion.
+- SUBMISSION.md CLAUDE.md rename caveat: v0.2.0 will MOVE content to `skills/contributor-router/SKILL.md` (where Claude Code DOES load it), not blind-rename to CONTRIBUTING.md which would lose the routing.
+
+### Validation status
+- `claude plugin validate .` → still 1 warning, 0 errors (unchanged).
+- `claude plugin validate --strict .` → still fails on the CLAUDE.md warning; deferred to v0.2.0 per the corrected plan above.
+
 ## [0.1.2] — 2026-05-24
 
 Post-W3.1b codex review (PASS_WITH_CHANGES) — caught that `claude plugin validate` IS in Claude Code 2.1.150 (earlier note saying it was unavailable was wrong) and that 15 validation warnings were live.

@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: Evidence-first investigation and audit mode. Use when the request is about uncertainty, diagnosis, incident analysis, architecture review, product research, or deep discovery — any situation where the agent should collect evidence before proposing changes.
+description: Evidence-first INVESTIGATION (not discovery, not scouting). Use when the user asks why something is happening, what broke, audit X, or cascading-bug class (3+ P0 in same surface in 7 days, or any close→reopen P0). Sister skills — discovery for greenfield problem exploration, scout for evaluating a new tool / MCP / framework candidate.
 ---
 
 # Investigate
