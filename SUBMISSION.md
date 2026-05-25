@@ -2,7 +2,7 @@
 
 W3.4 of Agent-Ready 2026 program (maxgulyaev/spodi#336), corrected per official Anthropic plugin docs (W3.1b).
 
-**Status as of 2026-05-24:** v0.1.2 manifest live (`.claude-plugin/plugin.json`), `skills/` symlinked to `core/skills/` for spec compliance, LICENSE + CHANGELOG present.
+**Status as of 2026-05-24:** v0.1.3 manifest live (`.claude-plugin/plugin.json`), `skills/` symlinked to `core/skills/` for spec compliance, LICENSE + CHANGELOG present.
 
 ## How the submission process works (2026-05, per official docs)
 
@@ -20,7 +20,7 @@ The official `claude-plugins-official` directory is **curated by Anthropic**. Th
 
 - [x] `.claude-plugin/plugin.json` exists at repo root and parses as valid JSON
 - [x] Manifest fields are spec-compliant only (`name`, `description`, `version`, `author`, `homepage`, `repository`, `license`) — no invented `_compat_notes` / `skills_directory` etc.
-- [x] Version follows semver (currently `0.1.1`)
+- [x] Version follows semver (currently `0.1.3`)
 - [x] `LICENSE` file at repo root (MIT)
 - [x] `CHANGELOG.md` with at least one entry
 - [x] `README.md` explains what the plugin does, how to install, and example usage
@@ -81,7 +81,7 @@ Forge's root `CLAUDE.md` is the **contributor router** — it guides agents that
 
 ## Known v0.2.0 work (post-submission polish)
 
-These are NOT blockers for v0.1.2 submission but should land before any potential push toward an "Anthropic Verified" review (no public application process visible today; verification appears to be at Anthropic's discretion):
+These are NOT blockers for v0.1.3 submission but should land before any potential push toward an "Anthropic Verified" review (no public application process visible today; verification appears to be at Anthropic's discretion):
 
 - **Skills layout normalisation** — currently `skills/` is a symlink to `core/skills/`. Move to a real directory and update `forge-doctor.sh` / `forge-stage-agent.sh` to use the new path; remove the symlink. Spodi consumer side (`.forge/config.yaml`) doesn't reference forge skills directly so no consumer migration needed.
 - **`agents/` subdir** — official spec wants agent definitions there. Forge has `adapters/` instead (per-CLI-tool translators, not Claude subagents). Either rename or add a separate `agents/` with actual subagent definitions.
