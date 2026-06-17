@@ -345,6 +345,16 @@ bash "$FORGE_DIR/scripts/forge-release-target.sh" show . ios_testflight
 bash "$FORGE_DIR/scripts/forge-release-scope.sh" dirty . ios_testflight
 ```
 
+## Migration Ledger Discipline
+
+For projects with sequentially-numbered migration files plus a deploy preflight that compares the deploy branch's latest migration to the live-environment marker:
+
+- Migrations flow through the deploy branch (usually `main`). Whoever applies a migration to an environment commits its file to the deploy branch **in the same session**, numbered from the deploy branch's latest + 1 — not from a feature branch.
+- The deployer reconciles the deploy branch's migration set to the live marker **before** deploying. Never let the deploy branch drift behind it; never gap or duplicate numbers.
+- Run parallel migration work in a **dedicated git worktree**, never a shared working tree, so staged files don't leak into unrelated commits.
+
+This prevents the recurring "deploy blocked: unapplied migrations" stall when migrations reach prod from a side branch faster than the deploy branch catches up.
+
 ## Release Communication
 
 User-facing releases should produce a durable communication artifact, not just an upload.
