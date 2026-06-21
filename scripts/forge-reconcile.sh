@@ -178,6 +178,13 @@ if ! command -v gh >/dev/null 2>&1; then
   printf 'forge-reconcile: gh CLI is required to read durable GitHub state.\n' >&2
   exit 1
 fi
+# python3 is used for Drift-4 ref extraction, the durable summary, and --json.
+# Require it up front so a missing interpreter never silently degrades a drift
+# check into a false "no drift".
+if ! command -v python3 >/dev/null 2>&1; then
+  printf 'forge-reconcile: python3 is required (drift extraction / JSON output).\n' >&2
+  exit 1
+fi
 
 REPO=$(normalize_github_repo "$(read_project_repo "$CONFIG_FILE")")
 if [[ -z "$REPO" ]]; then
@@ -327,7 +334,7 @@ fi
 # PR-ref issue lookup fails for any reason other than 404, so the shell can
 # fail hard via gh_fatal — keeping Drift 4 from masking auth/network errors as
 # "no drift".
-PR_DRIFT=$(REPO="$REPO" python3 - "$OPEN_PRS_JSON" <<'PY' || true
+if ! PR_DRIFT=$(REPO="$REPO" python3 - "$OPEN_PRS_JSON" <<'PY'
 import json, re, sys, subprocess, os
 prs = json.loads(sys.argv[1] or "[]")
 repo = os.environ["REPO"]
@@ -368,7 +375,9 @@ for pr in prs:
         if seen.get(m) == "CLOSED":
             print(f"PR_REFS_CLOSED|open PR #{pr['number']} ({pr['headRefName']}) references CLOSED issue #{m}|PR #{pr['number']} open|issue #{m} CLOSED")
 PY
-)
+); then
+  gh_fatal "Drift-4 ref extractor crashed: ${PR_DRIFT:-<no output>}"
+fi
 if grep -q '^__GH_FATAL__' <<< "$PR_DRIFT"; then
   gh_fatal "$(grep '^__GH_FATAL__' <<< "$PR_DRIFT" | head -1 | sed 's/^__GH_FATAL__ //')"
 fi

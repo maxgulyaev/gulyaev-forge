@@ -305,6 +305,40 @@ GH
   rm -rf "$tmp"
 }
 
+# ---------------------------------------------------------------------------
+# Case 9: the Drift-4 python helper crashes (malformed PR-list JSON) -> the
+# script fails hard instead of skipping PR-ref drift and exiting 0 false-clean.
+# ---------------------------------------------------------------------------
+run_case_drift4_crash() {
+  local tmp; tmp=$(mktemp -d)
+  local proj="$tmp/proj" stub="$tmp/bin"
+  setup_project "$proj"
+  cat > "$proj/.forge/pipeline-state.yaml" <<'ST'
+current_feature: 50
+current_stage: implementation
+issue: 50
+ST
+  mkdir -p "$stub"
+  cat > "$stub/gh" <<'GH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "issue" && "${2:-}" == "list" ]]; then echo '[]'; exit 0; fi
+# Return invalid JSON for the PR list so the Drift-4 python json.loads crashes.
+if [[ "${1:-}" == "pr" && "${2:-}" == "list" ]]; then echo 'NOT JSON {{{'; exit 0; fi
+if [[ "${1:-}" == "issue" && "${2:-}" == "view" ]]; then
+  num=$3
+  for a in "$@"; do [[ "$a" == ".state" ]] && { echo OPEN; exit 0; }; done
+  echo "stage/implementation"; exit 0
+fi
+exit 0
+GH
+  chmod +x "$stub/gh"
+  local out exit
+  out=$(PATH="$stub:$PATH" bash "$RECONCILE" "$proj" --quiet 2>&1) && exit=0 || exit=$?
+  assert "drift4 helper crash: fail-hard" "$exit" 1 "$out" "Drift-4 ref extractor crashed"
+  rm -rf "$tmp"
+}
+
 run_case_clean
 run_case_closed
 run_case_alias
@@ -313,6 +347,7 @@ run_case_apply
 run_case_json
 run_case_gh_failure
 run_case_drift4_failure
+run_case_drift4_crash
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]
