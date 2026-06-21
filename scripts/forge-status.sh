@@ -394,16 +394,32 @@ read_active_run_value() {
 decode_active_run_value() {
   local value=${1-}
 
+  # bash printf %q encodes the empty string as '' — restore it to empty.
+  if [[ "$value" == "''" ]]; then
+    printf ''
+    return 0
+  fi
+
   if [[ "$value" == \$\'*\' ]] && [[ "$value" == *"'" ]]; then
     value=${value#\$\'}
     value=${value%\'}
   fi
 
-  value=${value//\\ / }
-  value=${value//\\,/,}
-  value=${value//\\\'/\'}
-  value=${value//\\\\/\\}
-  printf '%s' "$value"
+  # General inverse of printf %q backslash-escaping (single pass, no double
+  # decoding): a backslash followed by any char is that literal char.
+  local out='' i=0 ch
+  local len=${#value}
+  while (( i < len )); do
+    ch=${value:i:1}
+    if [[ "$ch" == $'\\' ]] && (( i + 1 < len )); then
+      out+=${value:i+1:1}
+      i=$(( i + 2 ))
+    else
+      out+=$ch
+      i=$(( i + 1 ))
+    fi
+  done
+  printf '%s' "$out"
 }
 
 is_gated_stage() {
