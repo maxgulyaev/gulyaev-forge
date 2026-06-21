@@ -213,7 +213,28 @@ def main() -> int:
             add(num, f"issue labelled post-merge stage ({', '.join(sorted(slabels & POST_MERGE_STAGES))}) "
                      f"but PR #{pr['number']} is still OPEN — not actually shipped.")
 
-    # --- Invariant 4: branch far behind base with duplicate commits ----------
+    # --- Invariant 4: branch far behind base, with real duplicate detection ---
+    # "Far behind" alone is the merge-conflict risk. We additionally try to PROVE
+    # already-merged duplicates by matching the branch's ahead-commit subjects
+    # against the base branch's recent commit subjects (cheap, no clone). The
+    # message only claims duplicates when actually found; otherwise it is a plain
+    # "far behind base" warning.
+    base_subjects_cache = {}
+
+    def base_subjects(base_ref):
+        if base_ref in base_subjects_cache:
+            return base_subjects_cache[base_ref]
+        subs = set()
+        try:
+            for c in list(gh_paginate(f"/repos/{repo}/commits?sha={urllib_quote(base_ref)}", token))[:200]:
+                msg0 = (c.get("commit", {}).get("message", "") or "").splitlines()[:1]
+                if msg0:
+                    subs.add(msg0[0].strip())
+        except Exception:
+            pass
+        base_subjects_cache[base_ref] = subs
+        return subs
+
     for pr in open_prs:
         num_set = issue_refs_in_pr(pr)
         try:
@@ -222,19 +243,32 @@ def main() -> int:
             cmp, _ = gh_request("GET", f"/repos/{repo}/compare/{base}...{head}", token)
             behind = cmp.get("behind_by", 0)
             ahead = cmp.get("ahead_by", 0)
+            ahead_commits = cmp.get("commits", []) or []
         except Exception:
             continue
-        if behind >= behind_threshold:
+        if behind < behind_threshold:
+            continue
+        targets = {n for n in num_set if issue_state.get(n) == "open"}
+        if not targets:
+            continue
+        # Count how many of this branch's ahead-commit subjects already exist on base.
+        bsubs = base_subjects(base)
+        dup = 0
+        for c in ahead_commits:
+            s0 = (c.get("commit", {}).get("message", "") or "").splitlines()[:1]
+            if s0 and s0[0].strip() in bsubs:
+                dup += 1
+        if dup > 0:
             msg = (f"PR #{pr['number']} branch '{head}' is {behind} commits behind '{base}' "
-                   f"(ahead {ahead}); likely carries duplicate/already-merged commits "
-                   f"(merge-conflict risk). Rebase/merge base in and drop superseded commits.")
-            targets = num_set or set()
-            if not targets:
-                # attach to PR-linked issues we already know, else skip silently
-                continue
-            for num in targets:
-                if issue_state.get(num) == "open":
-                    add(num, msg)
+                   f"(ahead {ahead}); {dup} of its commits have subjects already on '{base}' "
+                   f"— duplicate/already-merged commits (merge-conflict source). "
+                   f"Merge '{base}' in and drop the superseded commits.")
+        else:
+            msg = (f"PR #{pr['number']} branch '{head}' is {behind} commits behind '{base}' "
+                   f"(ahead {ahead}) — far behind base (merge-conflict risk). "
+                   f"Rebase or merge '{base}' in.")
+        for num in targets:
+            add(num, msg)
 
     # --- Apply: label + sticky comment per issue ------------------------------
     print(f"forge-drift-sentinel: scanned {len(open_issues)} open issues, "
@@ -263,10 +297,14 @@ def main() -> int:
             print(f"  #{num}: could not apply label/comment: {exc}", file=sys.stderr)
 
     # Clear drift on issues that previously carried the label but are now clean.
+    # Scan state=all: invariant 1 can flag a CLOSED issue (referenced by an open
+    # PR), so a closed issue may still carry the label and must be cleanable.
     if not dry_run:
         try:
-            labelled = gh_paginate(f"/repos/{repo}/issues?state=open&labels={urllib_quote(drift_label)}", token)
+            labelled = gh_paginate(f"/repos/{repo}/issues?state=all&labels={urllib_quote(drift_label)}", token)
             for issue in labelled:
+                if "pull_request" in issue:
+                    continue
                 num = issue["number"]
                 if num not in flagged:
                     print(f"  #{num}: drift cleared — removing {drift_label}")

@@ -243,12 +243,34 @@ ST
   rm -rf "$tmp"; unset GH_STUB_DIR
 }
 
+# ---------------------------------------------------------------------------
+# Case 7: gh hard-fails (auth/network) -> exit 1, NOT a false "no drift".
+# ---------------------------------------------------------------------------
+run_case_gh_failure() {
+  local tmp; tmp=$(mktemp -d)
+  local proj="$tmp/proj" stub="$tmp/bin"
+  setup_project "$proj"
+  cat > "$proj/.forge/pipeline-state.yaml" <<'ST'
+current_feature: 50
+current_stage: implementation
+issue: 50
+ST
+  mkdir -p "$stub"
+  printf '#!/usr/bin/env bash\necho "error connecting to api.github.com" >&2\nexit 1\n' > "$stub/gh"
+  chmod +x "$stub/gh"
+  local out exit
+  out=$(PATH="$stub:$PATH" bash "$RECONCILE" "$proj" --quiet 2>&1) && exit=0 || exit=$?
+  assert "gh failure: fail-hard (not false-clean)" "$exit" 1 "$out" "required GitHub read failed"
+  rm -rf "$tmp"
+}
+
 run_case_clean
 run_case_closed
 run_case_alias
 run_case_mismatch
 run_case_apply
 run_case_json
+run_case_gh_failure
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

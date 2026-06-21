@@ -201,30 +201,57 @@ ACTIVE_ISSUE=$(decode_env_value "$(read_active_run_value "$ACTIVE_RUN_FILE" "FOR
 ACTIVE_STAGE=$(decode_env_value "$(read_active_run_value "$ACTIVE_RUN_FILE" "FORGE_RUN_STAGE")")
 
 # ----- durable state from GitHub ----------------------------------------------
-# One JSON blob of all open issues carrying a stage/* label.
-OPEN_STAGE_ISSUES_JSON=$(gh issue list --repo "$REPO" --state open \
-  --json number,title,labels,state --limit 200 2>/dev/null || printf '[]')
+# Fail hard (exit 1) when a REQUIRED durable read fails for any reason other than
+# "no results": an auth/network/rate-limit error must not be silently reported as
+# "no drift" (that would defeat the whole point of this tool). gh exits non-zero
+# on real errors and zero-with-[] on empty result sets, so a non-zero exit here
+# is a genuine failure.
+gh_fatal() {
+  printf 'forge-reconcile: required GitHub read failed (auth/network/rate-limit?).\n' >&2
+  printf '  %s\n' "$1" >&2
+  printf '  Refusing to report drift state from incomplete data. Fix gh access and retry.\n' >&2
+  exit 1
+}
 
-# Open PRs and their head branches.
-OPEN_PRS_JSON=$(gh pr list --repo "$REPO" --state open \
-  --json number,title,headRefName,state,isDraft --limit 200 2>/dev/null || printf '[]')
+if ! OPEN_STAGE_ISSUES_JSON=$(gh issue list --repo "$REPO" --state open \
+  --json number,title,labels,state --limit 200 2>&1); then
+  gh_fatal "gh issue list: $OPEN_STAGE_ISSUES_JSON"
+fi
 
-# Recent prod-* tags (durable deploy markers).
+if ! OPEN_PRS_JSON=$(gh pr list --repo "$REPO" --state open \
+  --json number,title,headRefName,state,isDraft --limit 200 2>&1); then
+  gh_fatal "gh pr list: $OPEN_PRS_JSON"
+fi
+
+# Recent prod-* tags (durable deploy markers) — local git, best-effort.
 PROD_TAGS=$(git -C "$PROJECT_DIR" tag --list 'prod-*' 2>/dev/null | sort | tail -5 || true)
 
-# Helper: query a single issue's state/labels via gh (used for cache pointers
-# that may already be CLOSED and therefore absent from the open-issue list).
+# Helper: query a single issue's state/labels via gh. A missing issue (404)
+# legitimately yields empty; any other gh error is fatal (same reasoning as the
+# list reads above).
 issue_state() {
-  local num=$1
+  local num=$1 out
   [[ -n "$num" && "$num" != "-" && "$num" != '""' ]] || { printf ''; return 0; }
-  gh issue view "$num" --repo "$REPO" --json state --jq '.state' 2>/dev/null || printf ''
+  if out=$(gh issue view "$num" --repo "$REPO" --json state --jq '.state' 2>&1); then
+    printf '%s' "$out"
+  elif grep -qiE 'not found|could not resolve|404' <<< "$out"; then
+    printf ''   # genuinely-absent issue: treat as empty, not fatal
+  else
+    gh_fatal "gh issue view #$num: $out"
+  fi
 }
 
 issue_stage_labels() {
-  local num=$1
+  local num=$1 out
   [[ -n "$num" && "$num" != "-" && "$num" != '""' ]] || { printf ''; return 0; }
-  gh issue view "$num" --repo "$REPO" --json labels \
-    --jq "[.labels[].name | select(startswith(\"$STAGE_PREFIX\"))] | join(\",\")" 2>/dev/null || printf ''
+  if out=$(gh issue view "$num" --repo "$REPO" --json labels \
+    --jq "[.labels[].name | select(startswith(\"$STAGE_PREFIX\"))] | join(\",\")" 2>&1); then
+    printf '%s' "$out"
+  elif grep -qiE 'not found|could not resolve|404' <<< "$out"; then
+    printf ''
+  else
+    gh_fatal "gh issue view labels #$num: $out"
+  fi
 }
 
 # ----- drift detection ---------------------------------------------------------
@@ -296,25 +323,36 @@ fi
 
 # Drift 4: an open PR's head branch references an issue that is already closed.
 #          (PR title or branch like fix/<NNN>-* / feature/...#NNN)
-PR_DRIFT=$(REPO="$REPO" STAGE_PREFIX="$STAGE_PREFIX" python3 - "$OPEN_PRS_JSON" <<'PY' 2>/dev/null || true
+PR_DRIFT=$(REPO="$REPO" python3 - "$OPEN_PRS_JSON" <<'PY' 2>/dev/null || true
 import json, re, sys, subprocess, os
 prs = json.loads(sys.argv[1] or "[]")
 repo = os.environ["REPO"]
-seen = set()
+
+def refs_in_pr(pr):
+    """Issue numbers referenced by a PR: #NNN anywhere in branch/title, plus
+    numeric branch-name segments delimited by / _ - (the <NNN>- convention).
+    Bare numbers in free-text titles (e.g. '2026 roadmap') are deliberately
+    ignored to avoid false positives. Mirrors forge_drift_sentinel.py."""
+    ref = pr.get("headRefName","") or ""
+    text = ref + " " + (pr.get("title","") or "")
+    nums = set(re.findall(r'#(\d{2,6})', text))
+    for seg in re.split(r'[\/_-]', ref):
+        if seg.isdigit() and 2 <= len(seg) <= 6:
+            nums.add(seg)
+    return nums
+
+seen = {}
 for pr in prs:
-    text = (pr.get("headRefName","") or "") + " " + (pr.get("title","") or "")
-    for m in re.findall(r'#?(\d{2,6})', text):
-        if m in seen:
-            continue
-        seen.add(m)
-        try:
-            out = subprocess.run(
-                ["gh","issue","view",m,"--repo",repo,"--json","state","--jq",".state"],
-                capture_output=True, text=True, timeout=20)
-            state = out.stdout.strip()
-        except Exception:
-            state = ""
-        if state == "CLOSED":
+    for m in refs_in_pr(pr):
+        if m not in seen:
+            try:
+                out = subprocess.run(
+                    ["gh","issue","view",m,"--repo",repo,"--json","state","--jq",".state"],
+                    capture_output=True, text=True, timeout=20)
+                seen[m] = out.stdout.strip()
+            except Exception:
+                seen[m] = ""
+        if seen[m] == "CLOSED":
             print(f"PR_REFS_CLOSED|open PR #{pr['number']} ({pr['headRefName']}) references CLOSED issue #{m}|PR #{pr['number']} open|issue #{m} CLOSED")
 PY
 )
