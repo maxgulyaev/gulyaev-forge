@@ -323,7 +323,11 @@ fi
 
 # Drift 4: an open PR's head branch references an issue that is already closed.
 #          (PR title or branch like fix/<NNN>-* / feature/...#NNN)
-PR_DRIFT=$(REPO="$REPO" python3 - "$OPEN_PRS_JSON" <<'PY' 2>/dev/null || true
+# The Python helper emits "__GH_FATAL__ <msg>" to stdout (and exits 0) when a
+# PR-ref issue lookup fails for any reason other than 404, so the shell can
+# fail hard via gh_fatal — keeping Drift 4 from masking auth/network errors as
+# "no drift".
+PR_DRIFT=$(REPO="$REPO" python3 - "$OPEN_PRS_JSON" <<'PY' || true
 import json, re, sys, subprocess, os
 prs = json.loads(sys.argv[1] or "[]")
 repo = os.environ["REPO"]
@@ -349,16 +353,29 @@ for pr in prs:
                 out = subprocess.run(
                     ["gh","issue","view",m,"--repo",repo,"--json","state","--jq",".state"],
                     capture_output=True, text=True, timeout=20)
+            except Exception as exc:
+                print(f"__GH_FATAL__ gh issue view #{m}: {exc}")
+                sys.exit(0)
+            if out.returncode != 0:
+                err = (out.stderr or "").lower()
+                if "not found" in err or "could not resolve" in err or "404" in err:
+                    seen[m] = ""   # genuinely-absent issue: not fatal
+                else:
+                    print(f"__GH_FATAL__ gh issue view #{m}: {out.stderr.strip()}")
+                    sys.exit(0)
+            else:
                 seen[m] = out.stdout.strip()
-            except Exception:
-                seen[m] = ""
-        if seen[m] == "CLOSED":
+        if seen.get(m) == "CLOSED":
             print(f"PR_REFS_CLOSED|open PR #{pr['number']} ({pr['headRefName']}) references CLOSED issue #{m}|PR #{pr['number']} open|issue #{m} CLOSED")
 PY
 )
+if grep -q '^__GH_FATAL__' <<< "$PR_DRIFT"; then
+  gh_fatal "$(grep '^__GH_FATAL__' <<< "$PR_DRIFT" | head -1 | sed 's/^__GH_FATAL__ //')"
+fi
 if [[ -n "$PR_DRIFT" ]]; then
   while IFS='|' read -r code human cval gval; do
     [[ -n "$code" ]] || continue
+    [[ "$code" == "__GH_FATAL__"* ]] && continue
     add_drift "$code" "$human" "$cval" "$gval"
   done <<< "$PR_DRIFT"
 fi

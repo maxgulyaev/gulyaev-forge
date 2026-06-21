@@ -60,6 +60,11 @@ def env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
 
 
+class GHFatal(Exception):
+    """A non-404 GitHub API failure that must fail the job (never silently
+    pass as 'no drift')."""
+
+
 def gh_request(method: str, path: str, token: str, body=None):
     url = path if path.startswith("http") else f"{API}{path}"
     data = json.dumps(body).encode() if body is not None else None
@@ -75,14 +80,34 @@ def gh_request(method: str, path: str, token: str, body=None):
         return (json.loads(raw) if raw.strip() else None), link
 
 
-def gh_paginate(path: str, token: str):
-    """Yield items across all pages of a list endpoint."""
+def gh_get_or_none(path: str, token: str):
+    """GET a single resource. Returns None on 404; raises GHFatal on any other
+    error (auth/network/rate-limit) so the caller can fail the job."""
+    try:
+        obj, _ = gh_request("GET", path, token)
+        return obj
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return None
+        raise GHFatal(f"{path}: HTTP {exc.code}") from exc
+    except urllib.error.URLError as exc:
+        raise GHFatal(f"{path}: {exc}") from exc
+
+
+def gh_paginate(path: str, token: str, limit: int | None = None):
+    """Yield items across pages of a list endpoint, stopping after `limit`
+    items (if given) so a single mature repo cannot trigger unbounded paging."""
     sep = "&" if "?" in path else "?"
     next_url = f"{API}{path}{sep}per_page=100"
+    count = 0
     while next_url:
         items, link = gh_request("GET", next_url, token)
         if isinstance(items, list):
-            yield from items
+            for it in items:
+                yield it
+                count += 1
+                if limit is not None and count >= limit:
+                    return
         next_url = ""
         for part in link.split(","):
             if 'rel="next"' in part:
@@ -128,11 +153,13 @@ def main() -> int:
         return 1
 
     try:
-        open_issues = [i for i in gh_paginate(f"/repos/{repo}/issues?state=open", token)
+        open_issues = [i for i in gh_paginate(f"/repos/{repo}/issues?state=open", token, limit=1000)
                        if "pull_request" not in i]
-        open_prs = list(gh_paginate(f"/repos/{repo}/pulls?state=open", token))
+        open_prs = list(gh_paginate(f"/repos/{repo}/pulls?state=open", token, limit=500))
         # Recently closed PRs (to detect already-merged duplicates / stale refs).
-        closed_prs = list(gh_paginate(f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc", token))[:50]
+        # Bounded at the source so a mature repo never pages the full history.
+        closed_prs = list(gh_paginate(
+            f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc", token, limit=50))
     except urllib.error.URLError as exc:
         print(f"forge-drift-sentinel: GitHub API unreachable: {exc}", file=sys.stderr)
         return 1
@@ -159,17 +186,16 @@ def main() -> int:
             continue
         for num in refs:
             # Look up issue state lazily (closed issues are not in open_issues).
+            # A 404 means the number is not a real issue (e.g. a PR number) —
+            # skip it. Any other API error raises GHFatal and fails the job.
             st = issue_state.get(num)
             if st is None:
-                try:
-                    issue, _ = gh_request("GET", f"/repos/{repo}/issues/{num}", token)
-                    st = issue.get("state")
-                    issue_state[num] = st
-                    if st == "open":
-                        # cache labels for invariant 3
-                        issue["_labels_cache"] = issue.get("labels", [])
-                except Exception:
+                issue = gh_get_or_none(f"/repos/{repo}/issues/{num}", token)
+                if issue is None:
+                    issue_state[num] = "missing"
                     continue
+                st = issue.get("state")
+                issue_state[num] = st
             if st == "closed":
                 add(num, f"PR #{pr['number']} ({pr['head']['ref']}) is OPEN but references CLOSED issue #{num} "
                          f"(stale PR or premature close).")
@@ -213,45 +239,41 @@ def main() -> int:
             add(num, f"issue labelled post-merge stage ({', '.join(sorted(slabels & POST_MERGE_STAGES))}) "
                      f"but PR #{pr['number']} is still OPEN — not actually shipped.")
 
-    # --- Invariant 4: branch far behind base, with real duplicate detection ---
-    # "Far behind" alone is the merge-conflict risk. We additionally try to PROVE
-    # already-merged duplicates by matching the branch's ahead-commit subjects
-    # against the base branch's recent commit subjects (cheap, no clone). The
-    # message only claims duplicates when actually found; otherwise it is a plain
-    # "far behind base" warning.
+    # --- Invariant 4: branch far behind base (merge-conflict risk) ------------
+    # "Far behind" is the merge-conflict risk. As a soft heuristic we also count
+    # ahead-commit SUBJECTS that already appear on base — a hint (NOT proof) of
+    # already-merged/cherry-picked work. We never claim a proven duplicate
+    # (subject equality is not patch equality); we surface the count and tell the
+    # operator to inspect. The remediation is always "merge base in".
     base_subjects_cache = {}
 
     def base_subjects(base_ref):
         if base_ref in base_subjects_cache:
             return base_subjects_cache[base_ref]
         subs = set()
-        try:
-            for c in list(gh_paginate(f"/repos/{repo}/commits?sha={urllib_quote(base_ref)}", token))[:200]:
-                msg0 = (c.get("commit", {}).get("message", "") or "").splitlines()[:1]
-                if msg0:
-                    subs.add(msg0[0].strip())
-        except Exception:
-            pass
+        for c in gh_paginate(f"/repos/{repo}/commits?sha={urllib_quote(base_ref)}", token, limit=200):
+            msg0 = (c.get("commit", {}).get("message", "") or "").splitlines()[:1]
+            if msg0:
+                subs.add(msg0[0].strip())
         base_subjects_cache[base_ref] = subs
         return subs
 
     for pr in open_prs:
         num_set = issue_refs_in_pr(pr)
-        try:
-            base = pr["base"]["ref"]
-            head = pr["head"]["ref"]
-            cmp, _ = gh_request("GET", f"/repos/{repo}/compare/{base}...{head}", token)
-            behind = cmp.get("behind_by", 0)
-            ahead = cmp.get("ahead_by", 0)
-            ahead_commits = cmp.get("commits", []) or []
-        except Exception:
+        base = pr["base"]["ref"]
+        head = pr["head"]["ref"]
+        cmp = gh_get_or_none(f"/repos/{repo}/compare/{base}...{head}", token)
+        if cmp is None:
             continue
+        behind = cmp.get("behind_by", 0)
+        ahead = cmp.get("ahead_by", 0)
+        ahead_commits = cmp.get("commits", []) or []
         if behind < behind_threshold:
             continue
         targets = {n for n in num_set if issue_state.get(n) == "open"}
         if not targets:
             continue
-        # Count how many of this branch's ahead-commit subjects already exist on base.
+        # Count ahead-commit subjects that also appear on base (a hint only).
         bsubs = base_subjects(base)
         dup = 0
         for c in ahead_commits:
@@ -260,9 +282,9 @@ def main() -> int:
                 dup += 1
         if dup > 0:
             msg = (f"PR #{pr['number']} branch '{head}' is {behind} commits behind '{base}' "
-                   f"(ahead {ahead}); {dup} of its commits have subjects already on '{base}' "
-                   f"— duplicate/already-merged commits (merge-conflict source). "
-                   f"Merge '{base}' in and drop the superseded commits.")
+                   f"(ahead {ahead}); {dup} of its commit subjects already appear on '{base}' "
+                   f"— possible already-merged/cherry-picked commits (inspect; merge-conflict "
+                   f"risk). Merge '{base}' in and re-check.")
         else:
             msg = (f"PR #{pr['number']} branch '{head}' is {behind} commits behind '{base}' "
                    f"(ahead {ahead}) — far behind base (merge-conflict risk). "
@@ -356,4 +378,10 @@ def _resolve_sticky(repo, token, num):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except GHFatal as exc:
+        # A non-404 GitHub API failure mid-scan: fail the job loudly rather than
+        # report a misleading clean result from incomplete data.
+        print(f"forge-drift-sentinel: GitHub API failure, aborting: {exc}", file=sys.stderr)
+        sys.exit(1)

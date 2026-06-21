@@ -53,5 +53,55 @@ check("shipped is post-merge", "shipped" in fds.POST_MERGE_STAGES)
 # urllib_quote escapes the slash in forge/drift.
 check("label quote escapes slash", fds.urllib_quote("forge/drift") == "forge%2Fdrift")
 
+# gh_paginate honours `limit` (no unbounded paging on mature repos).
+import urllib.error  # noqa: E402
+
+
+def fake_request(method, url, token, body=None):
+    # Always return a 100-item page that links to a "next" page, so without a
+    # limit this would loop forever; with a limit it must stop.
+    items = [{"n": i} for i in range(100)]
+    return items, '<https://api.github.com/next>; rel="next"'
+
+
+_orig = fds.gh_request
+fds.gh_request = fake_request
+try:
+    got = list(fds.gh_paginate("/repos/x/y/issues?state=open", "tok", limit=50))
+    check("gh_paginate respects limit", len(got) == 50)
+finally:
+    fds.gh_request = _orig
+
+
+# gh_get_or_none: 404 -> None; other HTTP error -> GHFatal.
+def make_http_error(code):
+    return urllib.error.HTTPError("u", code, "msg", {}, None)
+
+
+def raise404(method, url, token, body=None):
+    raise make_http_error(404)
+
+
+def raise500(method, url, token, body=None):
+    raise make_http_error(500)
+
+
+fds.gh_request = raise404
+try:
+    check("gh_get_or_none returns None on 404", fds.gh_get_or_none("/x", "t") is None)
+finally:
+    fds.gh_request = _orig
+
+fds.gh_request = raise500
+try:
+    raised = False
+    try:
+        fds.gh_get_or_none("/x", "t")
+    except fds.GHFatal:
+        raised = True
+    check("gh_get_or_none raises GHFatal on 500", raised)
+finally:
+    fds.gh_request = _orig
+
 print(f"\n{'ALL PASS' if failures == 0 else str(failures) + ' FAILED'}")
 sys.exit(1 if failures else 0)
