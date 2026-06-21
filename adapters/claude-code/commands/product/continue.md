@@ -10,13 +10,15 @@ Required behavior:
 2. Load local rules from `AGENTS.md`, `CLAUDE.md`, `.forge/config.yaml`, `.forge/pipeline-state.yaml`.
 3. Run product preflight:
    - `bash __FORGE_DIR__/scripts/forge-doctor.sh product .`
-   - `bash __FORGE_DIR__/scripts/forge-status.sh product .`
+   - `bash __FORGE_DIR__/scripts/forge-status.sh product .` (this now surfaces durable-vs-cache drift via the L1 reconcile check)
 4. Check `.forge/active-run.env` first.
+   - it is a DERIVED cache; the authoritative run-state lives on the issue (its `stage/*` label + the `<!--forge-run-state-->` comment). On a fresh machine/session, hydrate it from the issue: `bash __FORGE_DIR__/scripts/forge-run-state.sh hydrate . <issue-number>`
    - if there is an active bugfix run, continue that quick path instead of the unrelated feature pipeline
    - use the active bugfix issue as the execution contract
 5. Read the current issue and current gate state.
 6. If the issue stage label and `.forge/pipeline-state.yaml` disagree:
-   - reconcile them if the correct state is unambiguous from the durable issue trail
+   - the durable layer (GitHub issues/labels/PRs + git tags) is the source of truth; the local cache is derived. See `__FORGE_DIR__/docs/anti-drift.md`.
+   - run the drift check explicitly: `bash __FORGE_DIR__/scripts/forge-reconcile.sh . ` (read-only) — and `--apply` to rebuild the cache from durable state when the correct state is unambiguous from the issue trail
    - otherwise stop and present the mismatch before giving "what next" guidance
 7. If the current gate is pending approval:
    - interpret `$ARGUMENTS` as the user's natural-language decision when possible
