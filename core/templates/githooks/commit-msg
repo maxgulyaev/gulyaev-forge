@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# forge commit-msg hook — ADVISORY, NON-BLOCKING (forge Layer L4).
+#
+# Extracts #NNN issue references from the commit message and WARNS (to stderr)
+# if a referenced issue is CLOSED or carries no stage/* label — a reminder to
+# update the durable trail or run /forge:gate. It NEVER exits non-zero, so it
+# cannot block a commit. This is deliberate: hard blocking hooks are bypassable
+# (--no-verify) and hostile to the legitimate manual / Codex / multi-machine /
+# bug-batch workflow, so they just get disabled. Detection + reminder survives.
+#
+# Installed identically on every machine via the in-repo .githooks dir
+# (core.hooksPath .githooks), so there is no per-machine drift in the hook
+# itself. Requires gh for the durable check; degrades to silent if gh is
+# missing or unauthenticated.
+set -u
+
+MSG_FILE=${1:-}
+[[ -n "$MSG_FILE" && -f "$MSG_FILE" ]] || exit 0
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)
+CONFIG_FILE="$REPO_ROOT/.forge/config.yaml"
+
+# Never let any failure in this advisory hook block the commit: any unexpected
+# error path still exits 0 via this trap.
+warn() { printf 'forge (advisory): %s\n' "$1" >&2; }
+trap 'exit 0' EXIT
+
+# Skip non-user commits (merge/revert/squash messages, fixups).
+HEAD_LINE=$(head -n1 "$MSG_FILE" 2>/dev/null || true)
+case "$HEAD_LINE" in
+  Merge\ *|Revert\ *|fixup!\ *|squash!\ *|amend!\ *) exit 0 ;;
+esac
+
+command -v gh >/dev/null 2>&1 || exit 0
+
+trim_quotes() { sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//; s/^"//; s/"$//'; }
+
+read_project_repo() {
+  local file=$1
+  [[ -f "$file" ]] || return 0
+  awk '
+    /^project:$/ { in_project=1; next }
+    in_project && /^[^ ]/ { exit }
+    in_project && /^  repo:/ {
+      sub("^[^:]+:[[:space:]]*", "", $0); sub(/[[:space:]]+#.*/, "", $0); print $0; exit
+    }
+  ' "$file" | trim_quotes
+}
+
+read_stage_prefix() {
+  local file=$1
+  [[ -f "$file" ]] || { printf 'stage/'; return 0; }
+  local p
+  p=$(awk '
+    /^tracking:$/ { t=1; next } t && /^[^ ]/ { exit }
+    t && /^  labels:$/ { l=1; next }
+    t && /^  [a-z_]+:/ && $0 !~ /^  labels:$/ { l=0 }
+    l && /^    stage_prefix:/ { sub("^[^:]+:[[:space:]]*", "", $0); sub(/[[:space:]]+#.*/, "", $0); print $0; exit }
+  ' "$file" | trim_quotes)
+  printf '%s' "${p:-stage/}"
+}
+
+normalize_repo() {
+  local v=$1
+  v=${v#https://github.com/}; v=${v#http://github.com/}; v=${v#git@github.com:}; v=${v%.git}
+  printf '%s' "$v"
+}
+
+REPO=$(normalize_repo "$(read_project_repo "$CONFIG_FILE")")
+[[ -n "$REPO" ]] || REPO=$(normalize_repo "$(git -C "$REPO_ROOT" remote get-url origin 2>/dev/null || true)")
+[[ -n "$REPO" ]] || exit 0
+
+STAGE_PREFIX=$(read_stage_prefix "$CONFIG_FILE")
+
+# Collect unique #NNN refs from the whole message (cap to a few to stay snappy).
+REFS=$(grep -oE '#[0-9]{2,6}' "$MSG_FILE" 2>/dev/null | tr -d '#' | sort -un | head -5 || true)
+[[ -n "$REFS" ]] || exit 0
+
+while IFS= read -r num; do
+  [[ -n "$num" ]] || continue
+  meta=$(gh issue view "$num" --repo "$REPO" --json state,labels \
+    --jq '.state + "\t" + ([.labels[].name] | join(","))' 2>/dev/null || true)
+  [[ -n "$meta" ]] || continue   # unknown issue / API miss: stay quiet
+  state=${meta%%$'\t'*}
+  labels=${meta#*$'\t'}
+  if [[ "$state" == "CLOSED" ]]; then
+    warn "commit references #$num but that issue is CLOSED on GitHub — confirm this is intended; the durable trail may have drifted. (run /forge:gate or scripts/forge-reconcile.sh)"
+  elif [[ "$labels" != *"$STAGE_PREFIX"* ]]; then
+    warn "commit references #$num but it has no ${STAGE_PREFIX}* label — work may be running outside the forge pipeline. Consider recording the stage via /forge:gate."
+  fi
+done <<< "$REFS"
+
+exit 0

@@ -394,16 +394,32 @@ read_active_run_value() {
 decode_active_run_value() {
   local value=${1-}
 
+  # bash printf %q encodes the empty string as '' — restore it to empty.
+  if [[ "$value" == "''" ]]; then
+    printf ''
+    return 0
+  fi
+
   if [[ "$value" == \$\'*\' ]] && [[ "$value" == *"'" ]]; then
     value=${value#\$\'}
     value=${value%\'}
   fi
 
-  value=${value//\\ / }
-  value=${value//\\,/,}
-  value=${value//\\\'/\'}
-  value=${value//\\\\/\\}
-  printf '%s' "$value"
+  # General inverse of printf %q backslash-escaping (single pass, no double
+  # decoding): a backslash followed by any char is that literal char.
+  local out='' i=0 ch
+  local len=${#value}
+  while (( i < len )); do
+    ch=${value:i:1}
+    if [[ "$ch" == $'\\' ]] && (( i + 1 < len )); then
+      out+=${value:i+1:1}
+      i=$(( i + 2 ))
+    else
+      out+=$ch
+      i=$(( i + 1 ))
+    fi
+  done
+  printf '%s' "$out"
 }
 
 is_gated_stage() {
@@ -592,10 +608,44 @@ print_product_status() {
     find "$dir/.forge/skills" -maxdepth 1 -type f ! -name '.DS_Store' -print | sort | sed "s#^$dir/##; s#^#  #"
   fi
 
+  print_drift_check "$dir"
+
   printf '\nTrack progress in:\n'
   printf '  - GitHub issue labels/comments\n'
   printf '  - .forge/pipeline-state.yaml\n'
   printf '  - docs artifacts for the current stage\n'
+}
+
+# Surface durable-vs-cache drift on every product status run (L1, read-only).
+# Self-healing model: the durable layer (GitHub) is the source of truth; the
+# local .forge cache is derived. Never blocks — just reports.
+print_drift_check() {
+  local dir=$1
+  local script_dir
+  script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+  local reconcile="$script_dir/forge-reconcile.sh"
+
+  printf '\nDrift check (durable GitHub vs local cache):\n'
+  if [[ ! -x "$reconcile" && ! -f "$reconcile" ]]; then
+    printf '  - forge-reconcile.sh not found; skipping\n'
+    return 0
+  fi
+  if ! command -v gh >/dev/null 2>&1; then
+    printf '  - gh CLI unavailable; skipping drift check\n'
+    return 0
+  fi
+
+  local out exit
+  out=$(bash "$reconcile" "$dir" --quiet 2>&1) && exit=0 || exit=$?
+  if [[ "$exit" -eq 2 ]]; then
+    printf '%s\n' "$out" | sed 's/^/  /'
+    printf '  - run: bash %s %s --apply  (rebuild cache from GitHub)\n' "$reconcile" "$dir"
+  elif [[ "$exit" -eq 0 ]]; then
+    printf '  - no drift: local cache agrees with GitHub\n'
+  else
+    printf '  - drift check could not run (exit %s):\n' "$exit"
+    printf '%s\n' "$out" | sed 's/^/    /'
+  fi
 }
 
 print_self_status() {

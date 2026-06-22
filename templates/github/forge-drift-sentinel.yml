@@ -1,0 +1,67 @@
+# forge-drift-sentinel — central, server-side drift detector (forge Layer L3).
+#
+# Portable across forge projects: no repo-specific values are hard-coded here.
+# Tune via the `env:` block below. Install by copying this file to
+# .github/workflows/forge-drift-sentinel.yml and forge_drift_sentinel.py to
+# .github/forge/ (the installer in scripts/install-claude-commands.sh does this).
+#
+# What it does: on every push and once a day, scans open issues carrying a
+# stage/* label against durable invariants (issue closed but PR open, stage
+# label vs PR merge state, PR referencing an unlabelled issue, branch far behind
+# base with duplicate commits). On violation it labels the issue `forge/drift`
+# and posts/updates a sticky comment. Clears both automatically when fixed.
+#
+# Why central + non-blocking: this is the ONE layer that catches drift no matter
+# which machine / Codex session / manual commit introduced it. It never blocks a
+# push or merge — it reports, so it survives the real multi-machine workflow.
+name: forge-drift-sentinel
+
+on:
+  push:
+    branches: ["**"]
+  schedule:
+    # Daily at 06:17 UTC. Adjust as desired.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Log findings without labelling/commenting"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: forge-drift-sentinel
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    env:
+      # ---- tunables (repo-agnostic defaults) --------------------------------
+      STAGE_PREFIX: "stage/"
+      DRIFT_LABEL: "forge/drift"
+      BEHIND_THRESHOLD: "30"
+      # ----------------------------------------------------------------------
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '1' || '0' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure drift label exists
+        run: |
+          gh label create "$DRIFT_LABEL" \
+            --color "d93f0b" \
+            --description "Durable-state drift detected by forge-drift-sentinel" \
+            2>/dev/null || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run forge drift sentinel
+        run: python3 .github/forge/forge_drift_sentinel.py

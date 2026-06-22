@@ -64,12 +64,37 @@ install_product_hook() {
   mkdir -p "$HOOK_DEST"
   render_file "$FORGE_DIR/core/templates/githooks/pre-push" "$HOOK_DEST/pre-push" 0755
   printf 'Installed %s\n' "${HOOK_DEST#$TARGET/}/pre-push"
+  # L4 — advisory (non-blocking) commit-msg hook. Warns on stale #NNN refs but
+  # never exits non-zero, so it survives the manual/Codex/multi-machine workflow.
+  if [[ -f "$FORGE_DIR/core/templates/githooks/commit-msg" ]]; then
+    render_file "$FORGE_DIR/core/templates/githooks/commit-msg" "$HOOK_DEST/commit-msg" 0755
+    printf 'Installed %s\n' "${HOOK_DEST#"$TARGET"/}/commit-msg"
+  fi
   if git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
     git -C "$TARGET" config core.hooksPath .githooks
     printf 'Configured git hooksPath: .githooks\n'
   else
     printf 'Skipped hooksPath config (not a git repo yet)\n'
   fi
+}
+
+# L3 — central drift sentinel. Drops the portable GitHub Actions workflow + its
+# Python check into the target repo. Server-side, this is the only layer that
+# catches drift introduced on any machine.
+install_drift_sentinel() {
+  local wf_src="$FORGE_DIR/templates/github/forge-drift-sentinel.yml"
+  local py_src="$FORGE_DIR/templates/github/forge_drift_sentinel.py"
+  if [[ ! -f "$wf_src" || ! -f "$py_src" ]]; then
+    printf 'Skipped drift sentinel (templates missing)\n'
+    return 0
+  fi
+  local wf_dest="$TARGET/.github/workflows/forge-drift-sentinel.yml"
+  local py_dest="$TARGET/.github/forge/forge_drift_sentinel.py"
+  mkdir -p "$(dirname "$wf_dest")" "$(dirname "$py_dest")"
+  install -m 0644 "$wf_src" "$wf_dest"
+  install -m 0755 "$py_src" "$py_dest"
+  printf 'Installed %s\n' "${wf_dest#"$TARGET"/}"
+  printf 'Installed %s\n' "${py_dest#"$TARGET"/}"
 }
 
 case "$MODE" in
@@ -83,6 +108,7 @@ case "$MODE" in
     render_command "$FORGE_DIR/adapters/claude-code/commands/product/review.md" "review.md"
     render_command "$FORGE_DIR/adapters/claude-code/commands/product/release.md" "release.md"
     install_product_hook
+    install_drift_sentinel
     ;;
   self)
     copy_command "$FORGE_DIR/adapters/claude-code/commands/self/self.md" "self.md"
