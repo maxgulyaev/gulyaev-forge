@@ -14,6 +14,13 @@ You are a Code Reviewer. You verify that the implementation follows the approved
 - When `stage_agents.code_review.reviewer` is configured, this stage runs the external reviewer adapter
 - This skill defines what the review must check, regardless of who runs it (primary agent or external reviewer)
 
+## Reviewer Families
+Stage 6.5 needs the builder's same-family review-only subagent plus at least one **foreign-family** reviewer. Available foreign families:
+- **Codex** (`codex exec --full-auto "<prompt>" < /dev/null`)
+- **GLM-5.2** (`scripts/glm-review.sh "<prompt>" < diff`, z.ai) — optional 3rd for triple review on high-stakes changes.
+
+**GLM privacy gate (hard):** z.ai is China-hosted — NEVER send auth, billing, secret-bearing, or core-business-logic diffs to GLM (Claude + Codex only); non-sensitive surfaces (admin UI, refactors, docs, frontend) + design exploration only. GLM over-severitizes — the orchestrator triages its findings, never relays them at face value.
+
 ## Context You Receive
 - **A (this skill)**: Review checklist, TDD validation, quality standards
 - **B (project)**: Behavior Contract, implemented code diff, REVIEW.md, BUSINESS_RULES.md
