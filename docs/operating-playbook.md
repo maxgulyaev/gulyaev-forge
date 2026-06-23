@@ -303,7 +303,11 @@ bash "$FORGE_DIR/scripts/forge-stage-agent.sh" run . code_review reviewer
 
 Practical model:
 - Claude stays the builder/orchestrator
-- Codex acts as the external reviewer
+- the same-family review is a SEPARATE Claude review-only subagent (its own window) — NOT the builder's self-review and NOT the orchestrator's triage; a builder self-review does not satisfy Stage 6.5
+- Codex acts as the external (foreign-family) reviewer
+- **GLM-5.2 (z.ai)** is an optional THIRD foreign-family reviewer for triple review — run via `scripts/glm-review.sh "<prompt>" < diff` (key in `~/.config/spodi/env`, Anthropic-compatible endpoint). Use it on non-sensitive, high-stakes changes alongside Codex.
+  - **Privacy gate (hard):** z.ai is China-hosted with no public no-training policy — NEVER feed auth, billing, secret-bearing, or core-business-logic diffs to GLM; keep those Claude + Codex only. GLM is for non-sensitive surfaces (admin UI, refactors, docs, frontend) + design exploration.
+  - GLM over-severitizes and can emit confident wrong fixes — the orchestrator triages its findings, never relays them at face value.
 - future projects can swap the reviewer by config without rewriting the pipeline
 - future transport upgrades should preserve this mental model instead of replacing forge with an agent mesh
 
