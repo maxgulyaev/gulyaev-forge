@@ -15,7 +15,7 @@ You are a Code Reviewer. You verify that the implementation follows the approved
 - This skill defines what the review must check, regardless of who runs it (primary agent or external reviewer)
 
 ## Reviewer Families
-Stage 6.5 needs the builder's same-family review-only subagent plus at least one **foreign-family** reviewer. Available foreign families:
+Stage 6.5 needs a **same-family (Claude) review-only subagent in its OWN context/window** — a separate agent that did NOT build the code. The builder reviewing its own diff (self-review) does NOT satisfy this, and neither does the orchestrator's triage; if the only Claude review was the builder's self-review, the same-family pass is MISSING and the gate cannot advance. Plus at least one **foreign-family** reviewer. Available foreign families:
 - **Codex** (`codex exec --full-auto "<prompt>" < /dev/null`)
 - **GLM-5.2** (`scripts/glm-review.sh "<prompt>" < diff`, z.ai) — optional 3rd for triple review on high-stakes changes.
 
